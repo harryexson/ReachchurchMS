@@ -353,7 +353,7 @@ export default function CompetitiveAnalysis() {
                         Market Intelligence Report - November 2024
                     </Badge>
                     <h1 className="text-4xl font-bold text-slate-900">
-                        Church Management Software Competitive Analysis
+                        Church Management System (ChMS) Competitive Analysis
                     </h1>
                     <p className="text-lg text-slate-600 max-w-3xl mx-auto">
                         Strategic positioning analysis for REACH Church Connect in the $500M+ church management software market
