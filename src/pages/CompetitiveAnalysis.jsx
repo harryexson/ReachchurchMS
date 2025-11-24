@@ -183,7 +183,7 @@ export default function CompetitiveAnalysis() {
         }
     ];
 
-    // REACH ChurchConnect Pricing & Positioning
+    // REACH Church Connect Pricing & Positioning
     const reachPricing = {
         starter: {
             name: "Starter",
@@ -356,7 +356,7 @@ export default function CompetitiveAnalysis() {
                         Church Management Software Competitive Analysis
                     </h1>
                     <p className="text-lg text-slate-600 max-w-3xl mx-auto">
-                        Strategic positioning analysis for REACH ChurchConnect in the $500M+ church management software market
+                        Strategic positioning analysis for REACH Church Connect in the $500M+ church management software market
                     </p>
                 </div>
 
@@ -622,7 +622,7 @@ export default function CompetitiveAnalysis() {
                             <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
                                 <CardTitle className="flex items-center gap-2 text-2xl">
                                     <Zap className="w-8 h-8" />
-                                    REACH ChurchConnect: Strategic Positioning
+                                    REACH Church Connect: Strategic Positioning
                                 </CardTitle>
                                 <CardDescription className="text-blue-100">
                                     "Enterprise features at SMB pricing"

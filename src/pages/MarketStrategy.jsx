@@ -127,7 +127,7 @@ Generated: ${new Date().toLocaleDateString()}
 EXECUTIVE SUMMARY
 ================================================================================
 
-REACH ChurchConnect is positioned to disrupt the $580M church management software 
+REACH Church Connect is positioned to disrupt the $580M church management software 
 market by offering enterprise-grade features at mid-market pricing.
 
 KEY VALUE PROPOSITION:
@@ -304,7 +304,7 @@ MEDIUM-TERM (6-12 Months):
 For questions or investor inquiries:
 Email: info@reachconnect.app
 
-© ${new Date().getFullYear()} REACH ChurchConnect. All rights reserved.
+© ${new Date().getFullYear()} REACH Church Connect. All rights reserved.
         `;
         return content;
     };
@@ -378,7 +378,7 @@ Projections,Month 36 ARR,$7200000,""
                             Strategic Market Analysis - November 2024
                         </Badge>
                         <h1 className="text-4xl font-bold text-slate-900">
-                            REACH ChurchConnect Market Strategy
+                            REACH Church Connect Market Strategy
                         </h1>
                         <p className="text-lg text-slate-600">
                             Competitive Positioning & Growth Plan
@@ -754,7 +754,7 @@ Projections,Month 36 ARR,$7200000,""
                                             <TableHeader>
                                                 <TableRow>
                                                     <TableHead>Feature</TableHead>
-                                                    <TableHead className="bg-blue-50 text-blue-900 font-bold">REACH ChurchConnect</TableHead>
+                                                    <TableHead className="bg-blue-50 text-blue-900 font-bold">REACH Church Connect</TableHead>
                                                     <TableHead>Typical Competitor</TableHead>
                                                 </TableRow>
                                             </TableHeader>

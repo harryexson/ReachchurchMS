@@ -481,7 +481,7 @@ export default function Layout({ children, currentPageName }) {
               <Link to={createPageUrl("LandingPage")} className="flex items-center gap-3">
                 <img 
                   src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68d38ad0f4d6d5d05900d129/2ca3c03b0_ReachLOGOEdited08_44_18AM.png"
-                  alt="REACH ChurchConnect Logo"
+                  alt="REACH Church Connect Logo"
                   className="h-20 w-auto max-w-[250px] object-contain"
                 />
               </Link>
@@ -517,11 +517,11 @@ export default function Layout({ children, currentPageName }) {
         <div className="text-center space-y-6 p-8">
           <img 
             src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68d38ad0f4d6d5d05900d129/2ca3c03b0_ReachLOGOEdited08_44_18AM.png"
-            alt="REACH ChurchConnect Logo"
+            alt="REACH Church Connect Logo"
             className="h-32 w-auto max-w-[400px] mx-auto mb-4 object-contain"
           />
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 mb-2">Welcome to REACH ChurchConnect</h1>
+            <h1 className="text-3xl font-bold text-slate-900 mb-2">Welcome to REACH Church Connect</h1>
             <p className="text-slate-600 mb-6">Please sign in to continue</p>
             <Button onClick={handleLogin} size="lg" className="bg-blue-600 hover:bg-blue-700">
               Sign In with Google
@@ -538,7 +538,7 @@ export default function Layout({ children, currentPageName }) {
         <div className="text-center space-y-6 p-8 max-w-md">
           <img 
             src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68d38ad0f4d6d5d05900d129/2ca3c03b0_ReachLOGOEdited08_44_18AM.png"
-            alt="REACH ChurchConnect Logo"
+            alt="REACH Church Connect Logo"
             className="h-32 w-auto max-w-[400px] mx-auto mb-4 object-contain"
           />
           <div className="bg-red-50 border-2 border-red-200 rounded-xl p-6">
@@ -600,7 +600,7 @@ export default function Layout({ children, currentPageName }) {
             >
               <img 
                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68d38ad0f4d6d5d05900d129/2ca3c03b0_ReachLOGOEdited08_44_18AM.png"
-                alt="REACH ChurchConnect Logo"
+                alt="REACH Church Connect Logo"
                 className="w-full max-w-[200px] h-auto group-hover:scale-105 transition-transform"
               />
             </Link>

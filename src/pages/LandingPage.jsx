@@ -112,7 +112,7 @@ export default function LandingPage() {
     name: "Pastor Michael Johnson",
     church: "Grace Community Church",
     size: "500 members",
-    quote: "REACH ChurchConnect transformed our operations. The giving platform alone increased donations by 40%, and the automated visitor follow-up helped us engage 3x more first-time guests.",
+    quote: "REACH Church Connect transformed our operations. The giving platform alone increased donations by 40%, and the automated visitor follow-up helped us engage 3x more first-time guests.",
     savings: "Saving $400/month vs. our old setup"
   },
   {
@@ -462,7 +462,7 @@ export default function LandingPage() {
                             Loved by Church Leaders
                         </h2>
                         <p className="text-xl text-slate-600">
-                            Join hundreds of churches already growing with REACH ChurchConnect
+                            Join hundreds of churches already growing with REACH Church Connect
                         </p>
                     </div>
 
@@ -511,7 +511,7 @@ export default function LandingPage() {
                             size="lg" 
                             variant="outline"
                             className="border-2 border-white text-white hover:bg-white/10 px-10 py-6 text-lg font-semibold"
-                            onClick={() => window.location.href = 'mailto:info@reachconnect.app?subject=Interested in REACH ChurchConnect'}
+                            onClick={() => window.location.href = 'mailto:info@reachconnect.app?subject=Interested in REACH Church Connect'}
                         >
                             <Mail className="w-5 h-5 mr-2" />
                             Contact Sales
@@ -572,12 +572,12 @@ export default function LandingPage() {
                         <div className="flex items-center gap-3 mb-4 md:mb-0">
                             <img 
                                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68d38ad0f4d6d5d05900d129/2ca3c03b0_ReachLOGOEdited08_44_18AM.png"
-                                alt="REACH ChurchConnect Logo"
+                                alt="REACH Church Connect Logo"
                                 className="h-16 w-auto max-w-[200px] object-contain"
                             />
                         </div>
                         <div className="text-slate-600 text-sm">
-                            © 2024 REACH ChurchConnect. All rights reserved.
+                            © 2024 REACH Church Connect. All rights reserved.
                         </div>
                     </div>
                 </div>

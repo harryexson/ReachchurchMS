@@ -583,7 +583,7 @@ export default function SubscriptionPlansPage() {
                                 <Button
                                             size="lg"
                                             className="bg-white text-blue-600 hover:bg-blue-50 px-8"
-                                            onClick={() => window.location.href = 'mailto:info@reachconnect.app?subject=Interested in REACH ChurchConnect Pricing'}
+                                            onClick={() => window.location.href = 'mailto:info@reachconnect.app?subject=Interested in REACH Church Connect Pricing'}
                                         >
                                             <Mail className="w-5 h-5 mr-2" />
                                             Contact Sales
