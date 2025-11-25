@@ -25,9 +25,18 @@ export default function TextMessagingPage() {
     const [isBroadcastFormOpen, setIsBroadcastFormOpen] = useState(false);
     const [selectedKeyword, setSelectedKeyword] = useState(null);
     const { canUseSMS, getSMSRemaining, hasFeature, loading: subscriptionLoading } = useSubscription();
+    
+    // Test SMS State
+    const [testPhone, setTestPhone] = useState('');
+    const [testMessage, setTestMessage] = useState('Hello from REACH Church Connect! This is a test message.');
+    const [isSendingTest, setIsSendingTest] = useState(false);
+    const [testResult, setTestResult] = useState(null);
+    const [smsSetupStatus, setSmsSetupStatus] = useState(null);
+    const [isCheckingSetup, setIsCheckingSetup] = useState(false);
 
     useEffect(() => {
         loadData();
+        checkSMSSetup();
     }, []);
 
     const loadData = async () => {
