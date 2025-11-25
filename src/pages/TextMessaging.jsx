@@ -229,6 +229,186 @@ export default function TextMessagingPage() {
                             <TabsTrigger value="setup">Setup Guide</TabsTrigger>
                         </TabsList>
 
+                        {/* Test SMS Tab */}
+                        <TabsContent value="test">
+                            <div className="grid lg:grid-cols-2 gap-6">
+                                {/* SMS Setup Status */}
+                                <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                                    <CardHeader>
+                                        <CardTitle className="flex items-center gap-2">
+                                            <TestTube className="w-5 h-5 text-purple-600" />
+                                            SMS Configuration Status
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        {isCheckingSetup ? (
+                                            <div className="flex items-center gap-2 text-slate-600">
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                                Checking configuration...
+                                            </div>
+                                        ) : smsSetupStatus ? (
+                                            <div className="space-y-3">
+                                                {smsSetupStatus.error ? (
+                                                    <Alert className="border-red-200 bg-red-50">
+                                                        <AlertCircle className="w-4 h-4 text-red-600" />
+                                                        <AlertTitle className="text-red-900">Configuration Error</AlertTitle>
+                                                        <AlertDescription className="text-red-700">{smsSetupStatus.error}</AlertDescription>
+                                                    </Alert>
+                                                ) : (
+                                                    <>
+                                                        <div className="p-3 bg-slate-50 rounded-lg">
+                                                            <h4 className="font-semibold text-slate-900 mb-2">Environment Variables</h4>
+                                                            <div className="space-y-1 text-sm">
+                                                                {Object.entries(smsSetupStatus.environment_variables || {}).map(([key, value]) => (
+                                                                    <div key={key} className="flex justify-between">
+                                                                        <span className="text-slate-600">{key}:</span>
+                                                                        <span className={value.includes('✅') ? 'text-green-600' : 'text-red-600'}>{value}</span>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        {smsSetupStatus.all_configured ? (
+                                                            <Alert className="border-green-200 bg-green-50">
+                                                                <CheckCircle className="w-4 h-4 text-green-600" />
+                                                                <AlertTitle className="text-green-900">SMS Ready!</AlertTitle>
+                                                                <AlertDescription className="text-green-700">
+                                                                    All environment variables are configured. You can send test messages.
+                                                                </AlertDescription>
+                                                            </Alert>
+                                                        ) : (
+                                                            <Alert className="border-orange-200 bg-orange-50">
+                                                                <AlertCircle className="w-4 h-4 text-orange-600" />
+                                                                <AlertTitle className="text-orange-900">Setup Incomplete</AlertTitle>
+                                                                <AlertDescription className="text-orange-700">
+                                                                    {smsSetupStatus.instructions?.map((inst, i) => (
+                                                                        <div key={i}>{inst}</div>
+                                                                    ))}
+                                                                </AlertDescription>
+                                                            </Alert>
+                                                        )}
+
+                                                        <div className="p-3 bg-blue-50 rounded-lg">
+                                                            <h4 className="font-semibold text-blue-900 mb-2">Keywords Status</h4>
+                                                            <p className="text-sm text-blue-800">
+                                                                {smsSetupStatus.keywords?.active || 0} active keywords configured
+                                                            </p>
+                                                        </div>
+                                                    </>
+                                                )}
+                                            </div>
+                                        ) : null}
+                                        
+                                        <Button 
+                                            onClick={checkSMSSetup} 
+                                            variant="outline" 
+                                            disabled={isCheckingSetup}
+                                            className="w-full"
+                                        >
+                                            {isCheckingSetup ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <TestTube className="w-4 h-4 mr-2" />}
+                                            Refresh Status
+                                        </Button>
+                                    </CardContent>
+                                </Card>
+
+                                {/* Send Test SMS */}
+                                <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                                    <CardHeader>
+                                        <CardTitle className="flex items-center gap-2">
+                                            <Send className="w-5 h-5 text-green-600" />
+                                            Send Test SMS
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        <div>
+                                            <Label htmlFor="testPhone">Phone Number</Label>
+                                            <div className="relative mt-1">
+                                                <Phone className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
+                                                <Input
+                                                    id="testPhone"
+                                                    value={testPhone}
+                                                    onChange={(e) => setTestPhone(e.target.value)}
+                                                    placeholder="+1 (555) 123-4567"
+                                                    className="pl-10"
+                                                />
+                                            </div>
+                                            <p className="text-xs text-slate-500 mt-1">Enter your phone number to receive a test message</p>
+                                        </div>
+
+                                        <div>
+                                            <Label htmlFor="testMessage">Message</Label>
+                                            <Input
+                                                id="testMessage"
+                                                value={testMessage}
+                                                onChange={(e) => setTestMessage(e.target.value)}
+                                                placeholder="Your test message..."
+                                                className="mt-1"
+                                            />
+                                            <p className="text-xs text-slate-500 mt-1">TCPA disclaimer will be auto-appended</p>
+                                        </div>
+
+                                        <Button 
+                                            onClick={sendTestSMS}
+                                            disabled={isSendingTest || !testPhone}
+                                            className="w-full bg-green-600 hover:bg-green-700"
+                                        >
+                                            {isSendingTest ? (
+                                                <>
+                                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                    Sending...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Send className="w-4 h-4 mr-2" />
+                                                    Send Test SMS
+                                                </>
+                                            )}
+                                        </Button>
+
+                                        {testResult && (
+                                            <Alert className={testResult.success ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"}>
+                                                {testResult.success ? (
+                                                    <CheckCircle className="w-4 h-4 text-green-600" />
+                                                ) : (
+                                                    <AlertCircle className="w-4 h-4 text-red-600" />
+                                                )}
+                                                <AlertTitle className={testResult.success ? "text-green-900" : "text-red-900"}>
+                                                    {testResult.success ? "SMS Sent Successfully!" : "Failed to Send SMS"}
+                                                </AlertTitle>
+                                                <AlertDescription className={testResult.success ? "text-green-700" : "text-red-700"}>
+                                                    {testResult.success ? (
+                                                        <div className="space-y-1">
+                                                            <div>Message ID: {testResult.message_id}</div>
+                                                            <div>Sent to: {testResult.to}</div>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="space-y-1">
+                                                            <div>{testResult.error}</div>
+                                                            {testResult.details && (
+                                                                <pre className="text-xs mt-2 p-2 bg-red-100 rounded overflow-x-auto">
+                                                                    {JSON.stringify(testResult.details, null, 2)}
+                                                                </pre>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </AlertDescription>
+                                            </Alert>
+                                        )}
+
+                                        <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                                            <h4 className="font-semibold text-yellow-900 text-sm mb-2">💡 Tips</h4>
+                                            <ul className="text-xs text-yellow-800 space-y-1">
+                                                <li>• Make sure SMS is configured in Settings first</li>
+                                                <li>• Use your own phone number for testing</li>
+                                                <li>• Check Message History tab after sending</li>
+                                                <li>• If on trial, only verified numbers work</li>
+                                            </ul>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        </TabsContent>
+
                         <TabsContent value="keywords">
                             <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
                                 <CardHeader>
