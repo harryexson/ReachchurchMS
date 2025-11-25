@@ -52,6 +52,18 @@ export default function Dashboard() {
         setCurrentUser(user);
         setShowAuthHelp(false);
       } catch (authError) {
+        // Ignore transient WebSocket/connection errors
+        if (authError.message && (
+          authError.message.includes('WebSocket') || 
+          authError.message.includes('closed') ||
+          authError.message.includes('aborted')
+        )) {
+          console.log("Transient connection error, retrying...");
+          if (!signal?.aborted) {
+            setTimeout(() => loadDashboardData(signal), 1000);
+          }
+          return;
+        }
         console.error("Authentication issue:", authError);
         setShowAuthHelp(true);
         setIsLoading(false);
