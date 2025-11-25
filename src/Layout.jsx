@@ -109,22 +109,27 @@ export default function Layout({ children, currentPageName }) {
 
       try {
         const user = await base44.auth.me();
-        
+
         if (user) {
-          await base44.auth.updateMe({
+          // Update last login silently - don't block on this
+          base44.auth.updateMe({
             last_login: new Date().toISOString()
-          });
-          
+          }).catch(() => {});
+
           setCurrentUser(user);
           setAuthError(null);
         }
       } catch (error) {
-        // Ignore aborted requests (happens during navigation/unmount)
-        if (error.message && error.message.includes('aborted')) {
-          console.log('Auth request aborted (navigation/unmount)');
+        // Ignore aborted requests and WebSocket errors (transient connection issues)
+        if (error.message && (
+          error.message.includes('aborted') || 
+          error.message.includes('WebSocket') ||
+          error.message.includes('closed')
+        )) {
+          console.log('Connection issue (will retry):', error.message);
           return;
         }
-        
+
         console.error('Auth error:', error);
         setAuthError(error.message || 'Authentication failed');
         setCurrentUser(null);
