@@ -380,6 +380,18 @@ export default function TextMessagingPage() {
                                                         <div className="space-y-1">
                                                             <div>Message ID: {testResult.message_id}</div>
                                                             <div>Sent to: {testResult.to}</div>
+                                                            <div className="text-xs mt-2 text-yellow-700 bg-yellow-50 p-2 rounded">
+                                                                ⚠️ <strong>Note:</strong> If on Sinch trial, messages only deliver to verified numbers. 
+                                                                Verify your number at <a href="https://dashboard.sinch.com" target="_blank" rel="noopener noreferrer" className="underline">dashboard.sinch.com</a> → Numbers → Verified Numbers.
+                                                            </div>
+                                                            {testResult.sinch_response && (
+                                                                <details className="mt-2">
+                                                                    <summary className="text-xs cursor-pointer text-slate-600">View Sinch Response</summary>
+                                                                    <pre className="text-xs mt-1 p-2 bg-slate-100 rounded overflow-x-auto">
+                                                                        {JSON.stringify(testResult.sinch_response, null, 2)}
+                                                                    </pre>
+                                                                </details>
+                                                            )}
                                                         </div>
                                                     ) : (
                                                         <div className="space-y-1">
