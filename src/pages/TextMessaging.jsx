@@ -68,6 +68,51 @@ export default function TextMessagingPage() {
         ? Math.round((messages.filter(m => m.status === 'delivered' || m.status === 'sent').length / totalMessages) * 100)
         : 0;
 
+    const checkSMSSetup = async () => {
+        setIsCheckingSetup(true);
+        try {
+            const response = await base44.functions.invoke('testSinchSetup');
+            setSmsSetupStatus(response.data || response);
+        } catch (error) {
+            console.error('Error checking SMS setup:', error);
+            setSmsSetupStatus({ error: error.message });
+        }
+        setIsCheckingSetup(false);
+    };
+
+    const sendTestSMS = async () => {
+        if (!testPhone) {
+            setTestResult({ success: false, error: 'Please enter a phone number' });
+            return;
+        }
+        
+        setIsSendingTest(true);
+        setTestResult(null);
+        
+        try {
+            const response = await base44.functions.invoke('sendSinchSMS', {
+                to: testPhone,
+                message: testMessage
+            });
+            
+            const data = response.data || response;
+            setTestResult(data);
+            
+            if (data.success) {
+                // Reload messages to show the test
+                await loadData();
+            }
+        } catch (error) {
+            console.error('Test SMS error:', error);
+            setTestResult({ 
+                success: false, 
+                error: error.response?.data?.error || error.message || 'Failed to send test SMS'
+            });
+        }
+        
+        setIsSendingTest(false);
+    };
+
     return (
         <FeatureGate 
             feature="sms_enabled"
