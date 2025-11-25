@@ -85,6 +85,7 @@ import SinchWebhookTest from './pages/SinchWebhookTest';
 import SinchWebhookDiagnostics from './pages/SinchWebhookDiagnostics';
 import CheckDeposit from './pages/CheckDeposit';
 import OnboardingWizard from './pages/OnboardingWizard';
+import AutoDeviceSetup from './pages/AutoDeviceSetup';
 import __Layout from './Layout.jsx';
 
 
@@ -176,6 +177,7 @@ export const PAGES = {
     "SinchWebhookDiagnostics": SinchWebhookDiagnostics,
     "CheckDeposit": CheckDeposit,
     "OnboardingWizard": OnboardingWizard,
+    "AutoDeviceSetup": AutoDeviceSetup,
 }
 
 export const pagesConfig = {
