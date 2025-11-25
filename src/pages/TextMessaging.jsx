@@ -222,6 +222,7 @@ export default function TextMessagingPage() {
 
                     <Tabs defaultValue="keywords" className="space-y-6">
                         <TabsList>
+                            <TabsTrigger value="test">Test SMS</TabsTrigger>
                             <TabsTrigger value="keywords">Keywords</TabsTrigger>
                             <TabsTrigger value="subscribers">Subscribers</TabsTrigger>
                             <TabsTrigger value="messages">Message History</TabsTrigger>
