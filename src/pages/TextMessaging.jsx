@@ -220,7 +220,7 @@ export default function TextMessagingPage() {
                         </Card>
                     </div>
 
-                    <Tabs defaultValue="keywords" className="space-y-6">
+                    <Tabs defaultValue="test" className="space-y-6">
                         <TabsList>
                             <TabsTrigger value="test">Test SMS</TabsTrigger>
                             <TabsTrigger value="keywords">Keywords</TabsTrigger>
