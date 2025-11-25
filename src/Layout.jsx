@@ -359,10 +359,15 @@ export default function Layout({ children, currentPageName }) {
       icon: Settings,
     },
     {
-      title: "Device Management",
-      url: createPageUrl("DeviceManagement"),
-      icon: Monitor,
-    },
+        title: "Device Management",
+        url: createPageUrl("DeviceManagement"),
+        icon: Monitor,
+      },
+      {
+        title: "Auto Device Setup",
+        url: createPageUrl("AutoDeviceSetup"),
+        icon: Wifi,
+      },
     {
       title: "Settings",
       url: createPageUrl("Settings"),
