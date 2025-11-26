@@ -569,62 +569,64 @@ export default function LandingPage() {
             <footer className="bg-slate-900 text-white py-16">
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
-                        {/* Logo & Description */}
-                        <div className="col-span-2">
+                        {/* Logo & About */}
+                        <div className="col-span-2 md:col-span-1">
                             <img 
                                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68d38ad0f4d6d5d05900d129/2ca3c03b0_ReachLOGOEdited08_44_18AM.png"
                                 alt="REACH Church Connect Logo"
-                                className="h-16 w-auto max-w-[200px] object-contain mb-4 brightness-0 invert"
+                                className="h-12 w-auto mb-4 brightness-0 invert"
                             />
-                            <p className="text-slate-400 text-sm mb-4">
-                                The all-in-one church management platform that helps you connect, engage, and grow your congregation.
-                            </p>
-                            <p className="text-slate-500 text-sm">
-                                support@reachchurchMS.com
+                            <p className="text-slate-400 text-sm">
+                                Empowering churches with modern technology.
                             </p>
                         </div>
 
                         {/* Product */}
                         <div>
-                            <h4 className="font-semibold text-white mb-4">Product</h4>
-                            <ul className="space-y-2 text-sm">
-                                <li><Link to={createPageUrl('SubscriptionPlans')} className="text-slate-400 hover:text-white transition-colors">Pricing</Link></li>
-                                <li><Link to={createPageUrl('Documentation')} className="text-slate-400 hover:text-white transition-colors">Features</Link></li>
-                                <li><Link to={createPageUrl('PublicEventsCalendar')} className="text-slate-400 hover:text-white transition-colors">Events Calendar</Link></li>
+                            <h4 className="font-semibold mb-4">Product</h4>
+                            <ul className="space-y-2 text-sm text-slate-400">
+                                <li><Link to={createPageUrl('SubscriptionPlans')} className="hover:text-white">Pricing</Link></li>
+                                <li><Link to={createPageUrl('PublicEventsCalendar')} className="hover:text-white">Events</Link></li>
+                                <li><Link to={createPageUrl('PublicGiving')} className="hover:text-white">Give Online</Link></li>
                             </ul>
                         </div>
 
                         {/* Support */}
                         <div>
-                            <h4 className="font-semibold text-white mb-4">Support</h4>
-                            <ul className="space-y-2 text-sm">
-                                <li><Link to={createPageUrl('HelpCenter')} className="text-slate-400 hover:text-white transition-colors">Help Center</Link></li>
-                                <li><Link to={createPageUrl('Documentation')} className="text-slate-400 hover:text-white transition-colors">Documentation</Link></li>
-                                <li><Link to={createPageUrl('Resources')} className="text-slate-400 hover:text-white transition-colors">Resources</Link></li>
-                                <li><Link to={createPageUrl('Support')} className="text-slate-400 hover:text-white transition-colors">Contact Support</Link></li>
+                            <h4 className="font-semibold mb-4">Support</h4>
+                            <ul className="space-y-2 text-sm text-slate-400">
+                                <li><Link to={createPageUrl('HelpCenter')} className="hover:text-white">Help Center</Link></li>
+                                <li><Link to={createPageUrl('Documentation')} className="hover:text-white">Documentation</Link></li>
+                                <li><Link to={createPageUrl('Support')} className="hover:text-white">Contact Support</Link></li>
+                                <li><Link to={createPageUrl('Resources')} className="hover:text-white">Resources</Link></li>
                             </ul>
                         </div>
 
                         {/* Company */}
                         <div>
-                            <h4 className="font-semibold text-white mb-4">Company</h4>
-                            <ul className="space-y-2 text-sm">
-                                <li><Link to={createPageUrl('Careers')} className="text-slate-400 hover:text-white transition-colors">Careers</Link></li>
-                                <li><Link to={createPageUrl('PrivacyPolicy')} className="text-slate-400 hover:text-white transition-colors">Privacy Policy</Link></li>
-                                <li><Link to={createPageUrl('TermsOfService')} className="text-slate-400 hover:text-white transition-colors">Terms of Service</Link></li>
+                            <h4 className="font-semibold mb-4">Company</h4>
+                            <ul className="space-y-2 text-sm text-slate-400">
+                                <li><Link to={createPageUrl('Careers')} className="hover:text-white">Careers</Link></li>
+                                <li><a href="mailto:support@reachchurchMS.com" className="hover:text-white">Contact Us</a></li>
+                            </ul>
+                        </div>
+
+                        {/* Legal */}
+                        <div>
+                            <h4 className="font-semibold mb-4">Legal</h4>
+                            <ul className="space-y-2 text-sm text-slate-400">
+                                <li><Link to={createPageUrl('PrivacyPolicy')} className="hover:text-white">Privacy Policy</Link></li>
+                                <li><Link to={createPageUrl('TermsOfService')} className="hover:text-white">Terms of Service</Link></li>
                             </ul>
                         </div>
                     </div>
 
-                    {/* Bottom Bar */}
                     <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row items-center justify-between">
-                        <div className="text-slate-500 text-sm mb-4 md:mb-0">
+                        <div className="text-slate-400 text-sm mb-4 md:mb-0">
                             © 2024 REACH Church Connect. A product of Bold Intelligent Solutions, LLC. All rights reserved.
                         </div>
-                        <div className="flex gap-6 text-sm">
-                            <Link to={createPageUrl('PrivacyPolicy')} className="text-slate-400 hover:text-white transition-colors">Privacy</Link>
-                            <Link to={createPageUrl('TermsOfService')} className="text-slate-400 hover:text-white transition-colors">Terms</Link>
-                            <Link to={createPageUrl('Support')} className="text-slate-400 hover:text-white transition-colors">Support</Link>
+                        <div className="flex gap-4 text-sm text-slate-400">
+                            <a href="mailto:support@reachchurchMS.com" className="hover:text-white">support@reachchurchMS.com</a>
                         </div>
                     </div>
                 </div>
