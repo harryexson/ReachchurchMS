@@ -86,13 +86,6 @@ import SinchWebhookDiagnostics from './pages/SinchWebhookDiagnostics';
 import CheckDeposit from './pages/CheckDeposit';
 import OnboardingWizard from './pages/OnboardingWizard';
 import AutoDeviceSetup from './pages/AutoDeviceSetup';
-import Careers from './pages/Careers';
-import Support from './pages/Support';
-import HelpCenter from './pages/HelpCenter';
-import Documentation from './pages/Documentation';
-import Resources from './pages/Resources';
-import PrivacyPolicy from './pages/PrivacyPolicy';
-import TermsOfService from './pages/TermsOfService';
 import __Layout from './Layout.jsx';
 
 
@@ -185,13 +178,6 @@ export const PAGES = {
     "CheckDeposit": CheckDeposit,
     "OnboardingWizard": OnboardingWizard,
     "AutoDeviceSetup": AutoDeviceSetup,
-    "Careers": Careers,
-    "Support": Support,
-    "HelpCenter": HelpCenter,
-    "Documentation": Documentation,
-    "Resources": Resources,
-    "PrivacyPolicy": PrivacyPolicy,
-    "TermsOfService": TermsOfService,
 }
 
 export const pagesConfig = {
