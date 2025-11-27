@@ -124,6 +124,9 @@ export default function Layout({ children, currentPageName }) {
           }).catch(() => {});
 
           // Check subscription status for the user
+          let hasValidSubscription = false;
+          let trialExpired = false;
+          
           try {
             const subscriptions = await base44.entities.Subscription.filter({
               church_admin_email: user.email
@@ -132,29 +135,44 @@ export default function Layout({ children, currentPageName }) {
             if (subscriptions.length > 0) {
               const subscription = subscriptions[0];
               
-              // Check if trial has expired and subscription is not active
-              if (subscription.status === 'trial' && subscription.trial_end_date) {
+              // Check subscription status
+              if (subscription.status === 'active') {
+                // Active paid subscription - always valid
+                hasValidSubscription = true;
+                console.log('User has active subscription:', subscription.subscription_tier);
+              } else if (subscription.status === 'trial' && subscription.trial_end_date) {
                 const trialEnd = new Date(subscription.trial_end_date);
                 const now = new Date();
                 
-                if (now > trialEnd) {
-                  // Trial expired - redirect to subscription page
-                  console.log('Trial expired, redirecting to subscription page');
-                  if (!pageLower.includes('subscriptionplans')) {
-                    window.location.href = createPageUrl('SubscriptionPlans');
-                    return;
-                  }
+                if (now <= trialEnd) {
+                  // Trial is still valid
+                  hasValidSubscription = true;
+                  console.log('User has valid trial until:', subscription.trial_end_date);
+                } else {
+                  // Trial expired
+                  trialExpired = true;
+                  console.log('Trial expired on:', subscription.trial_end_date);
                 }
+              } else if (subscription.status === 'trial' && !subscription.trial_end_date) {
+                // Trial without end date - treat as valid
+                hasValidSubscription = true;
+                console.log('User has trial subscription (no end date)');
               }
-              
-              // If user has an active subscription or valid trial, they're good
-              console.log('User has valid subscription:', subscription.subscription_tier, subscription.status);
             }
           } catch (subError) {
-            // If we can't check subscription, don't block the user
+            // If we can't check subscription, allow access (don't block users)
             console.log('Could not check subscription status:', subError.message);
+            hasValidSubscription = true; // Allow access on error
           }
 
+          // Only redirect to subscription page if trial has expired
+          if (trialExpired && !pageLower.includes('subscriptionplans')) {
+            console.log('Trial expired, redirecting to subscription page');
+            window.location.href = createPageUrl('SubscriptionPlans');
+            return;
+          }
+
+          // User is authenticated - set them as current user
           setCurrentUser(user);
           setAuthError(null);
         }
