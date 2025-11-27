@@ -123,6 +123,38 @@ export default function Layout({ children, currentPageName }) {
             last_login: new Date().toISOString()
           }).catch(() => {});
 
+          // Check subscription status for the user
+          try {
+            const subscriptions = await base44.entities.Subscription.filter({
+              church_admin_email: user.email
+            });
+            
+            if (subscriptions.length > 0) {
+              const subscription = subscriptions[0];
+              
+              // Check if trial has expired and subscription is not active
+              if (subscription.status === 'trial' && subscription.trial_end_date) {
+                const trialEnd = new Date(subscription.trial_end_date);
+                const now = new Date();
+                
+                if (now > trialEnd) {
+                  // Trial expired - redirect to subscription page
+                  console.log('Trial expired, redirecting to subscription page');
+                  if (!pageLower.includes('subscriptionplans')) {
+                    window.location.href = createPageUrl('SubscriptionPlans');
+                    return;
+                  }
+                }
+              }
+              
+              // If user has an active subscription or valid trial, they're good
+              console.log('User has valid subscription:', subscription.subscription_tier, subscription.status);
+            }
+          } catch (subError) {
+            // If we can't check subscription, don't block the user
+            console.log('Could not check subscription status:', subError.message);
+          }
+
           setCurrentUser(user);
           setAuthError(null);
         }
