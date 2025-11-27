@@ -149,6 +149,30 @@ Deno.serve(async (req) => {
                         console.log(`[${requestId}] ✅ New subscription created: ${newSub.id} with ${planTier} plan`);
                     }
 
+                    // CRITICAL: Update the user's role to admin when they subscribe
+                    try {
+                        console.log(`[${requestId}] Updating user role to admin for: ${customerEmail}`);
+                        const users = await base44.asServiceRole.entities.User.filter({
+                            email: customerEmail
+                        });
+                        
+                        if (users.length > 0) {
+                            const user = users[0];
+                            if (user.role !== 'admin') {
+                                await base44.asServiceRole.entities.User.update(user.id, {
+                                    role: 'admin'
+                                });
+                                console.log(`[${requestId}] ✅ User ${customerEmail} role updated to admin`);
+                            } else {
+                                console.log(`[${requestId}] ℹ️ User ${customerEmail} is already admin`);
+                            }
+                        } else {
+                            console.log(`[${requestId}] ⚠️ User not found for email: ${customerEmail}`);
+                        }
+                    } catch (userError) {
+                        console.error(`[${requestId}] ⚠️ Failed to update user role:`, userError.message);
+                    }
+
                     console.log(`[${requestId}] ========================================`);
                     console.log(`[${requestId}] SUBSCRIPTION PROCESSING COMPLETE`);
                     console.log(`[${requestId}] Email: ${customerEmail}`);
