@@ -13,6 +13,34 @@ export default function SubscriptionPlansPage() {
     const [selectedBilling, setSelectedBilling] = useState("monthly");
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [isUpgrade, setIsUpgrade] = useState(false);
+    const [existingSubscription, setExistingSubscription] = useState(null);
+
+    // Check if this is an upgrade from expired trial
+    React.useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('upgrade') === 'true') {
+            setIsUpgrade(true);
+        }
+        
+        // Load existing subscription info
+        const loadExistingSubscription = async () => {
+            try {
+                const user = await base44.auth.me();
+                if (user?.email) {
+                    const subs = await base44.entities.Subscription.filter({
+                        church_admin_email: user.email
+                    });
+                    if (subs.length > 0) {
+                        setExistingSubscription(subs[0]);
+                    }
+                }
+            } catch (e) {
+                console.log('Could not load subscription:', e);
+            }
+        };
+        loadExistingSubscription();
+    }, []);
 
     const plans = [
         {
@@ -197,12 +225,21 @@ export default function SubscriptionPlansPage() {
                         transition={{ duration: 0.6 }}
                     >
                         <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
-                            Simple, Transparent Pricing
-                        </h1>
-                        <p className="text-xl text-blue-100 mb-8 max-w-3xl mx-auto">
-                            Choose the perfect plan for your church. No hidden fees, no surprises.
-                            Cancel anytime.
-                        </p>
+                              {isUpgrade ? "Upgrade Your Subscription" : "Simple, Transparent Pricing"}
+                          </h1>
+                          <p className="text-xl text-blue-100 mb-8 max-w-3xl mx-auto">
+                              {isUpgrade 
+                                  ? "Your trial has ended. Choose a plan to continue using all features. Your data and settings are preserved!"
+                                  : "Choose the perfect plan for your church. No hidden fees, no surprises. Cancel anytime."
+                              }
+                          </p>
+                          {isUpgrade && existingSubscription && (
+                              <div className="bg-white/20 backdrop-blur-sm rounded-lg px-6 py-3 inline-block mb-4">
+                                  <p className="text-white">
+                                      👋 Welcome back, {existingSubscription.church_name}! Your account is ready to upgrade.
+                                  </p>
+                              </div>
+                          )}
                         
                         {/* Billing Toggle */}
                         <div className="inline-flex items-center gap-4 bg-white/20 backdrop-blur-sm rounded-full p-2">
