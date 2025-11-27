@@ -76,7 +76,14 @@ const PUBLIC_PATHS = [
   'kiosk-giving-setup',
   'kioskgiving',
   'marketstrategy',
-  'competitiveanalysis'
+  'competitiveanalysis',
+  'careers',
+  'support',
+  'helpcenter',
+  'documentation',
+  'resources',
+  'privacypolicy',
+  'termsofservice'
 ];
 
 export default function Layout({ children, currentPageName }) {
