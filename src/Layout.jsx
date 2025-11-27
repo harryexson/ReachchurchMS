@@ -561,6 +561,8 @@ export default function Layout({ children, currentPageName }) {
   }
 
   if (!currentUser && !authError) {
+    // User is not authenticated - show sign in page
+    // This should only show if user has never signed in before
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50/30">
         <div className="text-center space-y-6 p-8">
