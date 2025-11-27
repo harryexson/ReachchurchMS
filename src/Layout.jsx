@@ -165,10 +165,10 @@ export default function Layout({ children, currentPageName }) {
             hasValidSubscription = true; // Allow access on error
           }
 
-          // Only redirect to subscription page if trial has expired
+          // Only redirect to subscription page if trial has expired (not homepage)
           if (trialExpired && !pageLower.includes('subscriptionplans')) {
-            console.log('Trial expired, redirecting to subscription page');
-            window.location.href = createPageUrl('SubscriptionPlans');
+            console.log('Trial expired, redirecting to subscription page to upgrade');
+            window.location.href = createPageUrl('SubscriptionPlans') + '?upgrade=true';
             return;
           }
 
@@ -219,7 +219,8 @@ export default function Layout({ children, currentPageName }) {
   };
 
   const handleLogin = () => {
-    base44.auth.redirectToLogin();
+    // Redirect to dashboard after login, not homepage
+    base44.auth.redirectToLogin(createPageUrl("Dashboard"));
   };
 
   const handleRetry = () => {
@@ -557,7 +558,7 @@ export default function Layout({ children, currentPageName }) {
                   <Button variant="ghost">Pricing</Button>
                 </Link>
                 {!currentUser && (
-                  <Button onClick={handleLogin} className="bg-blue-600 hover:bg-blue-700">
+                  <Button onClick={() => base44.auth.redirectToLogin(createPageUrl("Dashboard"))} className="bg-blue-600 hover:bg-blue-700">
                     Sign In
                   </Button>
                 )}
@@ -579,8 +580,8 @@ export default function Layout({ children, currentPageName }) {
   }
 
   if (!currentUser && !authError) {
-    // User is not authenticated - show sign in page
-    // This should only show if user has never signed in before
+    // User is not authenticated - redirect to login with dashboard as destination
+    // This ensures after login they go to dashboard, not homepage
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50/30">
         <div className="text-center space-y-6 p-8">
@@ -592,7 +593,7 @@ export default function Layout({ children, currentPageName }) {
           <div>
             <h1 className="text-3xl font-bold text-slate-900 mb-2">Welcome to REACH Church Connect</h1>
             <p className="text-slate-600 mb-6">Please sign in to continue</p>
-            <Button onClick={handleLogin} size="lg" className="bg-blue-600 hover:bg-blue-700">
+            <Button onClick={() => base44.auth.redirectToLogin(createPageUrl("Dashboard"))} size="lg" className="bg-blue-600 hover:bg-blue-700">
               Sign In with Google
             </Button>
           </div>
