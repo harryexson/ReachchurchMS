@@ -3,11 +3,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { 
     Wifi, Bluetooth, Printer, Monitor, Tv, RefreshCw, 
     CheckCircle, XCircle, Loader2, Search, Signal, 
-    Coffee, Baby, ChefHat, Presentation, Unplug
+    Coffee, Baby, ChefHat, Presentation, Unplug, Plus
 } from "lucide-react";
+import { base44 } from "@/api/base44Client";
 
 export default function DeviceDiscovery({ 
     deviceType = "all", // "printer", "display", "all"
@@ -22,6 +25,8 @@ export default function DeviceDiscovery({
     const [disconnectingDevice, setDisconnectingDevice] = useState(null);
     const [error, setError] = useState(null);
     const [bluetoothSupported, setBluetoothSupported] = useState(false);
+    const [showManualAdd, setShowManualAdd] = useState(false);
+    const [manualDevice, setManualDevice] = useState({ name: '', ipAddress: '', type: 'display', subType: 'tv' });
 
     useEffect(() => {
         // Check if Web Bluetooth API is available
@@ -34,16 +39,31 @@ export default function DeviceDiscovery({
         setIsScanning(true);
         setScanMethod("wifi");
         setError(null);
-        setDiscoveredDevices([]);
 
         try {
-            // Simulate network device discovery
-            // In production, this would use mDNS/Bonjour or SSDP protocols
-            const mockDevices = await simulateNetworkScan(deviceType);
-            setDiscoveredDevices(mockDevices);
+            // Call backend function to scan network
+            const response = await base44.functions.invoke('scanNetworkDevices', {
+                deviceType: deviceType
+            });
+
+            if (response.data && response.data.devices) {
+                // Merge with existing devices, avoiding duplicates
+                const newDevices = response.data.devices;
+                setDiscoveredDevices(prev => {
+                    const existingIds = new Set(prev.map(d => d.id));
+                    const uniqueNew = newDevices.filter(d => !existingIds.has(d.id));
+                    return [...prev, ...uniqueNew];
+                });
+
+                if (newDevices.length === 0) {
+                    setError("No devices found. Try adding devices manually or check that devices are powered on and connected to the same network.");
+                }
+            } else {
+                setError("Network scan completed but no devices were found.");
+            }
         } catch (err) {
-            setError("Failed to scan network. Please check your connection.");
             console.error("Network scan error:", err);
+            setError("Failed to scan network. You can add devices manually using their IP address.");
         }
 
         setIsScanning(false);
@@ -92,14 +112,36 @@ export default function DeviceDiscovery({
         setIsScanning(false);
     };
 
-    const simulateNetworkScan = async (type) => {
-        // Show scanning animation for 2 seconds
-        await new Promise(resolve => setTimeout(resolve, 2000));
+    const addManualDevice = () => {
+        if (!manualDevice.name || !manualDevice.ipAddress) {
+            setError("Please enter device name and IP address");
+            return;
+        }
 
-        // No mock devices - return empty array
-        // Real device discovery requires native APIs not available in browsers
-        // Users should manually add devices or use Bluetooth scanning
-        return [];
+        // Validate IP address format
+        const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
+        if (!ipRegex.test(manualDevice.ipAddress)) {
+            setError("Please enter a valid IP address (e.g., 192.168.1.100)");
+            return;
+        }
+
+        const newDevice = {
+            id: `manual-${manualDevice.ipAddress}-${Date.now()}`,
+            name: manualDevice.name,
+            type: manualDevice.type,
+            subType: manualDevice.subType,
+            connectionType: 'wifi',
+            ipAddress: manualDevice.ipAddress,
+            macAddress: null,
+            signal: 'strong',
+            status: 'available',
+            capabilities: manualDevice.type === 'printer' ? ['print', 'network'] : ['cast', 'network']
+        };
+
+        setDiscoveredDevices(prev => [...prev, newDevice]);
+        setManualDevice({ name: '', ipAddress: '', type: 'display', subType: 'tv' });
+        setShowManualAdd(false);
+        setError(null);
     };
 
     const getBluetoothFilters = (type) => {
@@ -241,19 +283,39 @@ export default function DeviceDiscovery({
             {/* Scan Buttons */}
             <div className="flex flex-wrap gap-4">
                 <Button
+                    onClick={scanForWifiDevices}
+                    disabled={isScanning}
+                    className="bg-blue-600 hover:bg-blue-700"
+                >
+                    {isScanning && scanMethod === "wifi" ? (
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    ) : (
+                        <Wifi className="w-5 h-5 mr-2" />
+                    )}
+                    Scan WiFi Network
+                </Button>
+
+                <Button
                     onClick={scanForBluetoothDevices}
                     disabled={isScanning || !bluetoothSupported}
-                    className="bg-blue-600 hover:bg-blue-700"
+                    variant="outline"
+                    className="border-2"
                 >
                     {isScanning && scanMethod === "bluetooth" ? (
                         <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                     ) : (
                         <Bluetooth className="w-5 h-5 mr-2" />
                     )}
-                    Scan for Bluetooth Devices
+                    Scan Bluetooth
                 </Button>
 
-
+                <Button
+                    onClick={() => setShowManualAdd(!showManualAdd)}
+                    variant="outline"
+                >
+                    <Plus className="w-5 h-5 mr-2" />
+                    Add Manually
+                </Button>
 
                 {discoveredDevices.length > 0 && (
                     <Button
@@ -266,6 +328,85 @@ export default function DeviceDiscovery({
                     </Button>
                 )}
             </div>
+
+            {/* Manual Add Form */}
+            {showManualAdd && (
+                <Card className="border-2 border-blue-200 bg-blue-50/50">
+                    <CardContent className="p-4 space-y-4">
+                        <h4 className="font-semibold text-slate-900">Add Device Manually</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="deviceName">Device Name</Label>
+                                <Input
+                                    id="deviceName"
+                                    placeholder="e.g., Living Room TV"
+                                    value={manualDevice.name}
+                                    onChange={(e) => setManualDevice({...manualDevice, name: e.target.value})}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="ipAddress">IP Address</Label>
+                                <Input
+                                    id="ipAddress"
+                                    placeholder="e.g., 192.168.1.100"
+                                    value={manualDevice.ipAddress}
+                                    onChange={(e) => setManualDevice({...manualDevice, ipAddress: e.target.value})}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="deviceType">Device Type</Label>
+                                <select
+                                    id="deviceType"
+                                    className="w-full h-10 px-3 rounded-md border border-slate-300"
+                                    value={manualDevice.type}
+                                    onChange={(e) => setManualDevice({...manualDevice, type: e.target.value})}
+                                >
+                                    <option value="display">Display/TV</option>
+                                    <option value="printer">Printer</option>
+                                </select>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="subType">Specific Type</Label>
+                                <select
+                                    id="subType"
+                                    className="w-full h-10 px-3 rounded-md border border-slate-300"
+                                    value={manualDevice.subType}
+                                    onChange={(e) => setManualDevice({...manualDevice, subType: e.target.value})}
+                                >
+                                    {manualDevice.type === 'display' ? (
+                                        <>
+                                            <option value="tv">Smart TV (Samsung, LG, Vizio, etc.)</option>
+                                            <option value="chromecast">Chromecast / Google TV</option>
+                                            <option value="firetv">Amazon Fire TV</option>
+                                            <option value="roku">Roku</option>
+                                            <option value="tablet">Android Tablet</option>
+                                            <option value="monitor">Monitor/Display</option>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <option value="receipt">Receipt Printer</option>
+                                            <option value="label">Label Printer</option>
+                                            <option value="other">Other Printer</option>
+                                        </>
+                                    )}
+                                </select>
+                            </div>
+                        </div>
+                        <div className="flex gap-2">
+                            <Button onClick={addManualDevice} className="bg-green-600 hover:bg-green-700">
+                                <Plus className="w-4 h-4 mr-2" />
+                                Add Device
+                            </Button>
+                            <Button variant="outline" onClick={() => setShowManualAdd(false)}>
+                                Cancel
+                            </Button>
+                        </div>
+                        <p className="text-xs text-slate-500">
+                            💡 Find your device's IP address in its network settings, or check your router's connected devices list.
+                        </p>
+                    </CardContent>
+                </Card>
+            )}
 
             {/* Bluetooth Not Supported Warning */}
             {!bluetoothSupported && (
@@ -418,7 +559,7 @@ export default function DeviceDiscovery({
             )}
 
             {/* Empty State */}
-            {!isScanning && discoveredDevices.length === 0 && (
+            {!isScanning && discoveredDevices.length === 0 && !showManualAdd && (
                 <Card className="border-2 border-dashed">
                     <CardContent className="p-12 text-center">
                         <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -426,12 +567,22 @@ export default function DeviceDiscovery({
                         </div>
                         <h3 className="font-semibold text-slate-900 mb-2">No Devices Found</h3>
                         <p className="text-slate-600 mb-4">
-                            Use Bluetooth scanning to discover nearby devices, or add devices manually.
+                            Scan your network to discover TVs, displays, and printers.
                         </p>
-                        <div className="text-xs text-slate-500 space-y-1">
-                            <p>• <strong>Bluetooth:</strong> Click "Scan Bluetooth" with device in pairing mode</p>
-                            <p>• <strong>WiFi devices:</strong> Add manually via Settings → Printer Setup</p>
-                            <p>• <strong>Note:</strong> Browser limitations prevent automatic WiFi network scanning</p>
+                        <div className="text-xs text-slate-500 space-y-1 text-left max-w-md mx-auto">
+                            <p>• <strong>WiFi Scan:</strong> Discovers Samsung, LG, Vizio, Roku, Fire TV, Chromecast & network printers</p>
+                            <p>• <strong>Bluetooth:</strong> For Bluetooth-enabled printers and devices</p>
+                            <p>• <strong>Manual:</strong> Add any device by entering its IP address</p>
+                        </div>
+                        <div className="mt-6 flex gap-3 justify-center">
+                            <Button onClick={scanForWifiDevices} className="bg-blue-600 hover:bg-blue-700">
+                                <Wifi className="w-4 h-4 mr-2" />
+                                Scan WiFi Network
+                            </Button>
+                            <Button variant="outline" onClick={() => setShowManualAdd(true)}>
+                                <Plus className="w-4 h-4 mr-2" />
+                                Add Manually
+                            </Button>
                         </div>
                     </CardContent>
                 </Card>
