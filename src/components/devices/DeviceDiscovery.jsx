@@ -91,102 +91,13 @@ export default function DeviceDiscovery({
     };
 
     const simulateNetworkScan = async (type) => {
-        // Simulate scanning delay
+        // Show scanning animation for 2 seconds
         await new Promise(resolve => setTimeout(resolve, 2000));
 
-        const allDevices = [
-            {
-                id: "printer-epson-001",
-                name: "EPSON TM-T88VI",
-                type: "printer",
-                subType: "receipt",
-                connectionType: "wifi",
-                ipAddress: "192.168.1.105",
-                macAddress: "00:1B:44:11:3A:B7",
-                signal: "strong",
-                status: "available",
-                capabilities: ["receipt", "label"]
-            },
-            {
-                id: "printer-brother-002",
-                name: "Brother QL-820NWB",
-                type: "printer",
-                subType: "label",
-                connectionType: "wifi",
-                ipAddress: "192.168.1.112",
-                macAddress: "00:1B:44:22:4C:D9",
-                signal: "medium",
-                status: "available",
-                capabilities: ["label", "badge"]
-            },
-            {
-                id: "printer-star-003",
-                name: "Star TSP143IIILAN",
-                type: "printer",
-                subType: "receipt",
-                connectionType: "wifi",
-                ipAddress: "192.168.1.118",
-                macAddress: "00:1B:44:33:5E:F1",
-                signal: "strong",
-                status: "available",
-                capabilities: ["receipt"]
-            },
-            {
-                id: "display-samsung-001",
-                name: "Samsung Smart TV - Lobby",
-                type: "display",
-                subType: "tv",
-                connectionType: "wifi",
-                ipAddress: "192.168.1.150",
-                macAddress: "00:1A:22:33:44:55",
-                signal: "strong",
-                status: "available",
-                capabilities: ["cast", "hdmi"]
-            },
-            {
-                id: "display-lg-002",
-                name: "LG WebOS TV - Sanctuary",
-                type: "display",
-                subType: "tv",
-                connectionType: "wifi",
-                ipAddress: "192.168.1.155",
-                macAddress: "00:1A:22:44:55:66",
-                signal: "medium",
-                status: "available",
-                capabilities: ["cast", "miracast"]
-            },
-            {
-                id: "display-chromecast-001",
-                name: "Chromecast - Kitchen",
-                type: "display",
-                subType: "chromecast",
-                connectionType: "wifi",
-                ipAddress: "192.168.1.160",
-                macAddress: "00:1A:22:55:66:77",
-                signal: "strong",
-                status: "available",
-                capabilities: ["cast"]
-            },
-            {
-                id: "display-fire-001",
-                name: "Fire TV Stick - Kids Room",
-                type: "display",
-                subType: "firetv",
-                connectionType: "wifi",
-                ipAddress: "192.168.1.165",
-                macAddress: "00:1A:22:66:77:88",
-                signal: "strong",
-                status: "available",
-                capabilities: ["cast"]
-            }
-        ];
-
-        if (type === "printer") {
-            return allDevices.filter(d => d.type === "printer");
-        } else if (type === "display") {
-            return allDevices.filter(d => d.type === "display");
-        }
-        return allDevices;
+        // No mock devices - return empty array
+        // Real device discovery requires native APIs not available in browsers
+        // Users should manually add devices or use Bluetooth scanning
+        return [];
     };
 
     const getBluetoothFilters = (type) => {
@@ -295,31 +206,19 @@ export default function DeviceDiscovery({
             {/* Scan Buttons */}
             <div className="flex flex-wrap gap-4">
                 <Button
-                    onClick={scanForWifiDevices}
-                    disabled={isScanning}
-                    className="bg-blue-600 hover:bg-blue-700"
-                >
-                    {isScanning && scanMethod === "wifi" ? (
-                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                    ) : (
-                        <Wifi className="w-5 h-5 mr-2" />
-                    )}
-                    Scan WiFi Network
-                </Button>
-
-                <Button
                     onClick={scanForBluetoothDevices}
                     disabled={isScanning || !bluetoothSupported}
-                    variant="outline"
-                    className="border-2"
+                    className="bg-blue-600 hover:bg-blue-700"
                 >
                     {isScanning && scanMethod === "bluetooth" ? (
                         <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                     ) : (
                         <Bluetooth className="w-5 h-5 mr-2" />
                     )}
-                    Scan Bluetooth
+                    Scan for Bluetooth Devices
                 </Button>
+
+
 
                 {discoveredDevices.length > 0 && (
                     <Button
@@ -471,12 +370,12 @@ export default function DeviceDiscovery({
                         </div>
                         <h3 className="font-semibold text-slate-900 mb-2">No Devices Found</h3>
                         <p className="text-slate-600 mb-4">
-                            Click "Scan WiFi Network" or "Scan Bluetooth" to discover nearby devices
+                            Use Bluetooth scanning to discover nearby devices, or add devices manually.
                         </p>
                         <div className="text-xs text-slate-500 space-y-1">
-                            <p>• Make sure devices are powered on and connected to the same network</p>
-                            <p>• For Bluetooth, ensure devices are in pairing mode</p>
-                            <p>• Some devices may require manual IP configuration</p>
+                            <p>• <strong>Bluetooth:</strong> Click "Scan Bluetooth" with device in pairing mode</p>
+                            <p>• <strong>WiFi devices:</strong> Add manually via Settings → Printer Setup</p>
+                            <p>• <strong>Note:</strong> Browser limitations prevent automatic WiFi network scanning</p>
                         </div>
                     </CardContent>
                 </Card>
