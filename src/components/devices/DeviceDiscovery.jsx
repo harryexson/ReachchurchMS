@@ -6,18 +6,20 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
     Wifi, Bluetooth, Printer, Monitor, Tv, RefreshCw, 
     CheckCircle, XCircle, Loader2, Search, Signal, 
-    Coffee, Baby, ChefHat, Presentation
+    Coffee, Baby, ChefHat, Presentation, Unplug
 } from "lucide-react";
 
 export default function DeviceDiscovery({ 
     deviceType = "all", // "printer", "display", "all"
     onDeviceSelected,
-    onDeviceConnected 
+    onDeviceConnected,
+    onDeviceDisconnected
 }) {
     const [isScanning, setIsScanning] = useState(false);
     const [scanMethod, setScanMethod] = useState(null); // "wifi", "bluetooth"
     const [discoveredDevices, setDiscoveredDevices] = useState([]);
     const [connectingDevice, setConnectingDevice] = useState(null);
+    const [disconnectingDevice, setDisconnectingDevice] = useState(null);
     const [error, setError] = useState(null);
     const [bluetoothSupported, setBluetoothSupported] = useState(false);
 
@@ -168,6 +170,39 @@ export default function DeviceDiscovery({
         }
 
         setConnectingDevice(null);
+    };
+
+    const disconnectDevice = async (device) => {
+        setDisconnectingDevice(device.id);
+        setError(null);
+
+        try {
+            // If it's a Bluetooth device, disconnect from GATT
+            if (device.connectionType === "bluetooth" && device.bluetoothDevice && device.bluetoothDevice.gatt?.connected) {
+                device.bluetoothDevice.gatt.disconnect();
+                console.log("Disconnected from Bluetooth device:", device.name);
+            }
+
+            // Update device status
+            const disconnectedDevice = {
+                ...device,
+                status: "available",
+                connectedAt: null
+            };
+
+            // Remove from discovered devices list
+            setDiscoveredDevices(prev => prev.filter(d => d.id !== device.id));
+
+            if (onDeviceDisconnected) {
+                onDeviceDisconnected(disconnectedDevice);
+            }
+
+        } catch (err) {
+            setError(`Failed to disconnect from ${device.name}`);
+            console.error("Disconnect error:", err);
+        }
+
+        setDisconnectingDevice(null);
     };
 
     const getDeviceIcon = (device) => {
@@ -330,12 +365,33 @@ export default function DeviceDiscovery({
                                                 )}
                                             </div>
                                         </div>
-                                        <div>
+                                        <div className="flex flex-col gap-2">
                                             {device.status === "connected" ? (
-                                                <Badge className="bg-green-600">
-                                                    <CheckCircle className="w-3 h-3 mr-1" />
-                                                    Connected
-                                                </Badge>
+                                                <>
+                                                    <Badge className="bg-green-600">
+                                                        <CheckCircle className="w-3 h-3 mr-1" />
+                                                        Connected
+                                                    </Badge>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="text-red-600 border-red-300 hover:bg-red-50"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            disconnectDevice(device);
+                                                        }}
+                                                        disabled={disconnectingDevice === device.id}
+                                                    >
+                                                        {disconnectingDevice === device.id ? (
+                                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                                        ) : (
+                                                            <>
+                                                                <Unplug className="w-3 h-3 mr-1" />
+                                                                Disconnect
+                                                            </>
+                                                        )}
+                                                    </Button>
+                                                </>
                                             ) : (
                                                 <Button
                                                     size="sm"
