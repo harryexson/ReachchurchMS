@@ -422,10 +422,15 @@ export default function Layout({ children, currentPageName }) {
         icon: Monitor,
       },
       {
-        title: "Auto Device Setup",
-        url: createPageUrl("AutoDeviceSetup"),
-        icon: Wifi,
-      },
+          title: "Auto Device Setup",
+          url: createPageUrl("AutoDeviceSetup"),
+          icon: Wifi,
+        },
+        {
+          title: "Display Content",
+          url: createPageUrl("DisplayContentManager"),
+          icon: Monitor,
+        },
     {
       title: "Quick Expense",
       url: createPageUrl("QuickExpense"),

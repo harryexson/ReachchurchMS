@@ -94,6 +94,7 @@ import Resources from './pages/Resources';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import QuickExpense from './pages/QuickExpense';
+import DisplayContentManager from './pages/DisplayContentManager';
 import __Layout from './Layout.jsx';
 
 
@@ -194,6 +195,7 @@ export const PAGES = {
     "PrivacyPolicy": PrivacyPolicy,
     "TermsOfService": TermsOfService,
     "QuickExpense": QuickExpense,
+    "DisplayContentManager": DisplayContentManager,
 }
 
 export const pagesConfig = {
