@@ -5,15 +5,41 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Upload } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Upload, Repeat } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+
+const SUBCATEGORIES = {
+    facilities: ["rent", "mortgage", "repairs", "cleaning", "security", "landscaping"],
+    utilities: ["electric", "gas", "water", "internet", "phone", "trash"],
+    salaries: ["pastoral", "administrative", "custodial", "music", "youth", "benefits"],
+    missions: ["local", "international", "disaster_relief", "partnerships"],
+    ministry_programs: ["small_groups", "bible_study", "discipleship", "counseling"],
+    office_supplies: ["paper", "ink", "equipment", "furniture", "software"],
+    marketing: ["advertising", "printing", "signage", "social_media", "website"],
+    events: ["decorations", "equipment_rental", "catering", "entertainment", "venue"],
+    maintenance: ["hvac", "plumbing", "electrical", "painting", "general"],
+    insurance: ["property", "liability", "workers_comp", "vehicle"],
+    professional_services: ["accounting", "legal", "consulting", "it_services"],
+    technology: ["computers", "av_equipment", "streaming", "software_subscriptions"],
+    food_beverages: ["coffee", "meals", "snacks", "communion_supplies"],
+    travel: ["mileage", "flights", "lodging", "meals", "conference_fees"],
+    education_training: ["books", "courses", "conferences", "materials"],
+    outreach: ["community_events", "evangelism", "benevolence", "food_pantry"],
+    worship: ["music_licensing", "instruments", "sound_equipment", "stage"],
+    childcare: ["supplies", "curriculum", "toys", "safety", "snacks"],
+    youth: ["activities", "camps", "curriculum", "events", "supplies"],
+    other: ["miscellaneous", "uncategorized"]
+};
 
 export default function ExpenseForm({ isOpen, setIsOpen, onSubmit, expense }) {
     const [formData, setFormData] = useState({
         expense_number: '',
         category: 'other',
+        subcategory: '',
         description: '',
         amount: 0,
+        tax_amount: 0,
         expense_date: '',
         payment_method: 'credit_card',
         vendor_name: '',
@@ -22,6 +48,9 @@ export default function ExpenseForm({ isOpen, setIsOpen, onSubmit, expense }) {
         approval_status: 'pending',
         budget_category: '',
         ministry_area: '',
+        is_recurring: false,
+        recurring_frequency: 'monthly',
+        recurring_end_date: '',
         notes: ''
     });
     const [uploading, setUploading] = useState(false);
@@ -80,7 +109,7 @@ export default function ExpenseForm({ isOpen, setIsOpen, onSubmit, expense }) {
                             <Label>Category *</Label>
                             <Select
                                 value={formData.category}
-                                onValueChange={(value) => setFormData({...formData, category: value})}
+                                onValueChange={(value) => setFormData({...formData, category: value, subcategory: ''})}
                             >
                                 <SelectTrigger>
                                     <SelectValue />
@@ -98,7 +127,32 @@ export default function ExpenseForm({ isOpen, setIsOpen, onSubmit, expense }) {
                                     <SelectItem value="insurance">Insurance</SelectItem>
                                     <SelectItem value="professional_services">Professional Services</SelectItem>
                                     <SelectItem value="technology">Technology & Software</SelectItem>
+                                    <SelectItem value="food_beverages">Food & Beverages</SelectItem>
+                                    <SelectItem value="travel">Travel</SelectItem>
+                                    <SelectItem value="education_training">Education & Training</SelectItem>
+                                    <SelectItem value="outreach">Outreach</SelectItem>
+                                    <SelectItem value="worship">Worship</SelectItem>
+                                    <SelectItem value="childcare">Childcare</SelectItem>
+                                    <SelectItem value="youth">Youth</SelectItem>
                                     <SelectItem value="other">Other</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div>
+                            <Label>Subcategory</Label>
+                            <Select
+                                value={formData.subcategory}
+                                onValueChange={(value) => setFormData({...formData, subcategory: value})}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select subcategory..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {(SUBCATEGORIES[formData.category] || []).map(sub => (
+                                        <SelectItem key={sub} value={sub}>
+                                            {sub.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                        </SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
                         </div>
@@ -110,6 +164,15 @@ export default function ExpenseForm({ isOpen, setIsOpen, onSubmit, expense }) {
                                 value={formData.amount}
                                 onChange={(e) => setFormData({...formData, amount: parseFloat(e.target.value) || 0})}
                                 required
+                            />
+                        </div>
+                        <div>
+                            <Label>Tax Amount</Label>
+                            <Input
+                                type="number"
+                                step="0.01"
+                                value={formData.tax_amount}
+                                onChange={(e) => setFormData({...formData, tax_amount: parseFloat(e.target.value) || 0})}
                             />
                         </div>
                         <div className="col-span-2">
@@ -180,6 +243,50 @@ export default function ExpenseForm({ isOpen, setIsOpen, onSubmit, expense }) {
                             </div>
                             {uploading && <p className="text-sm text-slate-500 mt-1">Uploading...</p>}
                         </div>
+                        {/* Recurring Expense Section */}
+                        <div className="col-span-2 p-4 border rounded-lg bg-slate-50">
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-2">
+                                    <Repeat className="w-5 h-5 text-blue-600" />
+                                    <Label className="font-semibold">Recurring Expense</Label>
+                                </div>
+                                <Switch
+                                    checked={formData.is_recurring}
+                                    onCheckedChange={(checked) => setFormData({...formData, is_recurring: checked})}
+                                />
+                            </div>
+                            {formData.is_recurring && (
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <Label>Frequency</Label>
+                                        <Select
+                                            value={formData.recurring_frequency}
+                                            onValueChange={(value) => setFormData({...formData, recurring_frequency: value})}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="weekly">Weekly</SelectItem>
+                                                <SelectItem value="biweekly">Bi-weekly</SelectItem>
+                                                <SelectItem value="monthly">Monthly</SelectItem>
+                                                <SelectItem value="quarterly">Quarterly</SelectItem>
+                                                <SelectItem value="annually">Annually</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div>
+                                        <Label>End Date (Optional)</Label>
+                                        <Input
+                                            type="date"
+                                            value={formData.recurring_end_date}
+                                            onChange={(e) => setFormData({...formData, recurring_end_date: e.target.value})}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
                         <div className="col-span-2">
                             <Label>Notes</Label>
                             <Textarea
