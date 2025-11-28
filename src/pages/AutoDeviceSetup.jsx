@@ -8,7 +8,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { 
     Printer, Monitor, Tv, Wifi, Bluetooth, Settings, 
     CheckCircle, Plus, Trash2, RefreshCw, Coffee,
-    Baby, ChefHat, Presentation, Info
+    Baby, ChefHat, Presentation, Info, Unplug
 } from "lucide-react";
 import DeviceDiscovery from "../components/devices/DeviceDiscovery";
 
@@ -176,6 +176,9 @@ export default function AutoDeviceSetupPage() {
                                         deviceType={selectedPurpose?.includes("printer") ? "printer" : 
                                                    selectedPurpose?.includes("display") ? "display" : "all"}
                                         onDeviceConnected={handleDeviceConnected}
+                                        onDeviceDisconnected={(device) => {
+                                            console.log("Device disconnected:", device.name);
+                                        }}
                                     />
                                 </CardContent>
                             </Card>
@@ -254,14 +257,32 @@ export default function AutoDeviceSetupPage() {
                                                                 )}
                                                             </div>
                                                         </div>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                                            onClick={() => removeDevice(device.id)}
-                                                        >
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </Button>
+                                                        <div className="flex flex-col gap-2">
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="text-orange-600 border-orange-300 hover:bg-orange-50"
+                                                                onClick={() => {
+                                                                    // Update status to disconnected
+                                                                    base44.entities.ConnectedDevice.update(device.id, { status: 'disconnected' });
+                                                                    setConnectedDevices(prev => 
+                                                                        prev.map(d => d.id === device.id ? { ...d, status: 'disconnected' } : d)
+                                                                    );
+                                                                }}
+                                                            >
+                                                                <Unplug className="w-4 h-4 mr-1" />
+                                                                Disconnect
+                                                            </Button>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                                                onClick={() => removeDevice(device.id)}
+                                                            >
+                                                                <Trash2 className="w-4 h-4 mr-1" />
+                                                                Remove
+                                                            </Button>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             );
