@@ -6,12 +6,40 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
     Monitor, Smartphone, Laptop, Tablet, AlertCircle,
     CheckCircle, XCircle, Printer, Settings, Zap,
-    RefreshCw, Search, MapPin, Activity, Clock
+    RefreshCw, Search, MapPin, Activity, Clock, Plus,
+    Cable, Wifi, Bluetooth, Trash2, Edit, Speaker, Camera
 } from "lucide-react";
 import RemoteDeviceControl from "../components/devices/RemoteDeviceControl";
+import WiredDeviceForm from "../components/devices/WiredDeviceForm";
+
+const LOCATIONS = [
+    { value: "sanctuary", label: "Sanctuary" },
+    { value: "lobby", label: "Lobby" },
+    { value: "welcome_center", label: "Welcome Center" },
+    { value: "cafe", label: "Café" },
+    { value: "bookstore", label: "Bookstore" },
+    { value: "kitchen", label: "Kitchen" },
+    { value: "patio", label: "Patio" },
+    { value: "lounge", label: "Lounge" },
+    { value: "porch", label: "Porch" },
+    { value: "dining", label: "Dining Area" },
+    { value: "sunday_school", label: "Sunday School" },
+    { value: "kids_area", label: "Kids Area" },
+    { value: "youth_room", label: "Youth Room" },
+    { value: "nursery", label: "Nursery" },
+    { value: "fellowship_hall", label: "Fellowship Hall" },
+    { value: "office", label: "Office" },
+    { value: "conference_room", label: "Conference Room" },
+    { value: "media_booth", label: "Media / AV Booth" },
+    { value: "stage", label: "Stage" },
+    { value: "parking_lot", label: "Parking Lot" },
+    { value: "outdoor", label: "Outdoor Area" },
+    { value: "other", label: "Other" }
+];
 
 export default function DeviceManagement() {
     const [currentUser, setCurrentUser] = useState(null);
@@ -20,6 +48,10 @@ export default function DeviceManagement() {
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedDevice, setSelectedDevice] = useState(null);
     const [autoRefresh, setAutoRefresh] = useState(true);
+    const [showAddForm, setShowAddForm] = useState(false);
+    const [editingDevice, setEditingDevice] = useState(null);
+    const [filterLocation, setFilterLocation] = useState("all");
+    const [filterType, setFilterType] = useState("all");
 
     useEffect(() => {
         checkAccess();
@@ -90,7 +122,50 @@ export default function DeviceManagement() {
             case 'desktop': return <Monitor className="w-5 h-5" />;
             case 'laptop': return <Laptop className="w-5 h-5" />;
             case 'mobile': return <Smartphone className="w-5 h-5" />;
+            case 'display': return <Monitor className="w-5 h-5" />;
+            case 'printer': return <Printer className="w-5 h-5" />;
+            case 'audio': return <Speaker className="w-5 h-5" />;
+            case 'camera': return <Camera className="w-5 h-5" />;
+            case 'computer': return <Laptop className="w-5 h-5" />;
             default: return <Monitor className="w-5 h-5" />;
+        }
+    };
+
+    const getConnectionIcon = (type) => {
+        switch (type) {
+            case 'wifi': return <Wifi className="w-4 h-4" />;
+            case 'bluetooth': return <Bluetooth className="w-4 h-4" />;
+            default: return <Cable className="w-4 h-4" />;
+        }
+    };
+
+    const handleAddDevice = async (deviceData) => {
+        try {
+            await base44.entities.ConnectedDevice.create(deviceData);
+            loadDevices();
+            setShowAddForm(false);
+        } catch (err) {
+            console.error("Error adding device:", err);
+        }
+    };
+
+    const handleUpdateDevice = async (deviceData) => {
+        try {
+            await base44.entities.ConnectedDevice.update(editingDevice.id, deviceData);
+            loadDevices();
+            setEditingDevice(null);
+        } catch (err) {
+            console.error("Error updating device:", err);
+        }
+    };
+
+    const handleDeleteDevice = async (deviceId) => {
+        if (!confirm("Are you sure you want to remove this device?")) return;
+        try {
+            await base44.entities.ConnectedDevice.delete(deviceId);
+            loadDevices();
+        } catch (err) {
+            console.error("Error deleting device:", err);
         }
     };
 
@@ -114,10 +189,14 @@ export default function DeviceManagement() {
         );
     };
 
-    const filteredDevices = devices.filter(device =>
-        device.device_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        device.location?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredDevices = devices.filter(device => {
+        const matchesSearch = device.device_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            device.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            device.assigned_location?.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesLocation = filterLocation === "all" || device.assigned_location === filterLocation;
+        const matchesType = filterType === "all" || device.device_type === filterType;
+        return matchesSearch && matchesLocation && matchesType;
+    });
 
     const stats = {
         total: devices.length,
@@ -149,6 +228,13 @@ export default function DeviceManagement() {
                         </p>
                     </div>
                     <div className="flex gap-3">
+                        <Button
+                            onClick={() => setShowAddForm(true)}
+                            className="bg-blue-600 hover:bg-blue-700"
+                        >
+                            <Plus className="w-4 h-4 mr-2" />
+                            Add Device
+                        </Button>
                         <Button
                             variant={autoRefresh ? "default" : "outline"}
                             onClick={() => setAutoRefresh(!autoRefresh)}
@@ -211,17 +297,60 @@ export default function DeviceManagement() {
                     </Card>
                 </div>
 
-                {/* Search */}
+                {/* Add Device Form */}
+                {showAddForm && (
+                    <WiredDeviceForm
+                        onSubmit={handleAddDevice}
+                        onCancel={() => setShowAddForm(false)}
+                    />
+                )}
+
+                {/* Edit Device Form */}
+                {editingDevice && (
+                    <WiredDeviceForm
+                        initialData={editingDevice}
+                        onSubmit={handleUpdateDevice}
+                        onCancel={() => setEditingDevice(null)}
+                    />
+                )}
+
+                {/* Search & Filters */}
                 <Card>
                     <CardContent className="p-4">
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
-                            <Input
-                                placeholder="Search devices by name or location..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-10"
-                            />
+                        <div className="flex flex-col md:flex-row gap-4">
+                            <div className="relative flex-1">
+                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+                                <Input
+                                    placeholder="Search devices by name or location..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="pl-10"
+                                />
+                            </div>
+                            <Select value={filterLocation} onValueChange={setFilterLocation}>
+                                <SelectTrigger className="w-48">
+                                    <SelectValue placeholder="Filter by location" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Locations</SelectItem>
+                                    {LOCATIONS.map(loc => (
+                                        <SelectItem key={loc.value} value={loc.value}>{loc.label}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <Select value={filterType} onValueChange={setFilterType}>
+                                <SelectTrigger className="w-40">
+                                    <SelectValue placeholder="Filter by type" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Types</SelectItem>
+                                    <SelectItem value="display">Displays</SelectItem>
+                                    <SelectItem value="printer">Printers</SelectItem>
+                                    <SelectItem value="computer">Computers</SelectItem>
+                                    <SelectItem value="audio">Audio</SelectItem>
+                                    <SelectItem value="camera">Cameras</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                     </CardContent>
                 </Card>
@@ -256,12 +385,18 @@ export default function DeviceManagement() {
                                             </div>
                                             <div>
                                                 <CardTitle className="text-lg">{device.device_name}</CardTitle>
-                                                <div className="flex items-center gap-2 mt-1">
-                                                    {device.location && (
+                                                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                                    {(device.assigned_location || device.location) && (
                                                         <span className="text-sm text-slate-600 flex items-center gap-1">
                                                             <MapPin className="w-3 h-3" />
-                                                            {device.location}
+                                                            {LOCATIONS.find(l => l.value === device.assigned_location)?.label || device.location}
                                                         </span>
+                                                    )}
+                                                    {device.connection_type && (
+                                                        <Badge variant="outline" className="text-xs">
+                                                            {getConnectionIcon(device.connection_type)}
+                                                            <span className="ml-1">{device.connection_type?.toUpperCase()}</span>
+                                                        </Badge>
                                                     )}
                                                 </div>
                                             </div>
@@ -318,6 +453,15 @@ export default function DeviceManagement() {
                                         </div>
                                     )}
 
+                                    {/* Device Details */}
+                                    {(device.brand || device.model || device.port_number) && (
+                                        <div className="text-xs text-slate-500 pt-2 border-t">
+                                            {device.brand && <span>{device.brand} </span>}
+                                            {device.model && <span>{device.model} </span>}
+                                            {device.port_number && <span className="text-blue-600">({device.port_number})</span>}
+                                        </div>
+                                    )}
+
                                     {/* Actions */}
                                     <div className="flex gap-2 pt-2 border-t">
                                         <Button
@@ -332,9 +476,17 @@ export default function DeviceManagement() {
                                         <Button
                                             size="sm"
                                             variant="outline"
-                                            onClick={() => setSelectedDevice(device)}
+                                            onClick={() => setEditingDevice(device)}
                                         >
-                                            <Settings className="w-4 h-4" />
+                                            <Edit className="w-4 h-4" />
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="text-red-600 hover:bg-red-50"
+                                            onClick={() => handleDeleteDevice(device.id)}
+                                        >
+                                            <Trash2 className="w-4 h-4" />
                                         </Button>
                                     </div>
                                 </CardContent>
