@@ -427,6 +427,11 @@ export default function Layout({ children, currentPageName }) {
         icon: Wifi,
       },
     {
+      title: "Quick Expense",
+      url: createPageUrl("QuickExpense"),
+      icon: DollarSign,
+    },
+    {
       title: "Settings",
       url: createPageUrl("Settings"),
       icon: Settings,

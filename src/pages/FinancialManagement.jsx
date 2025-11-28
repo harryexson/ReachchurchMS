@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import FeatureGate from "../components/subscription/FeatureGate";
 import { Expense } from "@/entities/Expense";
@@ -9,7 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { DollarSign, TrendingUp, TrendingDown, PieChart, Plus, Download, AlertTriangle, CheckCircle } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, PieChart, Plus, Download, AlertTriangle, CheckCircle, Camera, Repeat, Smartphone } from "lucide-react";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 import { format, startOfYear, endOfYear, startOfMonth, endOfMonth } from "date-fns";
 import ExpenseForm from "../components/financial/ExpenseForm";
 import BudgetForm from "../components/financial/BudgetForm";
@@ -145,10 +146,16 @@ export default function FinancialManagementPage() {
                                 <Download className="w-4 h-4 mr-2" />
                                 Export Report
                             </Button>
-                            <Button onClick={() => setIsExpenseFormOpen(true)} variant="outline">
-                                <Plus className="w-5 h-5 mr-2" />
-                                Add Expense
+                            <Link to={createPageUrl("QuickExpense")}>
+                            <Button variant="outline" className="bg-purple-600 text-white hover:bg-purple-700">
+                                <Camera className="w-5 h-5 mr-2" />
+                                Scan Receipt
                             </Button>
+                        </Link>
+                        <Button onClick={() => setIsExpenseFormOpen(true)} variant="outline">
+                            <Plus className="w-5 h-5 mr-2" />
+                            Add Expense
+                        </Button>
                             <Button onClick={() => setIsBudgetFormOpen(true)} className="bg-blue-600 hover:bg-blue-700">
                                 <Plus className="w-5 h-5 mr-2" />
                                 Manage Budget
@@ -235,6 +242,7 @@ export default function FinancialManagementPage() {
                                                     <TableHead>Vendor</TableHead>
                                                     <TableHead>Amount</TableHead>
                                                     <TableHead>Status</TableHead>
+                                                    <TableHead>Type</TableHead>
                                                     <TableHead>Actions</TableHead>
                                                 </TableRow>
                                             </TableHeader>
@@ -258,6 +266,24 @@ export default function FinancialManagementPage() {
                                                             }>
                                                                 {expense.approval_status}
                                                             </Badge>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <div className="flex items-center gap-1">
+                                                                {expense.is_recurring && (
+                                                                    <Badge variant="outline" className="text-xs">
+                                                                        <Repeat className="w-3 h-3 mr-1" />
+                                                                        {expense.recurring_frequency}
+                                                                    </Badge>
+                                                                )}
+                                                                {expense.ai_extracted && (
+                                                                    <Badge className="bg-purple-100 text-purple-800 text-xs">AI</Badge>
+                                                                )}
+                                                                {expense.submitted_via === 'receipt_scan' && (
+                                                                    <Badge variant="outline" className="text-xs">
+                                                                        <Smartphone className="w-3 h-3" />
+                                                                    </Badge>
+                                                                )}
+                                                            </div>
                                                         </TableCell>
                                                         <TableCell>
                                                             <Button
