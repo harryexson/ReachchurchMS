@@ -242,8 +242,16 @@ export default function AutoDeviceSetupPage() {
                                                                             </>
                                                                         )}
                                                                     </Badge>
-                                                                    <Badge className="bg-green-100 text-green-800 text-xs">
-                                                                        <CheckCircle className="w-3 h-3 mr-1" />
+                                                                    <Badge className={`text-xs ${
+                                                                        device.status === 'connected' 
+                                                                            ? 'bg-green-100 text-green-800'
+                                                                            : 'bg-slate-100 text-slate-600'
+                                                                    }`}>
+                                                                        {device.status === 'connected' ? (
+                                                                            <CheckCircle className="w-3 h-3 mr-1" />
+                                                                        ) : (
+                                                                            <Unplug className="w-3 h-3 mr-1" />
+                                                                        )}
                                                                         {device.status}
                                                                     </Badge>
                                                                 </div>
