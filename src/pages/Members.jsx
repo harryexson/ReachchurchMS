@@ -1,23 +1,34 @@
-
 import React, { useState, useEffect, useMemo } from "react";
-import { Member } from "@/entities/Member";
+import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { PlusCircle, Search, User, Mail, Phone, Download } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { PlusCircle, Search, User, Mail, Phone, Download, Trash2, Filter, MapPin, Users } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import MemberForm from "../components/members/MemberForm";
+import MemberFilters from "../components/members/MemberFilters";
 import ReportExportModal from "../components/reports/ReportExportModal";
 
 export default function MembersPage() {
     const [members, setMembers] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [searchTerm, setSearchTerm] = useState("");
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedMember, setSelectedMember] = useState(null);
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+    const [showFilters, setShowFilters] = useState(false);
+    const [deleteConfirm, setDeleteConfirm] = useState(null);
+    const [filters, setFilters] = useState({
+        search: "",
+        status: "all",
+        gender: "all",
+        ageGroup: "all",
+        city: "all",
+        state: "all",
+        ministry: "all"
+    });
 
     useEffect(() => {
         loadMembers();
@@ -25,16 +36,16 @@ export default function MembersPage() {
 
     const loadMembers = async () => {
         setIsLoading(true);
-        const memberList = await Member.list("-created_date");
+        const memberList = await base44.entities.Member.list("-created_date");
         setMembers(memberList);
         setIsLoading(false);
     };
 
     const handleFormSubmit = async (data) => {
         if (selectedMember) {
-            await Member.update(selectedMember.id, data);
+            await base44.entities.Member.update(selectedMember.id, data);
         } else {
-            await Member.create(data);
+            await base44.entities.Member.create(data);
         }
         await loadMembers();
         setIsFormOpen(false);
@@ -51,13 +62,76 @@ export default function MembersPage() {
         setIsFormOpen(true);
     };
 
+    const handleDelete = async (memberId) => {
+        await base44.entities.Member.delete(memberId);
+        setDeleteConfirm(null);
+        await loadMembers();
+    };
+
+    const handleFilterChange = (key, value) => {
+        setFilters(prev => ({ ...prev, [key]: value }));
+    };
+
+    const clearFilters = () => {
+        setFilters({
+            search: "",
+            status: "all",
+            gender: "all",
+            ageGroup: "all",
+            city: "all",
+            state: "all",
+            ministry: "all"
+        });
+    };
+
     const filteredMembers = useMemo(() => {
-        if (!searchTerm) return members;
-        return members.filter(member =>
-            `${member.first_name} ${member.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            member.email?.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-    }, [members, searchTerm]);
+        return members.filter(member => {
+            // Search filter
+            if (filters.search) {
+                const searchLower = filters.search.toLowerCase();
+                const matchesSearch = 
+                    `${member.first_name} ${member.last_name}`.toLowerCase().includes(searchLower) ||
+                    member.email?.toLowerCase().includes(searchLower) ||
+                    member.phone?.includes(filters.search);
+                if (!matchesSearch) return false;
+            }
+
+            // Status filter
+            if (filters.status !== "all" && member.member_status !== filters.status) {
+                return false;
+            }
+
+            // Gender filter
+            if (filters.gender !== "all" && member.gender !== filters.gender) {
+                return false;
+            }
+
+            // Age group filter
+            if (filters.ageGroup !== "all" && member.age_group !== filters.ageGroup) {
+                return false;
+            }
+
+            // City filter
+            if (filters.city !== "all" && member.city !== filters.city) {
+                return false;
+            }
+
+            // State filter
+            if (filters.state !== "all" && member.state !== filters.state) {
+                return false;
+            }
+
+            // Ministry filter
+            if (filters.ministry !== "all") {
+                const involvements = member.ministry_involvement || [];
+                if (!involvements.includes(filters.ministry)) {
+                    return false;
+                }
+            }
+
+            return true;
+        });
+    }, [members, filters]);
     
     const statusColors = {
         member: "bg-green-100 text-green-800",
@@ -76,6 +150,14 @@ export default function MembersPage() {
                     </div>
                     <div className="flex gap-2">
                         <Button 
+                            variant="outline"
+                            onClick={() => setShowFilters(!showFilters)}
+                            className={showFilters ? "bg-blue-50 border-blue-300" : ""}
+                        >
+                            <Filter className="w-4 h-4 mr-2" />
+                            Filters
+                        </Button>
+                        <Button 
                             onClick={() => setIsExportModalOpen(true)} 
                             variant="outline"
                             className="bg-green-600 text-white hover:bg-green-700"
@@ -90,18 +172,49 @@ export default function MembersPage() {
                     </div>
                 </div>
 
+                {/* Filters Panel */}
+                {showFilters && (
+                    <MemberFilters
+                        filters={filters}
+                        onFilterChange={handleFilterChange}
+                        members={members}
+                        onClearFilters={clearFilters}
+                    />
+                )}
+
+                {/* Delete Confirmation */}
+                {deleteConfirm && (
+                    <Alert className="bg-red-50 border-red-200">
+                        <AlertDescription className="flex items-center justify-between">
+                            <span className="text-red-800">
+                                Are you sure you want to remove <strong>{deleteConfirm.first_name} {deleteConfirm.last_name}</strong> from the member directory?
+                            </span>
+                            <div className="flex gap-2">
+                                <Button size="sm" variant="outline" onClick={() => setDeleteConfirm(null)}>
+                                    Cancel
+                                </Button>
+                                <Button 
+                                    size="sm" 
+                                    className="bg-red-600 hover:bg-red-700"
+                                    onClick={() => handleDelete(deleteConfirm.id)}
+                                >
+                                    Remove Member
+                                </Button>
+                            </div>
+                        </AlertDescription>
+                    </Alert>
+                )}
+
                 <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
                     <CardHeader>
                         <div className="flex justify-between items-center">
-                            <CardTitle>All Members ({filteredMembers.length})</CardTitle>
-                            <div className="relative w-full max-w-sm">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                                <Input 
-                                    placeholder="Search by name or email..."
-                                    className="pl-9"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                />
+                            <div className="flex items-center gap-3">
+                                <CardTitle>All Members ({filteredMembers.length})</CardTitle>
+                                {filteredMembers.length !== members.length && (
+                                    <Badge variant="outline" className="text-blue-600">
+                                        Filtered from {members.length}
+                                    </Badge>
+                                )}
                             </div>
                         </div>
                     </CardHeader>
@@ -112,7 +225,9 @@ export default function MembersPage() {
                                     <TableRow>
                                         <TableHead>Name</TableHead>
                                         <TableHead>Contact</TableHead>
+                                        <TableHead>Location</TableHead>
                                         <TableHead>Status</TableHead>
+                                        <TableHead>Ministry</TableHead>
                                         <TableHead>Joined</TableHead>
                                         <TableHead className="text-right">Actions</TableHead>
                                     </TableRow>
@@ -123,7 +238,9 @@ export default function MembersPage() {
                                             <TableRow key={i}>
                                                 <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                                                 <TableCell><Skeleton className="h-4 w-40" /></TableCell>
+                                                <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                                                 <TableCell><Skeleton className="h-6 w-24 rounded-full" /></TableCell>
+                                                <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                                                 <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                                                 <TableCell className="text-right"><Skeleton className="h-8 w-20" /></TableCell>
                                             </TableRow>
@@ -136,27 +253,72 @@ export default function MembersPage() {
                                                         <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center">
                                                             <User className="w-4 h-4 text-slate-600" />
                                                         </div>
-                                                        <span className="font-medium">{member.first_name} {member.last_name}</span>
+                                                        <div>
+                                                            <span className="font-medium">{member.first_name} {member.last_name}</span>
+                                                            {member.gender && (
+                                                                <span className="text-xs text-slate-400 ml-2 capitalize">
+                                                                    ({member.gender})
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </TableCell>
                                                 <TableCell>
                                                     <div className="text-sm text-slate-600">
-                                                        <div className="flex items-center gap-2"><Mail className="w-3 h-3"/>{member.email}</div>
-                                                        <div className="flex items-center gap-2"><Phone className="w-3 h-3"/>{member.phone}</div>
+                                                        <div className="flex items-center gap-2"><Mail className="w-3 h-3"/>{member.email || 'N/A'}</div>
+                                                        <div className="flex items-center gap-2"><Phone className="w-3 h-3"/>{member.phone || 'N/A'}</div>
                                                     </div>
                                                 </TableCell>
                                                 <TableCell>
+                                                    {(member.city || member.state) ? (
+                                                        <div className="text-sm text-slate-600 flex items-center gap-1">
+                                                            <MapPin className="w-3 h-3" />
+                                                            {[member.city, member.state].filter(Boolean).join(", ")}
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-slate-400 text-sm">—</span>
+                                                    )}
+                                                </TableCell>
+                                                <TableCell>
                                                     <Badge className={statusColors[member.member_status]}>
-                                                        {member.member_status.replace('_', ' ')}
+                                                        {member.member_status?.replace('_', ' ') || 'Unknown'}
                                                     </Badge>
+                                                </TableCell>
+                                                <TableCell>
+                                                    {member.ministry_involvement?.length > 0 ? (
+                                                        <div className="flex flex-wrap gap-1">
+                                                            {member.ministry_involvement.slice(0, 2).map(m => (
+                                                                <Badge key={m} variant="outline" className="text-xs capitalize">
+                                                                    {m.replace('_', ' ')}
+                                                                </Badge>
+                                                            ))}
+                                                            {member.ministry_involvement.length > 2 && (
+                                                                <Badge variant="outline" className="text-xs">
+                                                                    +{member.ministry_involvement.length - 2}
+                                                                </Badge>
+                                                            )}
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-slate-400 text-sm">—</span>
+                                                    )}
                                                 </TableCell>
                                                 <TableCell className="text-sm text-slate-600">
                                                     {member.join_date ? new Date(member.join_date).toLocaleDateString() : 'N/A'}
                                                 </TableCell>
                                                 <TableCell className="text-right">
-                                                    <Button variant="outline" size="sm" onClick={() => handleEdit(member)}>
-                                                        Edit
-                                                    </Button>
+                                                    <div className="flex gap-1 justify-end">
+                                                        <Button variant="outline" size="sm" onClick={() => handleEdit(member)}>
+                                                            Edit
+                                                        </Button>
+                                                        <Button 
+                                                            variant="outline" 
+                                                            size="sm" 
+                                                            className="text-red-600 hover:bg-red-50"
+                                                            onClick={() => setDeleteConfirm(member)}
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </Button>
+                                                    </div>
                                                 </TableCell>
                                             </TableRow>
                                         ))
