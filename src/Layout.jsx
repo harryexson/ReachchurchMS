@@ -126,15 +126,15 @@ export default function Layout({ children, currentPageName }) {
           // Check subscription status for the user
           let hasValidSubscription = false;
           let trialExpired = false;
-          
+
           try {
             const subscriptions = await base44.entities.Subscription.filter({
               church_admin_email: user.email
             });
-            
+
             if (subscriptions.length > 0) {
               const subscription = subscriptions[0];
-              
+
               // Check subscription status
               if (subscription.status === 'active') {
                 // Active paid subscription - always valid
@@ -143,7 +143,7 @@ export default function Layout({ children, currentPageName }) {
               } else if (subscription.status === 'trial' && subscription.trial_end_date) {
                 const trialEnd = new Date(subscription.trial_end_date);
                 const now = new Date();
-                
+
                 if (now <= trialEnd) {
                   // Trial is still valid
                   hasValidSubscription = true;
@@ -158,6 +158,10 @@ export default function Layout({ children, currentPageName }) {
                 hasValidSubscription = true;
                 console.log('User has trial subscription (no end date)');
               }
+            } else {
+              // No subscription found - still allow access (new user or data issue)
+              hasValidSubscription = true;
+              console.log('No subscription found for user, allowing access');
             }
           } catch (subError) {
             // If we can't check subscription, allow access (don't block users)
@@ -165,8 +169,9 @@ export default function Layout({ children, currentPageName }) {
             hasValidSubscription = true; // Allow access on error
           }
 
-          // Only redirect to subscription page if trial has expired (not homepage)
-          if (trialExpired && !pageLower.includes('subscriptionplans')) {
+          // Only redirect to subscription page if trial has EXPLICITLY expired
+          // Don't redirect if user has a valid subscription or if we couldn't determine status
+          if (trialExpired && hasValidSubscription === false && !pageLower.includes('subscriptionplans')) {
             console.log('Trial expired, redirecting to subscription page to upgrade');
             window.location.href = createPageUrl('SubscriptionPlans') + '?upgrade=true';
             return;
