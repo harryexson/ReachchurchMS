@@ -27,8 +27,14 @@ export default function FinancialReportsPage() {
         minAmount: null,
         maxAmount: null,
         memberStatus: 'all',
-        recurringOnly: false
+        recurringOnly: false,
+        gender: 'all',
+        ageGroup: 'all',
+        city: 'all',
+        state: 'all',
+        ministry: 'all'
     });
+    const [members, setMembers] = useState([]);
 
     useEffect(() => {
         loadDonations();
@@ -36,13 +42,17 @@ export default function FinancialReportsPage() {
 
     useEffect(() => {
         applyFilters();
-    }, [donations, filters]);
+    }, [donations, filters, members]);
 
     const loadDonations = async () => {
         setIsLoading(true);
         try {
-            const allDonations = await base44.entities.Donation.list('-donation_date', 10000);
+            const [allDonations, allMembers] = await Promise.all([
+                base44.entities.Donation.list('-donation_date', 10000),
+                base44.entities.Member.list()
+            ]);
             setDonations(allDonations);
+            setMembers(allMembers);
         } catch (error) {
             console.error("Failed to load donations:", error);
         }
@@ -80,6 +90,28 @@ export default function FinancialReportsPage() {
 
         if (filters.recurringOnly) {
             filtered = filtered.filter(d => d.recurring === true);
+        }
+
+        // Advanced member-based filters
+        if (filters.gender !== 'all' || filters.ageGroup !== 'all' || 
+            filters.city !== 'all' || filters.state !== 'all' || filters.ministry !== 'all') {
+            
+            // Get member emails that match the filters
+            const matchingMemberEmails = members.filter(member => {
+                if (filters.gender !== 'all' && member.gender !== filters.gender) return false;
+                if (filters.ageGroup !== 'all' && member.age_group !== filters.ageGroup) return false;
+                if (filters.city !== 'all' && member.city !== filters.city) return false;
+                if (filters.state !== 'all' && member.state !== filters.state) return false;
+                if (filters.ministry !== 'all') {
+                    const involvements = member.ministry_involvement || [];
+                    if (!involvements.includes(filters.ministry)) return false;
+                }
+                return true;
+            }).map(m => m.email?.toLowerCase());
+
+            filtered = filtered.filter(d => 
+                matchingMemberEmails.includes(d.donor_email?.toLowerCase())
+            );
         }
 
         setFilteredDonations(filtered);

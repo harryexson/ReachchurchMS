@@ -1,13 +1,62 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Filter, X, RotateCcw } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Filter, X, RotateCcw, ChevronDown, Users, MapPin } from "lucide-react";
+
+const MINISTRY_AREAS = [
+    { value: "worship_team", label: "Worship Team" },
+    { value: "children_ministry", label: "Children's Ministry" },
+    { value: "youth_ministry", label: "Youth Ministry" },
+    { value: "hospitality", label: "Hospitality" },
+    { value: "security", label: "Security" },
+    { value: "media_tech", label: "Media/Tech" },
+    { value: "prayer_team", label: "Prayer Team" },
+    { value: "outreach", label: "Outreach" },
+    { value: "administration", label: "Administration" },
+    { value: "maintenance", label: "Maintenance" }
+];
+
+const AGE_GROUPS = [
+    { value: "child", label: "Child (0-12)" },
+    { value: "teen", label: "Teen (13-17)" },
+    { value: "young_adult", label: "Young Adult (18-35)" },
+    { value: "adult", label: "Adult (36-59)" },
+    { value: "senior", label: "Senior (60+)" }
+];
+
+const GENDERS = [
+    { value: "male", label: "Male" },
+    { value: "female", label: "Female" },
+    { value: "other", label: "Other" }
+];
 
 export default function DonationFilters({ filters, onChange }) {
+    const [members, setMembers] = useState([]);
+    const [showAdvanced, setShowAdvanced] = useState(false);
+
+    useEffect(() => {
+        loadMembers();
+    }, []);
+
+    const loadMembers = async () => {
+        try {
+            const memberList = await base44.entities.Member.list();
+            setMembers(memberList);
+        } catch (err) {
+            console.error("Error loading members:", err);
+        }
+    };
+
+    // Extract unique cities and states from members
+    const uniqueCities = [...new Set(members.map(m => m.city).filter(Boolean))].sort();
+    const uniqueStates = [...new Set(members.map(m => m.state).filter(Boolean))].sort();
+
     const donationTypes = [
         "tithe", "offering", "building_fund", "building_fundraising",
         "missions", "pastor_welfare", "childrens_ministry", "youth_ministry",
@@ -29,7 +78,12 @@ export default function DonationFilters({ filters, onChange }) {
             minAmount: null,
             maxAmount: null,
             memberStatus: 'all',
-            recurringOnly: false
+            recurringOnly: false,
+            gender: 'all',
+            ageGroup: 'all',
+            city: 'all',
+            state: 'all',
+            ministry: 'all'
         });
     };
 
@@ -183,6 +237,118 @@ export default function DonationFilters({ filters, onChange }) {
                         </div>
                     </div>
                 </div>
+
+                {/* Advanced Member Filters */}
+                <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced}>
+                    <CollapsibleTrigger asChild>
+                        <Button variant="outline" className="w-full justify-between">
+                            <span className="flex items-center gap-2">
+                                <Users className="w-4 h-4" />
+                                Advanced Member Filters
+                            </span>
+                            <ChevronDown className={`w-4 h-4 transition-transform ${showAdvanced ? 'rotate-180' : ''}`} />
+                        </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="mt-4 space-y-4 p-4 bg-slate-50 rounded-lg">
+                        <div className="grid md:grid-cols-3 gap-4">
+                            <div className="space-y-2">
+                                <Label>Gender</Label>
+                                <Select
+                                    value={filters.gender || 'all'}
+                                    onValueChange={(value) => onChange({ ...filters, gender: value })}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="All Genders" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All Genders</SelectItem>
+                                        {GENDERS.map(g => (
+                                            <SelectItem key={g.value} value={g.value}>{g.label}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label>Age Group</Label>
+                                <Select
+                                    value={filters.ageGroup || 'all'}
+                                    onValueChange={(value) => onChange({ ...filters, ageGroup: value })}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="All Ages" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All Age Groups</SelectItem>
+                                        {AGE_GROUPS.map(a => (
+                                            <SelectItem key={a.value} value={a.value}>{a.label}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label>Ministry Involvement</Label>
+                                <Select
+                                    value={filters.ministry || 'all'}
+                                    onValueChange={(value) => onChange({ ...filters, ministry: value })}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="All Ministries" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All Ministries</SelectItem>
+                                        {MINISTRY_AREAS.map(m => (
+                                            <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+
+                        <div className="grid md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label className="flex items-center gap-1">
+                                    <MapPin className="w-3 h-3" /> City
+                                </Label>
+                                <Select
+                                    value={filters.city || 'all'}
+                                    onValueChange={(value) => onChange({ ...filters, city: value })}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="All Cities" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All Cities</SelectItem>
+                                        {uniqueCities.map(city => (
+                                            <SelectItem key={city} value={city}>{city}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label className="flex items-center gap-1">
+                                    <MapPin className="w-3 h-3" /> State/Region
+                                </Label>
+                                <Select
+                                    value={filters.state || 'all'}
+                                    onValueChange={(value) => onChange({ ...filters, state: value })}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="All States" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All States</SelectItem>
+                                        {uniqueStates.map(state => (
+                                            <SelectItem key={state} value={state}>{state}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+                    </CollapsibleContent>
+                </Collapsible>
             </CardContent>
         </Card>
     );
