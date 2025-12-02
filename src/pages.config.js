@@ -95,6 +95,7 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import QuickExpense from './pages/QuickExpense';
 import DisplayContentManager from './pages/DisplayContentManager';
+import CommunicationHub from './pages/CommunicationHub';
 import __Layout from './Layout.jsx';
 
 
@@ -196,6 +197,7 @@ export const PAGES = {
     "TermsOfService": TermsOfService,
     "QuickExpense": QuickExpense,
     "DisplayContentManager": DisplayContentManager,
+    "CommunicationHub": CommunicationHub,
 }
 
 export const pagesConfig = {
