@@ -291,10 +291,9 @@ export default function Dashboard() {
             </AlertDescription>
           </Alert>
         </div>
-        </div>
-        </>
-        );
-        }
+      </div>
+    );
+  }
 
   if (loadError) {
     return (
@@ -323,8 +322,8 @@ export default function Dashboard() {
           </Alert>
         </div>
       </div>
-      );
-      }
+    );
+  }
 
       return (
       <>
@@ -699,5 +698,6 @@ export default function Dashboard() {
         )}
       </div>
     </div>
+    </>
   );
 }
