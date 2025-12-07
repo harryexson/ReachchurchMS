@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import SEO from "../components/shared/SEO";
 import { Users, Heart, Calendar, UserCheck, TrendingUp, DollarSign, AlertCircle, ExternalLink, ArrowUpRight, ArrowDownRight, Tablet, Settings } from "lucide-react";
 import { format, startOfMonth, endOfMonth, subMonths, startOfWeek } from "date-fns";
 import { createPageUrl } from "@/utils";
