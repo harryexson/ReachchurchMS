@@ -96,6 +96,7 @@ import TermsOfService from './pages/TermsOfService';
 import QuickExpense from './pages/QuickExpense';
 import DisplayContentManager from './pages/DisplayContentManager';
 import CommunicationHub from './pages/CommunicationHub';
+import OnboardingProgress from './pages/OnboardingProgress';
 import __Layout from './Layout.jsx';
 
 
@@ -198,6 +199,7 @@ export const PAGES = {
     "QuickExpense": QuickExpense,
     "DisplayContentManager": DisplayContentManager,
     "CommunicationHub": CommunicationHub,
+    "OnboardingProgress": OnboardingProgress,
 }
 
 export const pagesConfig = {

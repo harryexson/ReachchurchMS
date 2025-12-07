@@ -4,6 +4,8 @@ import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import LazyImage from "../components/shared/LazyImage";
+import SEO from "../components/shared/SEO";
 import {
   Church,
   Users,
@@ -132,7 +134,14 @@ export default function LandingPage() {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/20">
+    <>
+        <SEO 
+            title="REACH Church Connect - Complete Church Management System"
+            description="Streamline your ministry with our all-in-one church management platform. Manage members, donations, events, communications, and more."
+            keywords="church management software, church giving, member management, church events, ministry software, church CRM"
+            url="/"
+        />
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/20">
             {/* Hero Section */}
             <section className="relative overflow-hidden py-20 lg:py-32">
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-100 via-transparent to-purple-100 opacity-40"></div>
@@ -631,6 +640,7 @@ export default function LandingPage() {
                     </div>
                 </div>
             </footer>
-        </div>);
-
+        </div>
+    </>
+  );
 }

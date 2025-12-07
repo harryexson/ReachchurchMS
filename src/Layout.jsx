@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { createPageUrl } from "@/utils";
 import { Link, useLocation } from "react-router-dom";
+import { Helmet } from "react-helmet";
 import {
         Church,
         Users,
@@ -561,7 +562,11 @@ export default function Layout({ children, currentPageName }) {
 
   if (isPublicPage) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30">
+      <>
+        <Helmet>
+          <meta name="google-site-verification" content="your-google-verification-code" />
+        </Helmet>
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30">
         {/* Public Header */}
         <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -595,9 +600,10 @@ export default function Layout({ children, currentPageName }) {
         </header>
         
         <main>{children}</main>
-      </div>
-    );
-  }
+        </div>
+        </>
+        );
+        }
 
   if (!currentUser && !authError) {
     // User is not authenticated - redirect to login with dashboard as destination
@@ -659,7 +665,11 @@ export default function Layout({ children, currentPageName }) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30">
+    <>
+      <Helmet>
+        <meta name="google-site-verification" content="your-google-verification-code" />
+      </Helmet>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30">
       <div className="lg:hidden fixed top-4 left-4 z-50">
         <Button
           variant="outline"
@@ -789,8 +799,9 @@ export default function Layout({ children, currentPageName }) {
         <div
           className="fixed inset-0 bg-black/50 z-30 lg:hidden"
           onClick={() => setIsMobileMenuOpen(false)}
-        />
-      )}
-    </div>
-  );
-}
+          />
+          )}
+          </div>
+          </>
+          );
+          }

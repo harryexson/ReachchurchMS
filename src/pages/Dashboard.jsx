@@ -291,9 +291,10 @@ export default function Dashboard() {
             </AlertDescription>
           </Alert>
         </div>
-      </div>
-    );
-  }
+        </div>
+        </>
+        );
+        }
 
   if (loadError) {
     return (
@@ -322,11 +323,17 @@ export default function Dashboard() {
           </Alert>
         </div>
       </div>
-    );
-  }
+      );
+      }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/20">
+      return (
+      <>
+          <SEO 
+              title="Dashboard - REACH Church Connect"
+              description="Manage your church operations from your dashboard. View giving, members, events, and more."
+              url="/dashboard"
+          />
+          <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/20">
       <div className="p-6 md:p-8 max-w-[1600px] mx-auto space-y-8">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
