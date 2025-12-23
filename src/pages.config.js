@@ -1,205 +1,209 @@
-import Dashboard from './pages/Dashboard';
-import Members from './pages/Members';
-import Events from './pages/Events';
-import Donate from './pages/Donate';
-import Giving from './pages/Giving';
-import Volunteers from './pages/Volunteers';
-import Communications from './pages/Communications';
-import Reports from './pages/Reports';
-import Sermons from './pages/Sermons';
-import EventRegistration from './pages/EventRegistration';
-import Visitors from './pages/Visitors';
 import AccountManagement from './pages/AccountManagement';
-import BillingCenter from './pages/BillingCenter';
-import SubscriptionPlans from './pages/SubscriptionPlans';
-import LandingPage from './pages/LandingPage';
-import Settings from './pages/Settings';
-import VolunteerRegistration from './pages/VolunteerRegistration';
-import VideoMeetings from './pages/VideoMeetings';
-import VideoMeeting from './pages/VideoMeeting';
-import TextMessaging from './pages/TextMessaging';
-import PrivacyConsent from './pages/PrivacyConsent';
-import ContactDirectory from './pages/ContactDirectory';
-import UserManagement from './pages/UserManagement';
-import MultimediaMessaging from './pages/MultimediaMessaging';
-import CreateMMSCampaign from './pages/CreateMMSCampaign';
-import ViewMMS from './pages/ViewMMS';
-import SMSDiagnostics from './pages/SMSDiagnostics';
-import PublicMemberRegistration from './pages/PublicMemberRegistration';
-import PublicVisitorRegistration from './pages/PublicVisitorRegistration';
-import PublicGiving from './pages/PublicGiving';
-import DonationStatements from './pages/DonationStatements';
-import EditMMSCampaign from './pages/EditMMSCampaign';
-import MyDonations from './pages/MyDonations';
-import ViewMMSCampaign from './pages/ViewMMSCampaign';
-import SystemDiagnostics from './pages/SystemDiagnostics';
-import MemberDashboard from './pages/MemberDashboard';
-import MyProfile from './pages/MyProfile';
-import MemberAnnouncements from './pages/MemberAnnouncements';
-import MemberSermons from './pages/MemberSermons';
-import MyGroups from './pages/MyGroups';
-import MemberContacts from './pages/MemberContacts';
+import AnalyticsDashboard from './pages/AnalyticsDashboard';
+import AutoDeviceSetup from './pages/AutoDeviceSetup';
 import BackOffice from './pages/BackOffice';
-import backoffice from './pages/backoffice';
+import BillingCenter from './pages/BillingCenter';
+import BluetoothConnectivityResearch from './pages/BluetoothConnectivityResearch';
+import Bookstore from './pages/Bookstore';
+import Careers from './pages/Careers';
+import CheckDeposit from './pages/CheckDeposit';
+import CoffeeShopKiosk from './pages/CoffeeShopKiosk';
+import CommunicationHub from './pages/CommunicationHub';
+import Communications from './pages/Communications';
+import Community from './pages/Community';
+import CompetitiveAnalysis from './pages/CompetitiveAnalysis';
+import ContactDirectory from './pages/ContactDirectory';
+import CreateMMSCampaign from './pages/CreateMMSCampaign';
+import Dashboard from './pages/Dashboard';
+import DeviceManagement from './pages/DeviceManagement';
+import DisplayContentManager from './pages/DisplayContentManager';
+import DisplayManagement from './pages/DisplayManagement';
+import DisplayScreen from './pages/DisplayScreen';
+import Documentation from './pages/Documentation';
+import Donate from './pages/Donate';
+import DonationStatements from './pages/DonationStatements';
+import DonorCommunications from './pages/DonorCommunications';
+import DonorPortal from './pages/DonorPortal';
+import EditMMSCampaign from './pages/EditMMSCampaign';
+import EventRegistration from './pages/EventRegistration';
+import Events from './pages/Events';
+import FinancialManagement from './pages/FinancialManagement';
+import FinancialReports from './pages/FinancialReports';
+import Giving from './pages/Giving';
+import GivingCategoryManagement from './pages/GivingCategoryManagement';
 import GivingMessages from './pages/GivingMessages';
-import VisitorFollowUp from './pages/VisitorFollowUp';
-import VolunteerConfirm from './pages/VolunteerConfirm';
-import KioskGiving from './pages/KioskGiving';
-import KioskSetupInstructions from './pages/KioskSetupInstructions';
-import KioskGivingSetup from './pages/KioskGivingSetup';
-import SinchSetupGuide from './pages/SinchSetupGuide';
+import HardwareRecommendations from './pages/HardwareRecommendations';
+import HardwareSetupWizard from './pages/HardwareSetupWizard';
+import HelpCenter from './pages/HelpCenter';
+import Home from './pages/Home';
 import KidsCheckIn from './pages/KidsCheckIn';
 import KidsCheckOut from './pages/KidsCheckOut';
 import KidsPrinterSetup from './pages/KidsPrinterSetup';
-import FinancialManagement from './pages/FinancialManagement';
-import Bookstore from './pages/Bookstore';
-import CoffeeShopKiosk from './pages/CoffeeShopKiosk';
+import KioskGiving from './pages/KioskGiving';
+import KioskGivingSetup from './pages/KioskGivingSetup';
+import KioskSetupInstructions from './pages/KioskSetupInstructions';
 import KitchenDisplay from './pages/KitchenDisplay';
-import ProductManagement from './pages/ProductManagement';
-import CompetitiveAnalysis from './pages/CompetitiveAnalysis';
+import LandingPage from './pages/LandingPage';
 import MarketStrategy from './pages/MarketStrategy';
-import Community from './pages/Community';
-import VolunteerPortal from './pages/VolunteerPortal';
-import HardwareRecommendations from './pages/HardwareRecommendations';
-import TestingTasks from './pages/TestingTasks';
-import HardwareSetupWizard from './pages/HardwareSetupWizard';
-import PrinterSetup from './pages/PrinterSetup';
-import StreamScheduler from './pages/StreamScheduler';
-import DisplayManagement from './pages/DisplayManagement';
-import DisplayScreen from './pages/DisplayScreen';
-import BluetoothConnectivityResearch from './pages/BluetoothConnectivityResearch';
+import MemberAnnouncements from './pages/MemberAnnouncements';
+import MemberContacts from './pages/MemberContacts';
+import MemberDashboard from './pages/MemberDashboard';
+import MemberSermons from './pages/MemberSermons';
+import Members from './pages/Members';
+import MultimediaMessaging from './pages/MultimediaMessaging';
+import MyDonations from './pages/MyDonations';
+import MyGroups from './pages/MyGroups';
+import MyProfile from './pages/MyProfile';
 import NetworkPrinterSetup from './pages/NetworkPrinterSetup';
-import DeviceManagement from './pages/DeviceManagement';
+import OnboardingProgress from './pages/OnboardingProgress';
+import OnboardingWizard from './pages/OnboardingWizard';
+import PrinterSetup from './pages/PrinterSetup';
+import PrivacyConsent from './pages/PrivacyConsent';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import ProductManagement from './pages/ProductManagement';
+import PublicEventsCalendar from './pages/PublicEventsCalendar';
+import PublicGiving from './pages/PublicGiving';
+import PublicMemberRegistration from './pages/PublicMemberRegistration';
+import PublicVisitorRegistration from './pages/PublicVisitorRegistration';
+import PublicVolunteerOpportunities from './pages/PublicVolunteerOpportunities';
 import QRCodeDonation from './pages/QRCodeDonation';
-import DonorCommunications from './pages/DonorCommunications';
-import FinancialReports from './pages/FinancialReports';
-import DonorPortal from './pages/DonorPortal';
+import QuickExpense from './pages/QuickExpense';
+import Reports from './pages/Reports';
+import Resources from './pages/Resources';
+import SMSDiagnosticReport from './pages/SMSDiagnosticReport';
+import SMSDiagnostics from './pages/SMSDiagnostics';
+import Sermons from './pages/Sermons';
+import Settings from './pages/Settings';
+import SinchSetupGuide from './pages/SinchSetupGuide';
+import SinchWebhookDiagnostics from './pages/SinchWebhookDiagnostics';
+import SinchWebhookTest from './pages/SinchWebhookTest';
+import StreamScheduler from './pages/StreamScheduler';
+import SubscriptionPlans from './pages/SubscriptionPlans';
+import Support from './pages/Support';
+import SystemDiagnostics from './pages/SystemDiagnostics';
+import TermsOfService from './pages/TermsOfService';
+import TestingTasks from './pages/TestingTasks';
+import TextMessaging from './pages/TextMessaging';
+import UserManagement from './pages/UserManagement';
+import VideoMeeting from './pages/VideoMeeting';
+import VideoMeetings from './pages/VideoMeetings';
+import ViewMMS from './pages/ViewMMS';
+import ViewMMSCampaign from './pages/ViewMMSCampaign';
+import VisitorFollowUp from './pages/VisitorFollowUp';
 import VisitorQRCode from './pages/VisitorQRCode';
 import VisitorQRDisplay from './pages/VisitorQRDisplay';
-import PublicEventsCalendar from './pages/PublicEventsCalendar';
-import GivingCategoryManagement from './pages/GivingCategoryManagement';
-import AnalyticsDashboard from './pages/AnalyticsDashboard';
-import PublicVolunteerOpportunities from './pages/PublicVolunteerOpportunities';
-import SMSDiagnosticReport from './pages/SMSDiagnosticReport';
-import SinchWebhookTest from './pages/SinchWebhookTest';
-import SinchWebhookDiagnostics from './pages/SinchWebhookDiagnostics';
-import CheckDeposit from './pages/CheckDeposit';
-import OnboardingWizard from './pages/OnboardingWizard';
-import AutoDeviceSetup from './pages/AutoDeviceSetup';
-import Careers from './pages/Careers';
-import Support from './pages/Support';
-import HelpCenter from './pages/HelpCenter';
-import Documentation from './pages/Documentation';
-import Resources from './pages/Resources';
-import PrivacyPolicy from './pages/PrivacyPolicy';
-import TermsOfService from './pages/TermsOfService';
-import QuickExpense from './pages/QuickExpense';
-import DisplayContentManager from './pages/DisplayContentManager';
-import CommunicationHub from './pages/CommunicationHub';
-import OnboardingProgress from './pages/OnboardingProgress';
+import Visitors from './pages/Visitors';
+import VolunteerConfirm from './pages/VolunteerConfirm';
+import VolunteerPortal from './pages/VolunteerPortal';
+import VolunteerRegistration from './pages/VolunteerRegistration';
+import Volunteers from './pages/Volunteers';
+import backoffice from './pages/backoffice';
+import DonationAnalytics from './pages/DonationAnalytics';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "Dashboard": Dashboard,
-    "Members": Members,
-    "Events": Events,
-    "Donate": Donate,
-    "Giving": Giving,
-    "Volunteers": Volunteers,
-    "Communications": Communications,
-    "Reports": Reports,
-    "Sermons": Sermons,
-    "EventRegistration": EventRegistration,
-    "Visitors": Visitors,
     "AccountManagement": AccountManagement,
-    "BillingCenter": BillingCenter,
-    "SubscriptionPlans": SubscriptionPlans,
-    "LandingPage": LandingPage,
-    "Settings": Settings,
-    "VolunteerRegistration": VolunteerRegistration,
-    "VideoMeetings": VideoMeetings,
-    "VideoMeeting": VideoMeeting,
-    "TextMessaging": TextMessaging,
-    "PrivacyConsent": PrivacyConsent,
-    "ContactDirectory": ContactDirectory,
-    "UserManagement": UserManagement,
-    "MultimediaMessaging": MultimediaMessaging,
-    "CreateMMSCampaign": CreateMMSCampaign,
-    "ViewMMS": ViewMMS,
-    "SMSDiagnostics": SMSDiagnostics,
-    "PublicMemberRegistration": PublicMemberRegistration,
-    "PublicVisitorRegistration": PublicVisitorRegistration,
-    "PublicGiving": PublicGiving,
-    "DonationStatements": DonationStatements,
-    "EditMMSCampaign": EditMMSCampaign,
-    "MyDonations": MyDonations,
-    "ViewMMSCampaign": ViewMMSCampaign,
-    "SystemDiagnostics": SystemDiagnostics,
-    "MemberDashboard": MemberDashboard,
-    "MyProfile": MyProfile,
-    "MemberAnnouncements": MemberAnnouncements,
-    "MemberSermons": MemberSermons,
-    "MyGroups": MyGroups,
-    "MemberContacts": MemberContacts,
+    "AnalyticsDashboard": AnalyticsDashboard,
+    "AutoDeviceSetup": AutoDeviceSetup,
     "BackOffice": BackOffice,
-    "backoffice": backoffice,
+    "BillingCenter": BillingCenter,
+    "BluetoothConnectivityResearch": BluetoothConnectivityResearch,
+    "Bookstore": Bookstore,
+    "Careers": Careers,
+    "CheckDeposit": CheckDeposit,
+    "CoffeeShopKiosk": CoffeeShopKiosk,
+    "CommunicationHub": CommunicationHub,
+    "Communications": Communications,
+    "Community": Community,
+    "CompetitiveAnalysis": CompetitiveAnalysis,
+    "ContactDirectory": ContactDirectory,
+    "CreateMMSCampaign": CreateMMSCampaign,
+    "Dashboard": Dashboard,
+    "DeviceManagement": DeviceManagement,
+    "DisplayContentManager": DisplayContentManager,
+    "DisplayManagement": DisplayManagement,
+    "DisplayScreen": DisplayScreen,
+    "Documentation": Documentation,
+    "Donate": Donate,
+    "DonationStatements": DonationStatements,
+    "DonorCommunications": DonorCommunications,
+    "DonorPortal": DonorPortal,
+    "EditMMSCampaign": EditMMSCampaign,
+    "EventRegistration": EventRegistration,
+    "Events": Events,
+    "FinancialManagement": FinancialManagement,
+    "FinancialReports": FinancialReports,
+    "Giving": Giving,
+    "GivingCategoryManagement": GivingCategoryManagement,
     "GivingMessages": GivingMessages,
-    "VisitorFollowUp": VisitorFollowUp,
-    "VolunteerConfirm": VolunteerConfirm,
-    "KioskGiving": KioskGiving,
-    "KioskSetupInstructions": KioskSetupInstructions,
-    "KioskGivingSetup": KioskGivingSetup,
-    "SinchSetupGuide": SinchSetupGuide,
+    "HardwareRecommendations": HardwareRecommendations,
+    "HardwareSetupWizard": HardwareSetupWizard,
+    "HelpCenter": HelpCenter,
+    "Home": Home,
     "KidsCheckIn": KidsCheckIn,
     "KidsCheckOut": KidsCheckOut,
     "KidsPrinterSetup": KidsPrinterSetup,
-    "FinancialManagement": FinancialManagement,
-    "Bookstore": Bookstore,
-    "CoffeeShopKiosk": CoffeeShopKiosk,
+    "KioskGiving": KioskGiving,
+    "KioskGivingSetup": KioskGivingSetup,
+    "KioskSetupInstructions": KioskSetupInstructions,
     "KitchenDisplay": KitchenDisplay,
-    "ProductManagement": ProductManagement,
-    "CompetitiveAnalysis": CompetitiveAnalysis,
+    "LandingPage": LandingPage,
     "MarketStrategy": MarketStrategy,
-    "Community": Community,
-    "VolunteerPortal": VolunteerPortal,
-    "HardwareRecommendations": HardwareRecommendations,
-    "TestingTasks": TestingTasks,
-    "HardwareSetupWizard": HardwareSetupWizard,
-    "PrinterSetup": PrinterSetup,
-    "StreamScheduler": StreamScheduler,
-    "DisplayManagement": DisplayManagement,
-    "DisplayScreen": DisplayScreen,
-    "BluetoothConnectivityResearch": BluetoothConnectivityResearch,
+    "MemberAnnouncements": MemberAnnouncements,
+    "MemberContacts": MemberContacts,
+    "MemberDashboard": MemberDashboard,
+    "MemberSermons": MemberSermons,
+    "Members": Members,
+    "MultimediaMessaging": MultimediaMessaging,
+    "MyDonations": MyDonations,
+    "MyGroups": MyGroups,
+    "MyProfile": MyProfile,
     "NetworkPrinterSetup": NetworkPrinterSetup,
-    "DeviceManagement": DeviceManagement,
+    "OnboardingProgress": OnboardingProgress,
+    "OnboardingWizard": OnboardingWizard,
+    "PrinterSetup": PrinterSetup,
+    "PrivacyConsent": PrivacyConsent,
+    "PrivacyPolicy": PrivacyPolicy,
+    "ProductManagement": ProductManagement,
+    "PublicEventsCalendar": PublicEventsCalendar,
+    "PublicGiving": PublicGiving,
+    "PublicMemberRegistration": PublicMemberRegistration,
+    "PublicVisitorRegistration": PublicVisitorRegistration,
+    "PublicVolunteerOpportunities": PublicVolunteerOpportunities,
     "QRCodeDonation": QRCodeDonation,
-    "DonorCommunications": DonorCommunications,
-    "FinancialReports": FinancialReports,
-    "DonorPortal": DonorPortal,
+    "QuickExpense": QuickExpense,
+    "Reports": Reports,
+    "Resources": Resources,
+    "SMSDiagnosticReport": SMSDiagnosticReport,
+    "SMSDiagnostics": SMSDiagnostics,
+    "Sermons": Sermons,
+    "Settings": Settings,
+    "SinchSetupGuide": SinchSetupGuide,
+    "SinchWebhookDiagnostics": SinchWebhookDiagnostics,
+    "SinchWebhookTest": SinchWebhookTest,
+    "StreamScheduler": StreamScheduler,
+    "SubscriptionPlans": SubscriptionPlans,
+    "Support": Support,
+    "SystemDiagnostics": SystemDiagnostics,
+    "TermsOfService": TermsOfService,
+    "TestingTasks": TestingTasks,
+    "TextMessaging": TextMessaging,
+    "UserManagement": UserManagement,
+    "VideoMeeting": VideoMeeting,
+    "VideoMeetings": VideoMeetings,
+    "ViewMMS": ViewMMS,
+    "ViewMMSCampaign": ViewMMSCampaign,
+    "VisitorFollowUp": VisitorFollowUp,
     "VisitorQRCode": VisitorQRCode,
     "VisitorQRDisplay": VisitorQRDisplay,
-    "PublicEventsCalendar": PublicEventsCalendar,
-    "GivingCategoryManagement": GivingCategoryManagement,
-    "AnalyticsDashboard": AnalyticsDashboard,
-    "PublicVolunteerOpportunities": PublicVolunteerOpportunities,
-    "SMSDiagnosticReport": SMSDiagnosticReport,
-    "SinchWebhookTest": SinchWebhookTest,
-    "SinchWebhookDiagnostics": SinchWebhookDiagnostics,
-    "CheckDeposit": CheckDeposit,
-    "OnboardingWizard": OnboardingWizard,
-    "AutoDeviceSetup": AutoDeviceSetup,
-    "Careers": Careers,
-    "Support": Support,
-    "HelpCenter": HelpCenter,
-    "Documentation": Documentation,
-    "Resources": Resources,
-    "PrivacyPolicy": PrivacyPolicy,
-    "TermsOfService": TermsOfService,
-    "QuickExpense": QuickExpense,
-    "DisplayContentManager": DisplayContentManager,
-    "CommunicationHub": CommunicationHub,
-    "OnboardingProgress": OnboardingProgress,
+    "Visitors": Visitors,
+    "VolunteerConfirm": VolunteerConfirm,
+    "VolunteerPortal": VolunteerPortal,
+    "VolunteerRegistration": VolunteerRegistration,
+    "Volunteers": Volunteers,
+    "backoffice": backoffice,
+    "DonationAnalytics": DonationAnalytics,
 }
 
 export const pagesConfig = {
