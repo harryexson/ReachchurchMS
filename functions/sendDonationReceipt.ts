@@ -1,13 +1,8 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
-        const user = await base44.auth.me();
-
-        if (!user) {
-            return Response.json({ error: 'Unauthorized' }, { status: 401 });
-        }
 
         const { donation_id, donation_data } = await req.json();
 
@@ -186,24 +181,65 @@ Deno.serve(async (req) => {
 </html>
         `;
 
-        // Send receipt email
-        await base44.integrations.Core.SendEmail({
+        // Generate PDF receipt
+        let pdfUrl = null;
+        try {
+            const pdfResponse = await base44.asServiceRole.functions.invoke('generateReceiptPDF', {
+                donation_data: donation_data,
+                church_settings: settings
+            });
+
+            if (pdfResponse.data) {
+                // Upload PDF to storage
+                const pdfBlob = new Blob([pdfResponse.data], { type: 'application/pdf' });
+                const fileName = `receipt-${donation_data.receipt_number || donation_id}.pdf`;
+                
+                const uploadResponse = await base44.asServiceRole.integrations.Core.UploadFile({
+                    file: pdfBlob,
+                    filename: fileName
+                });
+                
+                pdfUrl = uploadResponse.file_url;
+            }
+        } catch (pdfError) {
+            console.error('PDF generation error:', pdfError);
+            // Continue with email even if PDF fails
+        }
+
+        // Send receipt email with PDF attachment
+        const emailData = {
             to: donation_data.donor_email,
             subject: receiptSubject,
             body: receiptHtml
-        });
+        };
+
+        if (pdfUrl) {
+            emailData.attachments = [{
+                filename: `receipt-${donation_data.receipt_number || donation_id}.pdf`,
+                url: pdfUrl
+            }];
+        }
+
+        await base44.asServiceRole.integrations.Core.SendEmail(emailData);
 
         // Update donation record
         if (donation_id) {
-            await base44.entities.Donation.update(donation_id, {
+            const updateData = {
                 receipt_sent: true,
                 receipt_sent_date: new Date().toISOString().split('T')[0]
-            });
+            };
+            
+            if (pdfUrl) {
+                updateData.receipt_pdf_url = pdfUrl;
+            }
+            
+            await base44.asServiceRole.entities.Donation.update(donation_id, updateData);
         }
 
         return Response.json({
             success: true,
-            message: 'Receipt sent successfully'
+            message: 'Receipt sent successfully',
+            pdf_url: pdfUrl
         });
 
     } catch (error) {
