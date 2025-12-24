@@ -248,6 +248,16 @@ export default function Layout({ children, currentPageName }) {
       icon: Church,
     },
     {
+      title: "Role Management",
+      url: createPageUrl("RoleManagement"),
+      icon: Shield,
+    },
+    {
+      title: "User Role Assignment",
+      url: createPageUrl("UserRoleAssignment"),
+      icon: UserCog,
+    },
+    {
       title: "Members",
       url: createPageUrl("Members"),
       icon: Users,

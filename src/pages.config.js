@@ -21,6 +21,7 @@ import DisplayManagement from './pages/DisplayManagement';
 import DisplayScreen from './pages/DisplayScreen';
 import Documentation from './pages/Documentation';
 import Donate from './pages/Donate';
+import DonationAnalytics from './pages/DonationAnalytics';
 import DonationStatements from './pages/DonationStatements';
 import DonorCommunications from './pages/DonorCommunications';
 import DonorPortal from './pages/DonorPortal';
@@ -98,7 +99,8 @@ import VolunteerPortal from './pages/VolunteerPortal';
 import VolunteerRegistration from './pages/VolunteerRegistration';
 import Volunteers from './pages/Volunteers';
 import backoffice from './pages/backoffice';
-import DonationAnalytics from './pages/DonationAnalytics';
+import RoleManagement from './pages/RoleManagement';
+import UserRoleAssignment from './pages/UserRoleAssignment';
 import __Layout from './Layout.jsx';
 
 
@@ -126,6 +128,7 @@ export const PAGES = {
     "DisplayScreen": DisplayScreen,
     "Documentation": Documentation,
     "Donate": Donate,
+    "DonationAnalytics": DonationAnalytics,
     "DonationStatements": DonationStatements,
     "DonorCommunications": DonorCommunications,
     "DonorPortal": DonorPortal,
@@ -203,7 +206,8 @@ export const PAGES = {
     "VolunteerRegistration": VolunteerRegistration,
     "Volunteers": Volunteers,
     "backoffice": backoffice,
-    "DonationAnalytics": DonationAnalytics,
+    "RoleManagement": RoleManagement,
+    "UserRoleAssignment": UserRoleAssignment,
 }
 
 export const pagesConfig = {
