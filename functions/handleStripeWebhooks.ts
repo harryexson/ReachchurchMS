@@ -124,7 +124,13 @@ async function handleCheckoutCompleted(base44, session) {
 async function createDonationRecord(base44, session) {
     const metadata = session.metadata || {};
     
+    // Generate unique receipt number
+    const year = new Date().getFullYear();
+    const timestamp = Date.now().toString().slice(-6);
+    const receiptNumber = `REC-${year}-${timestamp}`;
+    
     const donationData = {
+        receipt_number: receiptNumber,
         donor_name: metadata.donor_name || session.customer_details?.name || 'Anonymous',
         donor_email: metadata.donor_email || session.customer_details?.email,
         donor_phone: metadata.donor_phone || session.customer_details?.phone,
@@ -327,52 +333,34 @@ async function sendDonationReceipt(base44, session) {
     try {
         const metadata = session.metadata || {};
         const email = metadata.donor_email || session.customer_details?.email;
-        const name = metadata.donor_name || session.customer_details?.name;
-        const amount = session.amount_total / 100;
 
         if (!email) {
             console.log('No email address for receipt');
             return;
         }
 
-        // Get church settings for receipt customization
-        let churchName = 'Our Church';
-        try {
-            const settings = await base44.asServiceRole.entities.ChurchSettings.list();
-            if (settings.length > 0) {
-                churchName = settings[0].church_name || churchName;
-            }
-        } catch (err) {
-            console.log('Could not load church settings for receipt');
+        // Find the donation record
+        const donations = await base44.asServiceRole.entities.Donation.filter({
+            donor_email: email
+        });
+        
+        if (donations.length === 0) {
+            console.log('No donation record found');
+            return;
         }
 
-        await base44.asServiceRole.integrations.Core.SendEmail({
-            to: email,
-            subject: `Thank You for Your Donation to ${churchName}`,
-            body: `
-Dear ${name},
+        // Get the most recent donation
+        const donation = donations.sort((a, b) => 
+            new Date(b.created_date) - new Date(a.created_date)
+        )[0];
 
-Thank you for your generous donation of $${amount.toFixed(2)} to ${churchName}.
-
-Your contribution makes a meaningful difference in our ministry and community.
-
-Donation Details:
-- Amount: $${amount.toFixed(2)}
-- Date: ${new Date().toLocaleDateString()}
-- Type: ${metadata.donation_type || 'Offering'}
-- Transaction ID: ${session.id}
-
-This receipt is for tax purposes. Please retain for your records.
-
-With gratitude,
-${churchName}
-
----
-This is an automated receipt. If you have any questions, please contact us.
-            `
+        // Call the sendDonationReceipt function with PDF generation
+        await base44.asServiceRole.functions.invoke('sendDonationReceipt', {
+            donation_id: donation.id,
+            donation_data: donation
         });
 
-        console.log('Receipt sent to:', email);
+        console.log('Receipt sent with PDF to:', email);
     } catch (error) {
         console.error('Error sending receipt:', error);
     }
