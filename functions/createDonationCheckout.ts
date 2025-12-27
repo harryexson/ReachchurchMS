@@ -1,5 +1,5 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
-import Stripe from 'npm:stripe@14.21.0';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import Stripe from 'npm:stripe@17.5.0';
 
 Deno.serve(async (req) => {
     const requestId = Date.now().toString(36);
@@ -19,7 +19,21 @@ Deno.serve(async (req) => {
 
         console.log(`[${requestId}] ✅ Stripe API key found`);
 
-        const stripe = new Stripe(stripeApiKey, { apiVersion: '2023-10-16' });
+        const stripe = new Stripe(stripeApiKey, { 
+            apiVersion: '2024-12-18.acacia'
+        });
+
+        // Get church settings to check for Stripe Connect account
+        let stripeAccountId = null;
+        try {
+            const settings = await base44.asServiceRole.entities.ChurchSettings.list();
+            if (settings.length > 0 && settings[0].stripe_account_id) {
+                stripeAccountId = settings[0].stripe_account_id;
+                console.log(`[${requestId}] ✅ Using Stripe Connect account: ${stripeAccountId}`);
+            }
+        } catch (err) {
+            console.log(`[${requestId}] ⚠️ Could not load church settings:`, err.message);
+        }
         const body = await req.json();
         
         console.log(`[${requestId}] Request body:`, JSON.stringify(body, null, 2));
@@ -163,6 +177,18 @@ Deno.serve(async (req) => {
                     donor_address: donor_address || ''
                 }
             };
+        }
+
+        // Add Stripe Connect parameters if account is connected
+        if (stripeAccountId) {
+            sessionConfig.payment_intent_data = {
+                ...sessionConfig.payment_intent_data,
+                application_fee_amount: Math.round(amount * 100 * 0.029) + 30, // 2.9% + $0.30 Stripe fee
+                transfer_data: {
+                    destination: stripeAccountId
+                }
+            };
+            console.log(`[${requestId}] ✅ Payment will be transferred to connected account: ${stripeAccountId}`);
         }
 
         const session = await stripe.checkout.sessions.create(sessionConfig);

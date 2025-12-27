@@ -77,9 +77,13 @@ Deno.serve(async (req) => {
                 await handleInvoicePaymentFailed(base44, event.data.object);
                 break;
 
+            case 'account.updated':
+                await handleAccountUpdated(base44, event.data.object);
+                break;
+
             default:
                 console.log(`Unhandled event type: ${event.type}`);
-        }
+            }
 
         return new Response(JSON.stringify({ received: true }), {
             status: 200,
@@ -343,7 +347,7 @@ async function sendDonationReceipt(base44, session) {
         const donations = await base44.asServiceRole.entities.Donation.filter({
             donor_email: email
         });
-        
+
         if (donations.length === 0) {
             console.log('No donation record found');
             return;
@@ -363,5 +367,32 @@ async function sendDonationReceipt(base44, session) {
         console.log('Receipt sent with PDF to:', email);
     } catch (error) {
         console.error('Error sending receipt:', error);
+    }
+}
+
+async function handleAccountUpdated(base44, account) {
+    console.log('Stripe account updated:', account.id);
+
+    try {
+        // Find settings with this account ID
+        const settings = await base44.asServiceRole.entities.ChurchSettings.filter({
+            stripe_account_id: account.id
+        });
+
+        if (settings.length > 0) {
+            const updateData = {
+                bank_account_connected: account.charges_enabled && account.payouts_enabled,
+                payouts_enabled: account.payouts_enabled
+            };
+
+            await base44.asServiceRole.entities.ChurchSettings.update(
+                settings[0].id,
+                updateData
+            );
+
+            console.log('Church settings updated for account:', account.id);
+        }
+    } catch (error) {
+        console.error('Error updating account settings:', error);
     }
 }

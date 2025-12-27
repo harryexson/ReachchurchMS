@@ -1,5 +1,5 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
-import Stripe from 'npm:stripe@14.21.0';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import Stripe from 'npm:stripe@17.5.0';
 
 Deno.serve(async (req) => {
     try {
@@ -15,7 +15,9 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Stripe not configured' }, { status: 500 });
         }
 
-        const stripe = new Stripe(stripeApiKey);
+        const stripe = new Stripe(stripeApiKey, {
+            apiVersion: '2024-12-18.acacia'
+        });
         const body = await req.json();
         const { church_name, return_url, refresh_url } = body;
 
