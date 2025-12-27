@@ -155,40 +155,66 @@ Deno.serve(async (req) => {
             submit_type: 'donate'
         };
 
-        // Add payment_intent_data only for one-time payments
-        if (!isRecurring) {
-            sessionConfig.payment_intent_data = {
-                metadata: {
-                    donation_type: donation_type,
-                    donor_name: donor_name,
-                    donor_email: donor_email,
-                    donor_phone: donor_phone || '',
-                    donor_address: donor_address || ''
-                }
-            };
-        } else {
-            // For subscriptions, add subscription_data
-            sessionConfig.subscription_data = {
-                metadata: {
-                    donation_type: donation_type,
-                    donor_name: donor_name,
-                    donor_email: donor_email,
-                    donor_phone: donor_phone || '',
-                    donor_address: donor_address || ''
-                }
-            };
-        }
-
         // Add Stripe Connect parameters if account is connected
         if (stripeAccountId) {
-            sessionConfig.payment_intent_data = {
-                ...sessionConfig.payment_intent_data,
-                application_fee_amount: Math.round(amount * 100 * 0.029) + 30, // 2.9% + $0.30 Stripe fee
-                transfer_data: {
+            if (!isRecurring) {
+                // One-time payment with Connect
+                sessionConfig.payment_intent_data = {
+                    metadata: {
+                        donation_type: donation_type,
+                        donor_name: donor_name,
+                        donor_email: donor_email,
+                        donor_phone: donor_phone || '',
+                        donor_address: donor_address || ''
+                    },
+                    application_fee_amount: Math.round(amount * 100 * 0.029) + 30,
+                    transfer_data: {
+                        destination: stripeAccountId
+                    }
+                };
+                console.log(`[${requestId}] ✅ One-time payment with Connect transfer to: ${stripeAccountId}`);
+            } else {
+                // Recurring payment with Connect
+                sessionConfig.subscription_data = {
+                    metadata: {
+                        donation_type: donation_type,
+                        donor_name: donor_name,
+                        donor_email: donor_email,
+                        donor_phone: donor_phone || '',
+                        donor_address: donor_address || ''
+                    },
+                    application_fee_percent: 2.9
+                };
+                sessionConfig.on_behalf_of = stripeAccountId;
+                sessionConfig.transfer_data = {
                     destination: stripeAccountId
-                }
-            };
-            console.log(`[${requestId}] ✅ Payment will be transferred to connected account: ${stripeAccountId}`);
+                };
+                console.log(`[${requestId}] ✅ Subscription with Connect transfer to: ${stripeAccountId}`);
+            }
+        } else {
+            // No Connect account - standard payment
+            if (!isRecurring) {
+                sessionConfig.payment_intent_data = {
+                    metadata: {
+                        donation_type: donation_type,
+                        donor_name: donor_name,
+                        donor_email: donor_email,
+                        donor_phone: donor_phone || '',
+                        donor_address: donor_address || ''
+                    }
+                };
+            } else {
+                sessionConfig.subscription_data = {
+                    metadata: {
+                        donation_type: donation_type,
+                        donor_name: donor_name,
+                        donor_email: donor_email,
+                        donor_phone: donor_phone || '',
+                        donor_address: donor_address || ''
+                    }
+                };
+            }
+            console.log(`[${requestId}] ⚠️ No Connect account - using platform Stripe account`);
         }
 
         const session = await stripe.checkout.sessions.create(sessionConfig);
