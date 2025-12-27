@@ -181,28 +181,14 @@ Deno.serve(async (req) => {
 
         // Add Stripe Connect parameters if account is connected
         if (stripeAccountId) {
-            if (isRecurring) {
-                // For subscriptions, use subscription_data
-                sessionConfig.subscription_data = {
-                    ...sessionConfig.subscription_data,
-                    application_fee_percent: 2.9,
-                    transfer_data: {
-                        destination: stripeAccountId
-                    }
-                };
-                console.log(`[${requestId}] ✅ Subscription will transfer to connected account: ${stripeAccountId}`);
-            } else {
-                // For one-time payments, use payment_intent_data
-                const stripeFee = Math.round(amount * 100 * 0.029) + 30;
-                sessionConfig.payment_intent_data = {
-                    ...sessionConfig.payment_intent_data,
-                    application_fee_amount: stripeFee,
-                    transfer_data: {
-                        destination: stripeAccountId
-                    }
-                };
-                console.log(`[${requestId}] ✅ Payment will transfer to connected account: ${stripeAccountId} (fee: $${(stripeFee/100).toFixed(2)})`);
-            }
+            sessionConfig.payment_intent_data = {
+                ...sessionConfig.payment_intent_data,
+                application_fee_amount: Math.round(amount * 100 * 0.029) + 30, // 2.9% + $0.30 Stripe fee
+                transfer_data: {
+                    destination: stripeAccountId
+                }
+            };
+            console.log(`[${requestId}] ✅ Payment will be transferred to connected account: ${stripeAccountId}`);
         }
 
         const session = await stripe.checkout.sessions.create(sessionConfig);
