@@ -133,14 +133,25 @@ Deno.serve(async (req) => {
 
         console.log(`[${requestId}] Mode: ${mode}, Recurring: ${isRecurring}`);
 
+        // Detect language from metadata or browser
+        const language = metadata.language || 'en';
+        const localeMap = {
+            'en': 'en',
+            'es': 'es',
+            'fr': 'fr',
+            'ja': 'ja',
+            'zh': 'zh'
+        };
+
         // Create Stripe checkout session
         const sessionConfig = {
-            payment_method_types: ['card'],
+            payment_method_types: ['card', 'us_bank_account'],
             mode: mode,
             line_items: lineItems,
             customer_email: donor_email,
             success_url: cleanSuccessUrl,
             cancel_url: cleanCancelUrl,
+            locale: localeMap[language] || 'auto',
             metadata: {
                 donation_type: donation_type,
                 donor_name: donor_name,
