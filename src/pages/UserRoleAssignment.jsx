@@ -19,33 +19,35 @@ export default function UserRoleAssignment() {
     const [showAssignForm, setShowAssignForm] = useState(false);
     const [selectedMember, setSelectedMember] = useState('');
     const [selectedRole, setSelectedRole] = useState('');
-    const { canAccessPage } = usePermissions();
+    const { canAccessPage, currentUser: permUser, loading: permLoading } = usePermissions();
 
     useEffect(() => {
-        if (canAccessPage('UserManagement')) {
+        if (!permLoading) {
             loadData();
-        } else {
-            setLoading(false);
         }
-    }, []);
+    }, [permLoading]);
 
     const loadData = async () => {
         try {
-            const [membersData, rolesData, userRolesData] = await Promise.all([
-                base44.entities.Member.list('-created_date', 1000),
-                base44.entities.Role.filter({ is_active: true }),
-                base44.entities.UserRole.filter({ is_active: true })
-            ]);
+            console.log('Starting to load members...');
             
-            console.log('Loaded members:', membersData.length, membersData);
-            console.log('Loaded roles:', rolesData.length, rolesData);
+            const membersData = await base44.entities.Member.list('-created_date', 1000);
+            console.log('✅ Loaded members:', membersData.length, membersData);
+            
+            const rolesData = await base44.entities.Role.filter({ is_active: true });
+            console.log('✅ Loaded roles:', rolesData.length, rolesData);
+            
+            const userRolesData = await base44.entities.UserRole.filter({ is_active: true });
+            console.log('✅ Loaded user roles:', userRolesData.length);
             
             setMembers(membersData);
             setRoles(rolesData);
             setUserRoles(userRolesData);
+            
+            console.log('✅ State updated successfully');
         } catch (error) {
-            console.error('Error loading data:', error);
-            alert('Failed to load members and roles: ' + error.message);
+            console.error('❌ Error loading data:', error);
+            console.error('Error details:', error.message, error.stack);
         } finally {
             setLoading(false);
         }
@@ -94,19 +96,7 @@ export default function UserRoleAssignment() {
         }
     };
 
-    if (!canAccessPage('UserManagement')) {
-        return (
-            <div className="p-6">
-                <Alert className="border-red-200 bg-red-50">
-                    <AlertDescription className="text-red-900">
-                        You don't have permission to manage user roles.
-                    </AlertDescription>
-                </Alert>
-            </div>
-        );
-    }
-
-    if (loading) {
+    if (loading || permLoading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
@@ -132,7 +122,16 @@ export default function UserRoleAssignment() {
             <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-3xl font-bold text-slate-900">User Role Assignment</h1>
-                    <p className="text-slate-600 mt-1">Assign custom roles to members ({members.length} members)</p>
+                    <p className="text-slate-600 mt-1">
+                        Assign custom roles to members ({members.length} members loaded)
+                    </p>
+                    {members.length === 0 && (
+                        <Alert className="mt-2 border-yellow-200 bg-yellow-50">
+                            <AlertDescription className="text-yellow-900">
+                                No members found. Please add members in the <strong>Member Directory</strong> first.
+                            </AlertDescription>
+                        </Alert>
+                    )}
                 </div>
                 <Button onClick={() => setShowAssignForm(!showAssignForm)} className="bg-blue-600">
                     <Plus className="w-4 h-4 mr-2" />
@@ -152,17 +151,26 @@ export default function UserRoleAssignment() {
                                 <SelectTrigger>
                                     <SelectValue placeholder="Choose a member" />
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent className="max-h-60 overflow-y-auto">
                                     {members.length === 0 ? (
                                         <div className="p-4 text-center text-slate-500 text-sm">
                                             No members found. Add members first in the Members directory.
                                         </div>
                                     ) : (
-                                        members.map(member => (
-                                            <SelectItem key={member.email || member.id} value={member.email}>
-                                                {member.first_name} {member.last_name} ({member.email})
-                                            </SelectItem>
-                                        ))
+                                        <>
+                                            {console.log('Rendering member dropdown with', members.length, 'members')}
+                                            {members.map(member => {
+                                                if (!member.email) {
+                                                    console.warn('Member without email:', member);
+                                                    return null;
+                                                }
+                                                return (
+                                                    <SelectItem key={member.id} value={member.email}>
+                                                        {member.first_name} {member.last_name} ({member.email})
+                                                    </SelectItem>
+                                                );
+                                            })}
+                                        </>
                                     )}
                                 </SelectContent>
                             </Select>
