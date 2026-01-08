@@ -11,13 +11,13 @@ import { Users, Plus, Trash2, Search, Shield, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function UserRoleAssignment() {
-    const [users, setUsers] = useState([]);
+    const [members, setMembers] = useState([]);
     const [roles, setRoles] = useState([]);
     const [userRoles, setUserRoles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [showAssignForm, setShowAssignForm] = useState(false);
-    const [selectedUser, setSelectedUser] = useState('');
+    const [selectedMember, setSelectedMember] = useState('');
     const [selectedRole, setSelectedRole] = useState('');
     const { canAccessPage } = usePermissions();
 
@@ -31,43 +31,40 @@ export default function UserRoleAssignment() {
 
     const loadData = async () => {
         try {
-            // Fetch roles and user roles first
-            const [rolesData, userRolesData] = await Promise.all([
+            const [membersData, rolesData, userRolesData] = await Promise.all([
+                base44.entities.Member.list('-created_date', 1000),
                 base44.entities.Role.filter({ is_active: true }),
                 base44.entities.UserRole.filter({ is_active: true })
             ]);
             
-            // Fetch users with a larger limit to ensure we get all users
-            let usersData = await base44.entities.User.list('-created_date', 1000);
-            
-            console.log('Loaded users:', usersData.length, usersData);
+            console.log('Loaded members:', membersData.length, membersData);
             console.log('Loaded roles:', rolesData.length, rolesData);
             
-            setUsers(usersData);
+            setMembers(membersData);
             setRoles(rolesData);
             setUserRoles(userRolesData);
         } catch (error) {
             console.error('Error loading data:', error);
-            alert('Failed to load users and roles: ' + error.message);
+            alert('Failed to load members and roles: ' + error.message);
         } finally {
             setLoading(false);
         }
     };
 
     const handleAssignRole = async () => {
-        if (!selectedUser || !selectedRole) {
-            alert('Please select both user and role');
+        if (!selectedMember || !selectedRole) {
+            alert('Please select both member and role');
             return;
         }
 
         try {
-            const user = users.find(u => u.email === selectedUser);
+            const member = members.find(m => m.email === selectedMember);
             const role = roles.find(r => r.id === selectedRole);
             const currentUser = await base44.auth.me();
 
             await base44.entities.UserRole.create({
-                user_email: user.email,
-                user_name: user.full_name,
+                user_email: member.email,
+                user_name: `${member.first_name} ${member.last_name}`,
                 role_id: role.id,
                 role_name: role.role_name,
                 assigned_by: currentUser.email,
@@ -77,7 +74,7 @@ export default function UserRoleAssignment() {
 
             await loadData();
             setShowAssignForm(false);
-            setSelectedUser('');
+            setSelectedMember('');
             setSelectedRole('');
         } catch (error) {
             console.error('Error assigning role:', error);
@@ -117,19 +114,25 @@ export default function UserRoleAssignment() {
         );
     }
 
-    const filteredUsers = users.filter(u => 
-        u.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        u.email?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredMembers = members.filter(m => {
+        const search = searchTerm.toLowerCase();
+        return (
+            m.first_name?.toLowerCase().includes(search) ||
+            m.last_name?.toLowerCase().includes(search) ||
+            m.email?.toLowerCase().includes(search) ||
+            m.phone?.toLowerCase().includes(search) ||
+            `${m.first_name} ${m.last_name}`.toLowerCase().includes(search)
+        );
+    });
 
-    const getUserRoles = (email) => userRoles.filter(ur => ur.user_email === email);
+    const getMemberRoles = (email) => userRoles.filter(ur => ur.user_email === email);
 
     return (
         <div className="p-6 max-w-7xl mx-auto space-y-6">
             <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-3xl font-bold text-slate-900">User Role Assignment</h1>
-                    <p className="text-slate-600 mt-1">Assign custom roles to users</p>
+                    <p className="text-slate-600 mt-1">Assign custom roles to members ({members.length} members)</p>
                 </div>
                 <Button onClick={() => setShowAssignForm(!showAssignForm)} className="bg-blue-600">
                     <Plus className="w-4 h-4 mr-2" />
@@ -144,20 +147,20 @@ export default function UserRoleAssignment() {
                     </CardHeader>
                     <CardContent className="pt-6 space-y-4">
                         <div className="space-y-2">
-                            <Label>Select User</Label>
-                            <Select value={selectedUser} onValueChange={setSelectedUser}>
+                            <Label>Select Member</Label>
+                            <Select value={selectedMember} onValueChange={setSelectedMember}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Choose a user" />
+                                    <SelectValue placeholder="Choose a member" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {users.length === 0 ? (
+                                    {members.length === 0 ? (
                                         <div className="p-4 text-center text-slate-500 text-sm">
-                                            No users found. Make sure users are invited to the app.
+                                            No members found. Add members first in the Members directory.
                                         </div>
                                     ) : (
-                                        users.map(user => (
-                                            <SelectItem key={user.email || user.id} value={user.email}>
-                                                {user.full_name || user.email} {user.full_name && `(${user.email})`}
+                                        members.map(member => (
+                                            <SelectItem key={member.email || member.id} value={member.email}>
+                                                {member.first_name} {member.last_name} ({member.email})
                                             </SelectItem>
                                         ))
                                     )}
@@ -204,7 +207,7 @@ export default function UserRoleAssignment() {
                     <div className="flex items-center gap-4">
                         <Search className="w-5 h-5 text-slate-400" />
                         <Input
-                            placeholder="Search users..."
+                            placeholder="Search by name, email, or phone..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="flex-1"
@@ -213,51 +216,63 @@ export default function UserRoleAssignment() {
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-4">
-                        {filteredUsers.map(user => {
-                            const roles = getUserRoles(user.email);
-                            return (
-                                <Card key={user.email} className="border-slate-200">
-                                    <CardContent className="p-4">
-                                        <div className="flex justify-between items-start">
-                                            <div className="flex items-start gap-3">
-                                                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                                                    <Users className="w-6 h-6 text-blue-600" />
-                                                </div>
-                                                <div>
-                                                    <h3 className="font-semibold text-lg">{user.full_name}</h3>
-                                                    <p className="text-sm text-slate-600">{user.email}</p>
-                                                    <div className="flex items-center gap-2 mt-2">
-                                                        <Badge variant="outline" className="text-xs">
-                                                            {user.role === 'admin' ? 'Admin' : 'Member'}
-                                                        </Badge>
-                                                        {roles.length > 0 ? (
-                                                            roles.map(ur => (
-                                                                <div key={ur.id} className="flex items-center gap-1">
-                                                                    <Badge className="bg-blue-100 text-blue-800 text-xs">
-                                                                        <Shield className="w-3 h-3 mr-1" />
-                                                                        {ur.role_name}
-                                                                    </Badge>
-                                                                    <Button
-                                                                        variant="ghost"
-                                                                        size="sm"
-                                                                        className="h-6 w-6 p-0 text-red-600"
-                                                                        onClick={() => handleRemoveRole(ur)}
-                                                                    >
-                                                                        <Trash2 className="w-3 h-3" />
-                                                                    </Button>
-                                                                </div>
-                                                            ))
-                                                        ) : (
-                                                            <span className="text-xs text-slate-500">No custom roles</span>
+                        {filteredMembers.length === 0 ? (
+                            <div className="text-center py-12">
+                                <Users className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                                <p className="text-slate-500">No members found matching your search</p>
+                            </div>
+                        ) : (
+                            filteredMembers.map(member => {
+                                const roles = getMemberRoles(member.email);
+                                return (
+                                    <Card key={member.email || member.id} className="border-slate-200">
+                                        <CardContent className="p-4">
+                                            <div className="flex justify-between items-start">
+                                                <div className="flex items-start gap-3">
+                                                    <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                                                        <Users className="w-6 h-6 text-blue-600" />
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="font-semibold text-lg">
+                                                            {member.first_name} {member.last_name}
+                                                        </h3>
+                                                        <p className="text-sm text-slate-600">{member.email}</p>
+                                                        {member.phone && (
+                                                            <p className="text-xs text-slate-500">{member.phone}</p>
                                                         )}
+                                                        <div className="flex items-center gap-2 mt-2 flex-wrap">
+                                                            <Badge variant="outline" className="text-xs">
+                                                                {member.member_status || 'Member'}
+                                                            </Badge>
+                                                            {roles.length > 0 ? (
+                                                                roles.map(ur => (
+                                                                    <div key={ur.id} className="flex items-center gap-1">
+                                                                        <Badge className="bg-blue-100 text-blue-800 text-xs">
+                                                                            <Shield className="w-3 h-3 mr-1" />
+                                                                            {ur.role_name}
+                                                                        </Badge>
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="sm"
+                                                                            className="h-6 w-6 p-0 text-red-600"
+                                                                            onClick={() => handleRemoveRole(ur)}
+                                                                        >
+                                                                            <Trash2 className="w-3 h-3" />
+                                                                        </Button>
+                                                                    </div>
+                                                                ))
+                                                            ) : (
+                                                                <span className="text-xs text-slate-500">No custom roles</span>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            );
-                        })}
+                                        </CardContent>
+                                    </Card>
+                                );
+                            })
+                        )}
                     </div>
                 </CardContent>
             </Card>
