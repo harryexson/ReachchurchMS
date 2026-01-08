@@ -234,6 +234,7 @@ export default function PublicGiving() {
     const [currentMonthTotal, setCurrentMonthTotal] = useState(0);
     const [givingCategories, setGivingCategories] = useState([]);
     const [language, setLanguage] = useState('en');
+    const [currency, setCurrency] = useState('USD');
     const [showQuickGive, setShowQuickGive] = useState(false);
     const [branding, setBranding] = useState({
         logo_url: "",
@@ -244,10 +245,23 @@ export default function PublicGiving() {
     });
 
     useEffect(() => {
-        // Auto-detect language
+        // Auto-detect language and currency
         const browserLang = navigator.language.split('-')[0];
         const supportedLangs = ['en', 'es', 'fr', 'ja', 'zh'];
         setLanguage(supportedLangs.includes(browserLang) ? browserLang : 'en');
+
+        // Auto-detect currency based on locale
+        const locale = navigator.language;
+        if (locale.includes('CA')) setCurrency('CAD');
+        else if (locale.includes('GB')) setCurrency('GBP');
+        else if (locale.includes('EU') || locale.includes('FR') || locale.includes('DE') || locale.includes('ES') || locale.includes('IT')) setCurrency('EUR');
+        else if (locale.includes('ZA')) setCurrency('ZAR');
+        else if (locale.includes('NG')) setCurrency('NGN');
+        else if (locale.includes('KE')) setCurrency('KES');
+        else if (locale.includes('GH')) setCurrency('GHS');
+        else if (locale.includes('JP')) setCurrency('JPY');
+        else if (locale.includes('CN')) setCurrency('CNY');
+        else setCurrency('USD');
 
         loadInitialData();
         
@@ -335,7 +349,28 @@ export default function PublicGiving() {
         setIsLoading(false);
     };
 
-    const suggestedAmounts = [25, 50, 100, 250, 500];
+    // Currency symbols and suggested amounts
+    const currencySymbols = {
+        USD: '$', CAD: '$', EUR: '€', GBP: '£', 
+        ZAR: 'R', NGN: '₦', KES: 'KSh', GHS: '₵',
+        JPY: '¥', CNY: '¥'
+    };
+    
+    const suggestedAmountsByCurrency = {
+        USD: [25, 50, 100, 250, 500],
+        CAD: [30, 65, 130, 325, 650],
+        EUR: [20, 45, 90, 225, 450],
+        GBP: [20, 40, 80, 200, 400],
+        ZAR: [400, 900, 1800, 4500, 9000],
+        NGN: [10000, 25000, 50000, 125000, 250000],
+        KES: [2500, 6000, 12000, 30000, 60000],
+        GHS: [300, 700, 1400, 3500, 7000],
+        JPY: [3000, 7000, 14000, 35000, 70000],
+        CNY: [180, 360, 720, 1800, 3600]
+    };
+    
+    const suggestedAmounts = suggestedAmountsByCurrency[currency] || suggestedAmountsByCurrency.USD;
+    const currencySymbol = currencySymbols[currency] || '$';
     const t = translations[language];
 
     const handleQuickGive = async (quickAmount) => {
@@ -378,6 +413,7 @@ export default function PublicGiving() {
 
             const response = await base44.functions.invoke('createDonationCheckout', {
                 amount: donationAmount,
+                currency: currency,
                 donation_type: donationType,
                 donor_name: donorName,
                 donor_email: donorEmail,
@@ -399,6 +435,7 @@ export default function PublicGiving() {
                     user_id: currentUser?.id || 'public',
                     member_id: currentUser?.member_id || null,
                     language: language,
+                    currency: currency,
                     payment_method: paymentMethod
                 }
             });
@@ -500,8 +537,26 @@ export default function PublicGiving() {
                 background: `linear-gradient(135deg, ${branding.primary_color}08 0%, ${branding.secondary_color}08 100%)`
             }}
         >
-            {/* Language Selector */}
-            <div className="fixed top-4 right-4 z-50">
+            {/* Language & Currency Selectors */}
+            <div className="fixed top-4 right-4 z-50 flex gap-2">
+                <Select value={currency} onValueChange={setCurrency}>
+                    <SelectTrigger className="w-32 bg-white/90 backdrop-blur-sm shadow-lg border-0">
+                        <DollarSign className="w-4 h-4 mr-2" />
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="USD">USD $</SelectItem>
+                        <SelectItem value="CAD">CAD $</SelectItem>
+                        <SelectItem value="EUR">EUR €</SelectItem>
+                        <SelectItem value="GBP">GBP £</SelectItem>
+                        <SelectItem value="ZAR">ZAR R</SelectItem>
+                        <SelectItem value="NGN">NGN ₦</SelectItem>
+                        <SelectItem value="KES">KES KSh</SelectItem>
+                        <SelectItem value="GHS">GHS ₵</SelectItem>
+                        <SelectItem value="JPY">JPY ¥</SelectItem>
+                        <SelectItem value="CNY">CNY ¥</SelectItem>
+                    </SelectContent>
+                </Select>
                 <Select value={language} onValueChange={setLanguage}>
                     <SelectTrigger className="w-32 bg-white/90 backdrop-blur-sm shadow-lg border-0">
                         <Globe className="w-4 h-4 mr-2" />
@@ -713,7 +768,7 @@ export default function PublicGiving() {
                             <div className="space-y-3">
                                 <Label htmlFor="customAmount" className="text-base font-semibold">{t.customAmount}</Label>
                                 <div className="relative">
-                                    <DollarSign className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-6 h-6" />
+                                    <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 text-xl font-semibold">{currencySymbol}</span>
                                     <Input
                                         id="customAmount"
                                         type="number"
@@ -834,7 +889,7 @@ export default function PublicGiving() {
                                                 </SelectContent>
                                             </Select>
                                             <p className="text-sm text-green-700 font-medium bg-green-100 p-3 rounded-lg">
-                                                ✓ You'll be charged ${amount === 'custom' ? customAmount : amount} {recurringFrequency}
+                                                ✓ You'll be charged {currencySymbol}{amount === 'custom' ? customAmount : amount} {currency} {recurringFrequency}
                                             </p>
                                         </motion.div>
                                     )}

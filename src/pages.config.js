@@ -71,6 +71,7 @@ import QRCodeDonation from './pages/QRCodeDonation';
 import QuickExpense from './pages/QuickExpense';
 import Reports from './pages/Reports';
 import Resources from './pages/Resources';
+import RoleManagement from './pages/RoleManagement';
 import SMSDiagnosticReport from './pages/SMSDiagnosticReport';
 import SMSDiagnostics from './pages/SMSDiagnostics';
 import Sermons from './pages/Sermons';
@@ -86,6 +87,7 @@ import TermsOfService from './pages/TermsOfService';
 import TestingTasks from './pages/TestingTasks';
 import TextMessaging from './pages/TextMessaging';
 import UserManagement from './pages/UserManagement';
+import UserRoleAssignment from './pages/UserRoleAssignment';
 import VideoMeeting from './pages/VideoMeeting';
 import VideoMeetings from './pages/VideoMeetings';
 import ViewMMS from './pages/ViewMMS';
@@ -99,8 +101,6 @@ import VolunteerPortal from './pages/VolunteerPortal';
 import VolunteerRegistration from './pages/VolunteerRegistration';
 import Volunteers from './pages/Volunteers';
 import backoffice from './pages/backoffice';
-import RoleManagement from './pages/RoleManagement';
-import UserRoleAssignment from './pages/UserRoleAssignment';
 import __Layout from './Layout.jsx';
 
 
@@ -178,6 +178,7 @@ export const PAGES = {
     "QuickExpense": QuickExpense,
     "Reports": Reports,
     "Resources": Resources,
+    "RoleManagement": RoleManagement,
     "SMSDiagnosticReport": SMSDiagnosticReport,
     "SMSDiagnostics": SMSDiagnostics,
     "Sermons": Sermons,
@@ -193,6 +194,7 @@ export const PAGES = {
     "TestingTasks": TestingTasks,
     "TextMessaging": TextMessaging,
     "UserManagement": UserManagement,
+    "UserRoleAssignment": UserRoleAssignment,
     "VideoMeeting": VideoMeeting,
     "VideoMeetings": VideoMeetings,
     "ViewMMS": ViewMMS,
@@ -206,8 +208,6 @@ export const PAGES = {
     "VolunteerRegistration": VolunteerRegistration,
     "Volunteers": Volunteers,
     "backoffice": backoffice,
-    "RoleManagement": RoleManagement,
-    "UserRoleAssignment": UserRoleAssignment,
 }
 
 export const pagesConfig = {

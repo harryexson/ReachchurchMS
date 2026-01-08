@@ -35,11 +35,12 @@ Deno.serve(async (req) => {
             console.log(`[${requestId}] ⚠️ Could not load church settings:`, err.message);
         }
         const body = await req.json();
-        
+
         console.log(`[${requestId}] Request body:`, JSON.stringify(body, null, 2));
-        
+
         const { 
             amount,
+            currency = 'USD',
             donation_type,
             donor_name,
             donor_email,
@@ -77,7 +78,7 @@ Deno.serve(async (req) => {
             }, { status: 400 });
         }
 
-        console.log(`[${requestId}] Creating checkout for $${amount}`);
+        console.log(`[${requestId}] Creating checkout for ${amount} ${currency}`);
         console.log(`[${requestId}] Donor: ${donor_name} (${donor_email})`);
         console.log(`[${requestId}] Success URL: ${successUrl}`);
         console.log(`[${requestId}] Cancel URL: ${cancelUrl}`);
@@ -92,7 +93,17 @@ Deno.serve(async (req) => {
         // Determine mode and line items based on recurring
         const isRecurring = recurring === true || recurring === 'true';
         const mode = isRecurring ? 'subscription' : 'payment';
-        
+
+        // Normalize currency
+        const currencyLower = (currency || 'USD').toLowerCase();
+
+        // Handle zero-decimal currencies (JPY, KRW, etc.)
+        const zeroDecimalCurrencies = ['jpy', 'krw', 'clp', 'vnd', 'xaf', 'xof'];
+        const isZeroDecimal = zeroDecimalCurrencies.includes(currencyLower);
+        const amountInCents = isZeroDecimal ? Math.round(amount) : Math.round(amount * 100);
+
+        console.log(`[${requestId}] Currency: ${currency}, Amount: ${amount}, In Cents: ${amountInCents}`);
+
         let lineItems;
         if (isRecurring) {
             // For recurring donations, create subscription price
@@ -101,17 +112,17 @@ Deno.serve(async (req) => {
                 'monthly': { interval: 'month', interval_count: 1 },
                 'annually': { interval: 'year', interval_count: 1 }
             };
-            
+
             const recurringInterval = intervalMap[recurring_frequency] || { interval: 'month', interval_count: 1 };
-            
+
             lineItems = [{
                 price_data: {
-                    currency: 'usd',
+                    currency: currencyLower,
                     product_data: {
                         name: `${donation_type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} Donation`,
                         description: `Recurring ${recurring_frequency} donation from ${donor_name}`
                     },
-                    unit_amount: Math.round(amount * 100),
+                    unit_amount: amountInCents,
                     recurring: recurringInterval
                 },
                 quantity: 1
@@ -120,12 +131,12 @@ Deno.serve(async (req) => {
             // One-time payment
             lineItems = [{
                 price_data: {
-                    currency: 'usd',
+                    currency: currencyLower,
                     product_data: {
                         name: `${donation_type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} Donation`,
                         description: `Donation from ${donor_name}`
                     },
-                    unit_amount: Math.round(amount * 100)
+                    unit_amount: amountInCents
                 },
                 quantity: 1
             }];
@@ -160,8 +171,9 @@ Deno.serve(async (req) => {
                 donor_address: donor_address || '',
                 recurring: isRecurring ? 'true' : 'false',
                 recurring_frequency: recurring_frequency || '',
+                currency: currency || 'USD',
                 ...metadata
-            },
+                },
             ui_mode: 'hosted',
             submit_type: 'donate'
         };
@@ -176,9 +188,12 @@ Deno.serve(async (req) => {
                         donor_name: donor_name,
                         donor_email: donor_email,
                         donor_phone: donor_phone || '',
-                        donor_address: donor_address || ''
+                        donor_address: donor_address || '',
+                        currency: currency || 'USD'
                     },
-                    application_fee_amount: Math.round(amount * 100 * 0.029) + 30,
+                    application_fee_amount: isZeroDecimal 
+                        ? Math.round(amount * 0.029) + 30
+                        : Math.round(amount * 100 * 0.029) + 30,
                     transfer_data: {
                         destination: stripeAccountId
                     }
@@ -211,7 +226,8 @@ Deno.serve(async (req) => {
                         donor_name: donor_name,
                         donor_email: donor_email,
                         donor_phone: donor_phone || '',
-                        donor_address: donor_address || ''
+                        donor_address: donor_address || '',
+                        currency: currency || 'USD'
                     }
                 };
             } else {
@@ -221,7 +237,8 @@ Deno.serve(async (req) => {
                         donor_name: donor_name,
                         donor_email: donor_email,
                         donor_phone: donor_phone || '',
-                        donor_address: donor_address || ''
+                        donor_address: donor_address || '',
+                        currency: currency || 'USD'
                     }
                 };
             }
