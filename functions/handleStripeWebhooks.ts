@@ -133,13 +133,18 @@ async function createDonationRecord(base44, session) {
     const timestamp = Date.now().toString().slice(-6);
     const receiptNumber = `REC-${year}-${timestamp}`;
     
+    const currency = metadata.currency || session.currency || 'USD';
+    const isZeroDecimal = ['jpy', 'krw', 'clp', 'vnd', 'xaf', 'xof'].includes(currency.toLowerCase());
+    const amount = isZeroDecimal ? session.amount_total : session.amount_total / 100;
+
     const donationData = {
         receipt_number: receiptNumber,
         donor_name: metadata.donor_name || session.customer_details?.name || 'Anonymous',
         donor_email: metadata.donor_email || session.customer_details?.email,
         donor_phone: metadata.donor_phone || session.customer_details?.phone,
         donor_address: metadata.donor_address,
-        amount: session.amount_total / 100, // Convert from cents
+        amount: amount,
+        currency: currency.toUpperCase(),
         donation_type: metadata.donation_type || 'offering',
         payment_method: 'credit_card',
         donation_date: new Date().toISOString().split('T')[0],
