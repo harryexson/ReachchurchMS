@@ -31,19 +31,24 @@ export default function UserRoleAssignment() {
 
     const loadData = async () => {
         try {
-            const [usersData, rolesData, userRolesData] = await Promise.all([
-                base44.entities.User.list(),
+            // Fetch roles and user roles first
+            const [rolesData, userRolesData] = await Promise.all([
                 base44.entities.Role.filter({ is_active: true }),
                 base44.entities.UserRole.filter({ is_active: true })
             ]);
+            
+            // Fetch users with a larger limit to ensure we get all users
+            let usersData = await base44.entities.User.list('-created_date', 1000);
+            
             console.log('Loaded users:', usersData.length, usersData);
             console.log('Loaded roles:', rolesData.length, rolesData);
+            
             setUsers(usersData);
             setRoles(rolesData);
             setUserRoles(userRolesData);
         } catch (error) {
             console.error('Error loading data:', error);
-            alert('Failed to load users and roles. Check console for details.');
+            alert('Failed to load users and roles: ' + error.message);
         } finally {
             setLoading(false);
         }
