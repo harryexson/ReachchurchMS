@@ -74,6 +74,7 @@ import Resources from './pages/Resources';
 import RoleManagement from './pages/RoleManagement';
 import SMSDiagnosticReport from './pages/SMSDiagnosticReport';
 import SMSDiagnostics from './pages/SMSDiagnostics';
+import SMSGivingSetup from './pages/SMSGivingSetup';
 import Sermons from './pages/Sermons';
 import Settings from './pages/Settings';
 import SinchSetupGuide from './pages/SinchSetupGuide';
@@ -101,7 +102,6 @@ import VolunteerPortal from './pages/VolunteerPortal';
 import VolunteerRegistration from './pages/VolunteerRegistration';
 import Volunteers from './pages/Volunteers';
 import backoffice from './pages/backoffice';
-import SMSGivingSetup from './pages/SMSGivingSetup';
 import __Layout from './Layout.jsx';
 
 
@@ -182,6 +182,7 @@ export const PAGES = {
     "RoleManagement": RoleManagement,
     "SMSDiagnosticReport": SMSDiagnosticReport,
     "SMSDiagnostics": SMSDiagnostics,
+    "SMSGivingSetup": SMSGivingSetup,
     "Sermons": Sermons,
     "Settings": Settings,
     "SinchSetupGuide": SinchSetupGuide,
@@ -209,7 +210,6 @@ export const PAGES = {
     "VolunteerRegistration": VolunteerRegistration,
     "Volunteers": Volunteers,
     "backoffice": backoffice,
-    "SMSGivingSetup": SMSGivingSetup,
 }
 
 export const pagesConfig = {

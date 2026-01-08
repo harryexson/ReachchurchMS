@@ -411,6 +411,14 @@ export default function PublicGiving() {
             const successUrl = `${baseUrl}?success=true&t=${Date.now()}`;
             const cancelUrl = `${baseUrl}?cancelled=true&t=${Date.now()}`;
 
+            console.log('Creating donation checkout with:', {
+                amount: donationAmount,
+                currency: currency,
+                donation_type: donationType,
+                recurring: isRecurring,
+                payment_method: paymentMethod
+            });
+
             const response = await base44.functions.invoke('createDonationCheckout', {
                 amount: donationAmount,
                 currency: currency,
@@ -440,6 +448,8 @@ export default function PublicGiving() {
                 }
             });
 
+            console.log('Checkout response:', response.data);
+
             if (response.data && response.data.checkout_url) {
                 if (window.self !== window.top) {
                     window.top.location.href = response.data.checkout_url;
@@ -451,9 +461,16 @@ export default function PublicGiving() {
             }
         } catch (error) {
             console.error("Donation error:", error);
+            console.error("Error details:", {
+                response: error.response?.data,
+                message: error.message,
+                status: error.response?.status
+            });
             setError(error.response?.data?.message || error.message || "Failed to process donation");
             setIsProcessing(false);
-            alert("Failed to process donation. Please try again.");
+
+            const errorMessage = error.response?.data?.message || error.message || "Unknown error";
+            alert(`Checkout failed: ${errorMessage}\n\nPlease check the browser console for details or contact support.`);
         }
     };
 
