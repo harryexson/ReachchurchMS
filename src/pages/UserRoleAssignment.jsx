@@ -5,9 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
-import { Check, ChevronsUpDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { usePermissions } from '@/components/rbac/usePermissions';
 import { Users, Plus, Trash2, Search, Shield, Loader2 } from 'lucide-react';
@@ -22,8 +19,6 @@ export default function UserRoleAssignment() {
     const [showAssignForm, setShowAssignForm] = useState(false);
     const [selectedUser, setSelectedUser] = useState('');
     const [selectedRole, setSelectedRole] = useState('');
-    const [openUserCombobox, setOpenUserCombobox] = useState(false);
-    const [userSearchTerm, setUserSearchTerm] = useState('');
     const { canAccessPage } = usePermissions();
 
     useEffect(() => {
@@ -37,7 +32,7 @@ export default function UserRoleAssignment() {
     const loadData = async () => {
         try {
             const [usersData, rolesData, userRolesData] = await Promise.all([
-                base44.entities.User.list('-created_date', 1000),
+                base44.entities.User.list(),
                 base44.entities.Role.filter({ is_active: true }),
                 base44.entities.UserRole.filter({ is_active: true })
             ]);
@@ -142,59 +137,18 @@ export default function UserRoleAssignment() {
                     <CardContent className="pt-6 space-y-4">
                         <div className="space-y-2">
                             <Label>Select User</Label>
-                            <Popover open={openUserCombobox} onOpenChange={setOpenUserCombobox}>
-                                <PopoverTrigger asChild>
-                                    <Button
-                                        variant="outline"
-                                        role="combobox"
-                                        aria-expanded={openUserCombobox}
-                                        className="w-full justify-between"
-                                    >
-                                        {selectedUser
-                                            ? users.find(u => u.email === selectedUser)?.full_name + ' (' + users.find(u => u.email === selectedUser)?.email + ')'
-                                            : "Search and select a user..."}
-                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-full p-0">
-                                    <Command>
-                                        <CommandInput 
-                                            placeholder="Search users by name or email..." 
-                                            value={userSearchTerm}
-                                            onValueChange={setUserSearchTerm}
-                                        />
-                                        <CommandEmpty>No user found.</CommandEmpty>
-                                        <CommandGroup className="max-h-64 overflow-auto">
-                                            {users
-                                                .filter(u => 
-                                                    !userSearchTerm || 
-                                                    u.full_name?.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
-                                                    u.email?.toLowerCase().includes(userSearchTerm.toLowerCase())
-                                                )
-                                                .map(user => (
-                                                    <CommandItem
-                                                        key={user.email}
-                                                        value={user.email}
-                                                        onSelect={() => {
-                                                            setSelectedUser(user.email);
-                                                            setOpenUserCombobox(false);
-                                                        }}
-                                                    >
-                                                        <Check
-                                                            className={`mr-2 h-4 w-4 ${
-                                                                selectedUser === user.email ? "opacity-100" : "opacity-0"
-                                                            }`}
-                                                        />
-                                                        <div>
-                                                            <div className="font-medium">{user.full_name}</div>
-                                                            <div className="text-xs text-slate-500">{user.email}</div>
-                                                        </div>
-                                                    </CommandItem>
-                                                ))}
-                                        </CommandGroup>
-                                    </Command>
-                                </PopoverContent>
-                            </Popover>
+                            <Select value={selectedUser} onValueChange={setSelectedUser}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Choose a user" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {users.map(user => (
+                                        <SelectItem key={user.email} value={user.email}>
+                                            {user.full_name} ({user.email})
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
 
                         <div className="space-y-2">
