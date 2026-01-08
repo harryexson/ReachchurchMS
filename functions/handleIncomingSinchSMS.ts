@@ -137,6 +137,28 @@ Deno.serve(async (req) => {
             console.error('Error checking for existing visitors:', err);
         }
 
+        // Check for SMS giving keywords (GIVE, DONATE, etc.)
+        if (['GIVE', 'DONATE', 'OFFERING', 'TITHE'].includes(keyword)) {
+            console.log('💰 SMS Giving detected - processing...');
+            
+            try {
+                const processingResult = await base44.asServiceRole.functions.invoke('processSMSGiving', {
+                    from: from,
+                    body: messageBody
+                });
+                
+                console.log('✅ SMS Giving processed:', processingResult);
+                
+                return Response.json({
+                    status: 'ok',
+                    message: 'SMS giving processed',
+                    details: processingResult
+                }, { status: 200 });
+            } catch (giveError) {
+                console.error('❌ SMS Giving error:', giveError);
+            }
+        }
+
         // Check if this is a name response (not a keyword)
         const keywords = await base44.asServiceRole.entities.TextKeyword.filter({ 
             keyword: keyword,

@@ -353,6 +353,11 @@ export default function Layout({ children, currentPageName }) {
       icon: MessageSquare,
     },
     {
+      title: "SMS Giving",
+      url: createPageUrl("SMSGivingSetup"),
+      icon: MessageSquare,
+    },
+    {
       title: "Multimedia Messaging",
       url: createPageUrl("MultimediaMessaging"),
       icon: Image,
