@@ -36,11 +36,14 @@ export default function UserRoleAssignment() {
                 base44.entities.Role.filter({ is_active: true }),
                 base44.entities.UserRole.filter({ is_active: true })
             ]);
+            console.log('Loaded users:', usersData.length, usersData);
+            console.log('Loaded roles:', rolesData.length, rolesData);
             setUsers(usersData);
             setRoles(rolesData);
             setUserRoles(userRolesData);
         } catch (error) {
             console.error('Error loading data:', error);
+            alert('Failed to load users and roles. Check console for details.');
         } finally {
             setLoading(false);
         }
@@ -142,11 +145,17 @@ export default function UserRoleAssignment() {
                                     <SelectValue placeholder="Choose a user" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {users.map(user => (
-                                        <SelectItem key={user.email} value={user.email}>
-                                            {user.full_name} ({user.email})
-                                        </SelectItem>
-                                    ))}
+                                    {users.length === 0 ? (
+                                        <div className="p-4 text-center text-slate-500 text-sm">
+                                            No users found. Make sure users are invited to the app.
+                                        </div>
+                                    ) : (
+                                        users.map(user => (
+                                            <SelectItem key={user.email || user.id} value={user.email}>
+                                                {user.full_name || user.email} {user.full_name && `(${user.email})`}
+                                            </SelectItem>
+                                        ))
+                                    )}
                                 </SelectContent>
                             </Select>
                         </div>
@@ -158,11 +167,17 @@ export default function UserRoleAssignment() {
                                     <SelectValue placeholder="Choose a role" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {roles.map(role => (
-                                        <SelectItem key={role.id} value={role.id}>
-                                            {role.role_name}
-                                        </SelectItem>
-                                    ))}
+                                    {roles.length === 0 ? (
+                                        <div className="p-4 text-center text-slate-500 text-sm">
+                                            No roles found. Create roles first in Role Management.
+                                        </div>
+                                    ) : (
+                                        roles.map(role => (
+                                            <SelectItem key={role.id} value={role.id}>
+                                                {role.role_name}
+                                            </SelectItem>
+                                        ))
+                                    )}
                                 </SelectContent>
                             </Select>
                         </div>
