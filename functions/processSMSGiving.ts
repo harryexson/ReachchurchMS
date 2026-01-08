@@ -64,7 +64,8 @@ Deno.serve(async (req) => {
 
         if (!donor) {
             // Create temporary donor record
-            const replyUrl = `${Deno.env.get('BASE_URL') || 'https://reachchurchms.com'}/PublicGiving?phone=${encodeURIComponent(from)}&amount=${amount}`;
+            const baseUrl = 'https://base44.app/apps/68d38ad0f4d6d5d05900d129';
+            const replyUrl = `${baseUrl}/PublicGiving?phone=${encodeURIComponent(from)}&amount=${amount}`;
             
             await base44.asServiceRole.functions.invoke('sendSinchSMS', {
                 to: from,
@@ -82,7 +83,9 @@ Deno.serve(async (req) => {
         const settings = await base44.asServiceRole.entities.ChurchSettings.list();
         const churchName = settings[0]?.church_name || 'Our Church';
 
-        const checkoutUrl = `${Deno.env.get('BASE_URL') || 'https://reachchurchms.com'}/PublicGiving?phone=${encodeURIComponent(from)}&amount=${amount}&type=${donationType}&donor=${encodeURIComponent(donor.email || donor.name)}`;
+        // Build absolute URL
+        const baseUrl = 'https://base44.app/apps/68d38ad0f4d6d5d05900d129';
+        const checkoutUrl = `${baseUrl}/PublicGiving?phone=${encodeURIComponent(from)}&amount=${amount}&type=${donationType}&donor=${encodeURIComponent(donor.email || donor.name)}`;
 
         // Send SMS with payment link
         await base44.asServiceRole.functions.invoke('sendSinchSMS', {
