@@ -34,8 +34,10 @@ import {
         ShoppingCart,
         Printer,
         Radio,
-        Wifi
+        Wifi,
+        Bell
       } from "lucide-react";
+import NotificationBell from "@/components/notifications/NotificationBell";
 import { Button } from "@/components/ui/button";
 
 const publicPages = [
@@ -463,11 +465,16 @@ export default function Layout({ children, currentPageName }) {
       icon: DollarSign,
     },
     {
+      title: "Member Groups",
+      url: createPageUrl("MemberGroups"),
+      icon: Users,
+    },
+    {
       title: "Settings",
       url: createPageUrl("Settings"),
       icon: Settings,
     },
-  ];
+    ];
 
   const superAdminPages = [
     {
@@ -548,7 +555,12 @@ export default function Layout({ children, currentPageName }) {
       url: createPageUrl("MemberContacts"),
       icon: Mail,
     },
-  ];
+    {
+      title: "Notification Settings",
+      url: createPageUrl("NotificationSettings"),
+      icon: Bell,
+    },
+    ];
 
   let pages = [];
   if (currentUser) {
@@ -762,19 +774,20 @@ export default function Layout({ children, currentPageName }) {
 
           <div className="p-4 border-t border-slate-200">
             <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-1">
                 <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
                   <span className="text-blue-600 font-semibold">
                     {currentUser.full_name ? currentUser.full_name[0].toUpperCase() : "U"}
                   </span>
                 </div>
-                <div>
+                <div className="flex-1">
                   <p className="text-sm font-medium text-slate-900">{currentUser.full_name}</p>
                   <p className="text-xs text-slate-500">
                     {currentUser.role === 'admin' ? 'Administrator' : 'Member'}
                   </p>
                 </div>
               </div>
+              <NotificationBell />
             </div>
             <Button
               variant="ghost"
