@@ -169,39 +169,118 @@ async function createDonationRecord(base44, session) {
 }
 
 async function createOrUpdateSubscription(base44, session) {
+    console.log('🔔 Creating/updating subscription from checkout');
+    
     const metadata = session.metadata || {};
-    const customerEmail = metadata.customer_email || session.customer_details?.email;
+    const customerEmail = metadata.user_email || metadata.church_admin_email || session.customer_details?.email;
 
     if (!customerEmail) {
-        console.error('No customer email found for subscription');
+        console.error('❌ No customer email found for subscription');
         return;
     }
+
+    console.log('📧 Customer email:', customerEmail);
+    console.log('📋 Session metadata:', JSON.stringify(metadata, null, 2));
+
+    if (!session.subscription) {
+        console.error('❌ No subscription ID in session');
+        return;
+    }
+
+    // Fetch full subscription details from Stripe
+    const subscription = await stripe.subscriptions.retrieve(session.subscription);
+    
+    console.log('💳 Stripe subscription:', {
+        id: subscription.id,
+        status: subscription.status,
+        trial_end: subscription.trial_end,
+        current_period_end: subscription.current_period_end
+    });
 
     // Check if subscription already exists
     const existingSubscriptions = await base44.asServiceRole.entities.Subscription.filter({
         church_admin_email: customerEmail
     });
 
-    const subscriptionData = {
-        church_admin_email: customerEmail,
-        church_name: metadata.church_name || '',
-        subscription_tier: metadata.subscription_tier || 'starter',
-        status: 'active',
-        stripe_subscription_id: session.subscription,
-        stripe_customer_id: session.customer,
-        current_period_start: new Date().toISOString(),
-        current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
+    console.log(`🔍 Found ${existingSubscriptions.length} existing subscription(s)`);
+
+    const tierMap = {
+        'starter': { member_limit: 100, sms: 0, mms: 0, video: 0 },
+        'growth': { member_limit: 500, sms: 1000, mms: 10, video: 25 },
+        'premium': { member_limit: 999999, sms: 999999, mms: 999999, video: 200 }
     };
 
+    const tier = metadata.plan_tier || 'starter';
+    const limits = tierMap[tier];
+
+    // Map Stripe status to our status enum
+    let dbStatus = 'active';
+    if (subscription.status === 'trialing') {
+        dbStatus = 'trial';
+    } else if (subscription.status === 'active') {
+        dbStatus = 'active';
+    } else if (subscription.status === 'past_due') {
+        dbStatus = 'past_due';
+    } else if (subscription.status === 'canceled' || subscription.status === 'cancelled') {
+        dbStatus = 'cancelled';
+    }
+
+    console.log(`📊 Computed status: ${dbStatus} (Stripe: ${subscription.status})`);
+
+    const subscriptionData = {
+        church_admin_email: customerEmail,
+        church_name: metadata.church_name || customerEmail.split('@')[0],
+        subscription_tier: tier,
+        billing_cycle: metadata.billing_cycle || 'monthly',
+        status: dbStatus,
+        stripe_subscription_id: subscription.id,
+        stripe_customer_id: session.customer,
+        trial_end_date: subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString().split('T')[0] : null,
+        next_billing_date: subscription.current_period_end ? new Date(subscription.current_period_end * 1000).toISOString().split('T')[0] : null,
+        features: {
+            member_limit: limits.member_limit,
+            sms_enabled: tier !== 'starter',
+            sms_monthly_limit: limits.sms,
+            sms_used_this_month: 0,
+            mms_enabled: tier !== 'starter',
+            mms_monthly_limit: limits.mms,
+            mms_used_this_month: 0,
+            video_enabled: tier !== 'starter',
+            video_max_participants: limits.video,
+            kids_checkin_enabled: tier !== 'starter',
+            kiosk_giving_enabled: tier !== 'starter',
+            coffee_shop_enabled: tier !== 'starter',
+            bookstore_enabled: tier !== 'starter',
+            automated_workflows_enabled: tier !== 'starter',
+            visitor_followup_enabled: tier !== 'starter',
+            giving_thankyou_enabled: tier !== 'starter',
+            tax_statements_enabled: tier !== 'starter',
+            advanced_analytics_enabled: tier === 'premium',
+            financial_management_enabled: tier !== 'starter',
+            breakout_rooms_enabled: tier === 'premium',
+            recording_enabled: tier === 'premium',
+            multi_campus: tier === 'premium',
+            white_label: tier === 'premium',
+            api_access: tier === 'premium',
+            custom_branding_enabled: tier !== 'starter',
+            priority_support: tier !== 'starter',
+            dedicated_account_manager: tier === 'premium'
+        }
+    };
+
+    console.log('💾 Subscription data:', JSON.stringify(subscriptionData, null, 2));
+
     if (existingSubscriptions.length > 0) {
+        console.log('🔄 Updating existing subscription:', existingSubscriptions[0].id);
         await base44.asServiceRole.entities.Subscription.update(
             existingSubscriptions[0].id,
             subscriptionData
         );
-        console.log('Subscription updated:', existingSubscriptions[0].id);
+        console.log('✅ Subscription updated successfully');
     } else {
-        await base44.asServiceRole.entities.Subscription.create(subscriptionData);
-        console.log('New subscription created for:', customerEmail);
+        console.log('➕ Creating new subscription');
+        const created = await base44.asServiceRole.entities.Subscription.create(subscriptionData);
+        console.log('✅ Subscription created successfully:', created.id);
     }
 }
 
@@ -221,37 +300,53 @@ async function handlePaymentSucceeded(base44, paymentIntent) {
 }
 
 async function handleSubscriptionChange(base44, subscription) {
-    console.log('Subscription changed:', subscription.id);
+    console.log('🔔 Subscription changed:', subscription.id);
 
     try {
+        console.log('📊 Stripe subscription status:', subscription.status);
+        console.log('📅 Trial end:', subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : 'No trial');
+        
         // Find subscription by Stripe subscription ID
         const subscriptions = await base44.asServiceRole.entities.Subscription.filter({
             stripe_subscription_id: subscription.id
         });
 
         if (subscriptions.length === 0) {
-            console.log('No matching subscription found in database');
+            console.log('⚠️ No matching subscription found in database');
             return;
         }
 
+        console.log('🔍 Found subscription:', subscriptions[0].id);
+
+        // Map Stripe status to our status enum
+        let dbStatus = 'active';
+        if (subscription.status === 'trialing') {
+            dbStatus = 'trial';
+        } else if (subscription.status === 'active') {
+            dbStatus = 'active';
+        } else if (subscription.status === 'past_due') {
+            dbStatus = 'past_due';
+        } else if (subscription.status === 'canceled' || subscription.status === 'cancelled') {
+            dbStatus = 'cancelled';
+        }
+
         const updateData = {
-            status: subscription.status,
-            current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-            current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+            status: dbStatus,
+            trial_end_date: subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString().split('T')[0] : subscriptions[0].trial_end_date,
+            next_billing_date: subscription.current_period_end ? new Date(subscription.current_period_end * 1000).toISOString().split('T')[0] : null
         };
 
-        if (subscription.trial_end) {
-            updateData.trial_end_date = new Date(subscription.trial_end * 1000).toISOString();
-        }
+        console.log('💾 Updating with:', JSON.stringify(updateData, null, 2));
 
         await base44.asServiceRole.entities.Subscription.update(
             subscriptions[0].id,
             updateData
         );
 
-        console.log('Subscription updated in database');
+        console.log('✅ Subscription updated in database');
     } catch (error) {
-        console.error('Error updating subscription:', error);
+        console.error('❌ Error updating subscription:', error.message);
+        console.error('Stack:', error.stack);
     }
 }
 
