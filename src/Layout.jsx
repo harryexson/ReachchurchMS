@@ -126,9 +126,9 @@ export default function Layout({ children, currentPageName }) {
             last_login: new Date().toISOString()
           }).catch(() => {});
 
-          // Check subscription status for the user
-          let hasValidSubscription = false;
-          let trialExpired = false;
+          // Check subscription status
+          let hasValidAccess = false;
+          let shouldRedirectToUpgrade = false;
 
           try {
             const subscriptions = await base44.entities.Subscription.filter({
@@ -137,46 +137,77 @@ export default function Layout({ children, currentPageName }) {
 
             if (subscriptions.length > 0) {
               const subscription = subscriptions[0];
+              console.log('📋 Subscription found:', {
+                status: subscription.status,
+                tier: subscription.subscription_tier,
+                trial_end: subscription.trial_end_date
+              });
 
               // Check subscription status
               if (subscription.status === 'active') {
-                // Active paid subscription - always valid
-                hasValidSubscription = true;
-                console.log('User has active subscription:', subscription.subscription_tier);
-              } else if (subscription.status === 'trial' && subscription.trial_end_date) {
-                const trialEnd = new Date(subscription.trial_end_date);
-                const now = new Date();
+                hasValidAccess = true;
+                console.log('✅ Active paid subscription - access granted');
+              } else if (subscription.status === 'trial') {
+                if (subscription.trial_end_date) {
+                  const trialEnd = new Date(subscription.trial_end_date);
+                  const now = new Date();
 
-                if (now <= trialEnd) {
-                  // Trial is still valid
-                  hasValidSubscription = true;
-                  console.log('User has valid trial until:', subscription.trial_end_date);
+                  if (now <= trialEnd) {
+                    hasValidAccess = true;
+                    console.log('✅ Trial valid until:', subscription.trial_end_date);
+                  } else {
+                    shouldRedirectToUpgrade = true;
+                    console.log('❌ Trial expired on:', subscription.trial_end_date);
+                  }
                 } else {
-                  // Trial expired
-                  trialExpired = true;
-                  console.log('Trial expired on:', subscription.trial_end_date);
+                  // Trial without end date - treat as valid
+                  hasValidAccess = true;
+                  console.log('✅ Trial active (no end date set)');
                 }
-              } else if (subscription.status === 'trial' && !subscription.trial_end_date) {
-                // Trial without end date - treat as valid
-                hasValidSubscription = true;
-                console.log('User has trial subscription (no end date)');
+              } else if (subscription.status === 'past_due') {
+                shouldRedirectToUpgrade = true;
+                console.log('❌ Subscription past due - payment required');
+              } else if (subscription.status === 'cancelled' || subscription.status === 'suspended') {
+                shouldRedirectToUpgrade = true;
+                console.log('❌ Subscription cancelled/suspended');
+              } else {
+                // Unknown status - allow access to be safe
+                hasValidAccess = true;
+                console.log('⚠️ Unknown subscription status:', subscription.status);
               }
             } else {
-              // No subscription found - still allow access (new user or data issue)
-              hasValidSubscription = true;
-              console.log('No subscription found for user, allowing access');
+              // No subscription found - user needs to subscribe
+              shouldRedirectToUpgrade = true;
+              console.log('❌ No subscription found - user must subscribe');
             }
           } catch (subError) {
-            // If we can't check subscription, allow access (don't block users)
-            console.log('Could not check subscription status:', subError.message);
-            hasValidSubscription = true; // Allow access on error
+            console.error('❌ Error checking subscription:', subError.message);
+            // On error, check if user just signed up (within last 5 minutes)
+            const userCreated = new Date(user.created_date || 0);
+            const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+
+            if (userCreated > fiveMinutesAgo) {
+              // New user - allow access, they might be in signup flow
+              hasValidAccess = true;
+              console.log('⚠️ New user - allowing access during signup');
+            } else {
+              // Existing user with error - safer to require subscription
+              shouldRedirectToUpgrade = true;
+              console.log('⚠️ Subscription check error for existing user');
+            }
           }
 
-          // Only redirect to subscription page if trial has EXPLICITLY expired
-          // Don't redirect if user has a valid subscription or if we couldn't determine status
-          if (trialExpired && hasValidSubscription === false && !pageLower.includes('subscriptionplans')) {
-            console.log('Trial expired, redirecting to subscription page to upgrade');
+          // Redirect to subscription page if needed (unless already on that page)
+          if (shouldRedirectToUpgrade && !pageLower.includes('subscriptionplans')) {
+            console.log('🔀 Redirecting to subscription upgrade page');
             window.location.href = createPageUrl('SubscriptionPlans') + '?upgrade=true';
+            return;
+          }
+
+          // Block access if no valid subscription and not on subscription page
+          if (!hasValidAccess && !shouldRedirectToUpgrade && !pageLower.includes('subscriptionplans')) {
+            console.log('❌ No valid access - redirecting to subscription page');
+            window.location.href = createPageUrl('SubscriptionPlans');
             return;
           }
 

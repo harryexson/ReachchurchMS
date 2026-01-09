@@ -49,6 +49,7 @@ import MarketStrategy from './pages/MarketStrategy';
 import MemberAnnouncements from './pages/MemberAnnouncements';
 import MemberContacts from './pages/MemberContacts';
 import MemberDashboard from './pages/MemberDashboard';
+import MemberGroups from './pages/MemberGroups';
 import MemberSermons from './pages/MemberSermons';
 import Members from './pages/Members';
 import MultimediaMessaging from './pages/MultimediaMessaging';
@@ -56,6 +57,7 @@ import MyDonations from './pages/MyDonations';
 import MyGroups from './pages/MyGroups';
 import MyProfile from './pages/MyProfile';
 import NetworkPrinterSetup from './pages/NetworkPrinterSetup';
+import NotificationSettings from './pages/NotificationSettings';
 import OnboardingProgress from './pages/OnboardingProgress';
 import OnboardingWizard from './pages/OnboardingWizard';
 import PrinterSetup from './pages/PrinterSetup';
@@ -102,8 +104,6 @@ import VolunteerPortal from './pages/VolunteerPortal';
 import VolunteerRegistration from './pages/VolunteerRegistration';
 import Volunteers from './pages/Volunteers';
 import backoffice from './pages/backoffice';
-import MemberGroups from './pages/MemberGroups';
-import NotificationSettings from './pages/NotificationSettings';
 import __Layout from './Layout.jsx';
 
 
@@ -159,6 +159,7 @@ export const PAGES = {
     "MemberAnnouncements": MemberAnnouncements,
     "MemberContacts": MemberContacts,
     "MemberDashboard": MemberDashboard,
+    "MemberGroups": MemberGroups,
     "MemberSermons": MemberSermons,
     "Members": Members,
     "MultimediaMessaging": MultimediaMessaging,
@@ -166,6 +167,7 @@ export const PAGES = {
     "MyGroups": MyGroups,
     "MyProfile": MyProfile,
     "NetworkPrinterSetup": NetworkPrinterSetup,
+    "NotificationSettings": NotificationSettings,
     "OnboardingProgress": OnboardingProgress,
     "OnboardingWizard": OnboardingWizard,
     "PrinterSetup": PrinterSetup,
@@ -212,8 +214,6 @@ export const PAGES = {
     "VolunteerRegistration": VolunteerRegistration,
     "Volunteers": Volunteers,
     "backoffice": backoffice,
-    "MemberGroups": MemberGroups,
-    "NotificationSettings": NotificationSettings,
 }
 
 export const pagesConfig = {
