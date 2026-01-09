@@ -34,19 +34,30 @@ import {
   UserCheck } from
 "lucide-react";
 
+import { base44 } from "@/api/base44Client";
+
 export default function LandingPage() {
-  // Mock authentication state and function for the landing page example
-  // In a real application, this would typically come from an AuthContext or a global state manager
-  const [currentUser, setCurrentUser] = useState(null); // null means not logged in
-  // For testing logged-in state, uncomment one of these:
-  // const [currentUser, setCurrentUser] = useState({ id: '123', role: 'admin' });
-  // const [currentUser, setCurrentUser] = useState({ id: '456', role: 'member' });
+  const [currentUser, setCurrentUser] = useState(null);
+
+  // Check if user is already authenticated
+  React.useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const user = await base44.auth.me();
+        if (user) {
+          setCurrentUser(user);
+        }
+      } catch (error) {
+        // User not authenticated, that's fine on landing page
+        console.log('User not authenticated');
+      }
+    };
+    checkAuth();
+  }, []);
 
   const handleLogin = () => {
-    // In a real application, this would redirect to a login page or trigger a login modal
-    console.log("Simulating login...");
-    // For demonstration purposes, we'll set a mock user
-    setCurrentUser({ id: 'mock-user-1', role: 'admin' }); // or 'member'
+    // Redirect to Base44 authentication
+    base44.auth.redirectToLogin(window.location.origin + createPageUrl('Dashboard'));
   };
 
   const features = [
