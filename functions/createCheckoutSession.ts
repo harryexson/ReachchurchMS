@@ -99,6 +99,7 @@ Deno.serve(async (req) => {
                 ...metadata
             },
             subscription_data: {
+                trial_period_days: 14,
                 metadata: {
                     user_email: user.email,
                     user_id: user.id,
@@ -107,6 +108,8 @@ Deno.serve(async (req) => {
                 }
             }
         });
+        
+        console.log(`[${requestId}] ✅ Session created with 14-day trial:`, session.id);
 
         console.log(`[${requestId}] ✅ Session created:`, session.id);
         return Response.json({ 
