@@ -327,6 +327,7 @@ export function useSubscription() {
         getMMSRemaining,
         getVideoMaxParticipants,
         requiresPlanUpgrade,
-        refresh
+        refresh,
+        lastRefresh: Date.now()
     };
 }
