@@ -104,6 +104,7 @@ import VolunteerPortal from './pages/VolunteerPortal';
 import VolunteerRegistration from './pages/VolunteerRegistration';
 import Volunteers from './pages/Volunteers';
 import backoffice from './pages/backoffice';
+import SignalhouseSetup from './pages/SignalhouseSetup';
 import __Layout from './Layout.jsx';
 
 
@@ -214,6 +215,7 @@ export const PAGES = {
     "VolunteerRegistration": VolunteerRegistration,
     "Volunteers": Volunteers,
     "backoffice": backoffice,
+    "SignalhouseSetup": SignalhouseSetup,
 }
 
 export const pagesConfig = {
