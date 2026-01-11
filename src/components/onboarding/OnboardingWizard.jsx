@@ -5,27 +5,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle, ArrowRight, ArrowLeft, Heart, User, BookOpen, Mail, Phone } from "lucide-react";
+import { CheckCircle, ArrowRight, ArrowLeft, Building, CreditCard, Settings, User, Phone, DollarSign } from "lucide-react";
 import confetti from "canvas-confetti";
 
-const MINISTRY_INTERESTS = [
-    { value: "worship_team", label: "Worship Team" },
-    { value: "children_ministry", label: "Children's Ministry" },
-    { value: "youth_ministry", label: "Youth Ministry" },
-    { value: "hospitality", label: "Hospitality" },
-    { value: "prayer_team", label: "Prayer Team" },
-    { value: "outreach", label: "Outreach" },
-    { value: "small_groups", label: "Small Groups" },
-    { value: "missions", label: "Missions" }
-];
-
 const ONBOARDING_STEPS = [
-    { id: 1, title: "Welcome", icon: Heart },
-    { id: 2, title: "Personal Info", icon: User },
-    { id: 3, title: "Interests", icon: Heart },
-    { id: 4, title: "Resources", icon: BookOpen },
+    { id: 1, title: "Welcome", icon: Building },
+    { id: 2, title: "Organization", icon: Building },
+    { id: 3, title: "Contact Info", icon: Phone },
+    { id: 4, title: "Stripe Connect", icon: CreditCard },
     { id: 5, title: "Complete", icon: CheckCircle }
 ];
 
@@ -34,16 +24,14 @@ export default function OnboardingWizard({ userEmail, userName, userType = "visi
     const [progress, setProgress] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [formData, setFormData] = useState({
-        phone: "",
-        address: "",
-        city: "",
-        state: "",
-        zip_code: "",
-        birth_date: "",
-        gender: "",
-        age_group: "",
-        interests: [],
-        resources_viewed: []
+        church_name: "",
+        church_phone: "",
+        church_address: "",
+        point_of_contact: "",
+        contact_phone: "",
+        contact_email: userEmail,
+        stripe_connected: false,
+        bank_account_added: false
     });
 
     useEffect(() => {
@@ -65,21 +53,21 @@ export default function OnboardingWizard({ userEmail, userName, userType = "visi
 
             if (existing.length > 0) {
                 setProgress(existing[0]);
-                if (existing[0].personal_info) {
-                    setFormData(prev => ({
-                        ...prev,
-                        ...existing[0].personal_info,
-                        interests: existing[0].interests_selected || [],
-                        resources_viewed: existing[0].resources_viewed || []
-                    }));
-                }
+                setFormData(prev => ({
+                    ...prev,
+                    church_name: existing[0].church_name || "",
+                    church_phone: existing[0].church_phone || "",
+                    church_address: existing[0].church_address || "",
+                    point_of_contact: existing[0].point_of_contact || "",
+                    stripe_connected: existing[0].stripe_connected || false,
+                    bank_account_added: existing[0].bank_account_added || false
+                }));
             } else {
                 const newProgress = await base44.entities.OnboardingProgress.create({
                     user_email: userEmail,
-                    user_name: userName,
-                    user_type: userType,
                     current_step: 1,
-                    completed_steps: []
+                    steps_completed: [],
+                    onboarding_completed: false
                 });
                 setProgress(newProgress);
             }
@@ -99,94 +87,51 @@ export default function OnboardingWizard({ userEmail, userName, userType = "visi
     };
 
     const handleNext = async () => {
-        const completedSteps = [...new Set([...progress.completed_steps, currentStep])];
+        const stepsCompleted = [...new Set([...progress.steps_completed || [], `step${currentStep}`])];
         const nextStep = currentStep + 1;
 
         let updates = {
             current_step: nextStep,
-            completed_steps: completedSteps
+            steps_completed: stepsCompleted
         };
 
         // Step-specific updates
         if (currentStep === 2) {
-            updates.basic_info_completed = true;
-            updates.personal_info = {
-                phone: formData.phone,
-                address: formData.address,
-                city: formData.city,
-                state: formData.state,
-                zip_code: formData.zip_code,
-                birth_date: formData.birth_date,
-                gender: formData.gender,
-                age_group: formData.age_group
-            };
+            updates.church_name = formData.church_name;
+            updates.church_phone = formData.church_phone;
+            updates.church_address = formData.church_address;
 
-            // Create or update member record
+            // Update ChurchSettings
             try {
-                const members = await base44.entities.Member.filter({ email: userEmail });
-                const memberData = {
-                    first_name: userName.split(' ')[0],
-                    last_name: userName.split(' ').slice(1).join(' '),
-                    email: userEmail,
-                    phone: formData.phone,
-                    address: formData.address,
-                    city: formData.city,
-                    state: formData.state,
-                    zip_code: formData.zip_code,
-                    birth_date: formData.birth_date,
-                    gender: formData.gender,
-                    age_group: formData.age_group,
-                    member_status: userType === "member" ? "member" : "visitor"
+                const settings = await base44.entities.ChurchSettings.list();
+                const settingsData = {
+                    church_name: formData.church_name,
+                    tagline: formData.tagline || ''
                 };
 
-                if (members.length > 0) {
-                    await base44.entities.Member.update(members[0].id, memberData);
+                if (settings.length > 0) {
+                    await base44.entities.ChurchSettings.update(settings[0].id, settingsData);
                 } else {
-                    await base44.entities.Member.create(memberData);
+                    await base44.entities.ChurchSettings.create(settingsData);
                 }
             } catch (err) {
-                console.error("Error updating member:", err);
+                console.error("Error updating church settings:", err);
             }
         }
 
         if (currentStep === 3) {
-            updates.interests_selected = formData.interests;
-            updates.roles_assigned = formData.interests;
-
-            // Update member interests
-            try {
-                const members = await base44.entities.Member.filter({ email: userEmail });
-                if (members.length > 0) {
-                    await base44.entities.Member.update(members[0].id, {
-                        ministry_involvement: formData.interests
-                    });
-                }
-            } catch (err) {
-                console.error("Error updating member interests:", err);
-            }
+            updates.point_of_contact = formData.point_of_contact;
+            updates.church_phone = formData.contact_phone;
         }
 
         if (currentStep === 4) {
-            updates.resources_viewed = formData.resources_viewed;
+            updates.stripe_connected = formData.stripe_connected;
+            updates.bank_account_added = formData.bank_account_added;
         }
 
         if (nextStep > 5) {
             updates.onboarding_completed = true;
             updates.completion_date = new Date().toISOString();
-            
-            // Send welcome email
-            if (!progress.welcome_email_sent) {
-                try {
-                    await base44.functions.invoke('sendWelcomeEmail', {
-                        email: userEmail,
-                        name: userName,
-                        userType: userType
-                    });
-                    updates.welcome_email_sent = true;
-                } catch (err) {
-                    console.error("Error sending welcome email:", err);
-                }
-            }
 
             // Trigger confetti
             confetti({
@@ -210,21 +155,20 @@ export default function OnboardingWizard({ userEmail, userName, userType = "visi
         }
     };
 
-    const toggleInterest = (interest) => {
-        setFormData(prev => ({
-            ...prev,
-            interests: prev.interests.includes(interest)
-                ? prev.interests.filter(i => i !== interest)
-                : [...prev.interests, interest]
-        }));
-    };
+    const handleConnectStripe = async () => {
+        try {
+            const response = await base44.functions.invoke('createStripeConnectAccount', {
+                email: userEmail,
+                church_name: formData.church_name
+            });
 
-    const markResourceViewed = (resourceId) => {
-        if (!formData.resources_viewed.includes(resourceId)) {
-            setFormData(prev => ({
-                ...prev,
-                resources_viewed: [...prev.resources_viewed, resourceId]
-            }));
+            if (response.data?.account_link) {
+                window.open(response.data.account_link, '_blank');
+                setFormData(prev => ({ ...prev, stripe_connected: true }));
+            }
+        } catch (error) {
+            console.error('Stripe Connect error:', error);
+            alert('Failed to connect Stripe. Please try again or contact support.');
         }
     };
 
@@ -298,17 +242,17 @@ export default function OnboardingWizard({ userEmail, userName, userType = "visi
                 <CardContent className="p-6 space-y-6">
                     {currentStep === 1 && (
                         <div className="text-center space-y-4">
-                            <Heart className="w-16 h-16 text-red-500 mx-auto" />
+                            <Building className="w-16 h-16 text-blue-600 mx-auto" />
                             <h2 className="text-2xl font-bold text-slate-900">
-                                Welcome, {userName}!
+                                Welcome to REACH Church Connect!
                             </h2>
                             <p className="text-slate-600 max-w-xl mx-auto">
-                                We're thrilled to have you join our church community. This quick setup will help us 
-                                personalize your experience and connect you with ministries that match your interests.
+                                Let's get your church set up in just a few minutes. We'll help you configure your organization profile, 
+                                connect payment processing, and get everything ready for your ministry.
                             </p>
                             <div className="bg-blue-50 p-4 rounded-lg">
                                 <p className="text-sm text-blue-900">
-                                    ⏱️ This will take about 3-5 minutes
+                                    ⏱️ This will take about 5-10 minutes
                                 </p>
                             </div>
                         </div>
@@ -317,95 +261,40 @@ export default function OnboardingWizard({ userEmail, userName, userType = "visi
                     {currentStep === 2 && (
                         <div className="space-y-4">
                             <p className="text-slate-600 mb-4">
-                                Help us get to know you better by sharing some basic information.
+                                Tell us about your church or ministry organization.
                             </p>
                             
-                            <div className="grid md:grid-cols-2 gap-4">
-                                <div>
-                                    <Label>Phone Number</Label>
-                                    <div className="relative">
-                                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                                        <Input
-                                            placeholder="(555) 123-4567"
-                                            value={formData.phone}
-                                            onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                                            className="pl-10"
-                                        />
-                                    </div>
-                                </div>
+                            <div>
+                                <Label>Church/Organization Name *</Label>
+                                <Input
+                                    placeholder="First Community Church"
+                                    value={formData.church_name}
+                                    onChange={(e) => setFormData({...formData, church_name: e.target.value})}
+                                    required
+                                />
+                            </div>
 
-                                <div>
-                                    <Label>Birth Date</Label>
+                            <div>
+                                <Label>Church Phone Number</Label>
+                                <div className="relative">
+                                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                                     <Input
-                                        type="date"
-                                        value={formData.birth_date}
-                                        onChange={(e) => setFormData({...formData, birth_date: e.target.value})}
+                                        placeholder="+1 (555) 123-4567"
+                                        value={formData.church_phone}
+                                        onChange={(e) => setFormData({...formData, church_phone: e.target.value})}
+                                        className="pl-10"
                                     />
-                                </div>
-
-                                <div>
-                                    <Label>Gender</Label>
-                                    <Select value={formData.gender} onValueChange={(v) => setFormData({...formData, gender: v})}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select..." />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="male">Male</SelectItem>
-                                            <SelectItem value="female">Female</SelectItem>
-                                            <SelectItem value="other">Other</SelectItem>
-                                            <SelectItem value="prefer_not_to_say">Prefer not to say</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                <div>
-                                    <Label>Age Group</Label>
-                                    <Select value={formData.age_group} onValueChange={(v) => setFormData({...formData, age_group: v})}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select..." />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="child">Child (0-12)</SelectItem>
-                                            <SelectItem value="teen">Teen (13-17)</SelectItem>
-                                            <SelectItem value="young_adult">Young Adult (18-35)</SelectItem>
-                                            <SelectItem value="adult">Adult (36-59)</SelectItem>
-                                            <SelectItem value="senior">Senior (60+)</SelectItem>
-                                        </SelectContent>
-                                    </Select>
                                 </div>
                             </div>
 
                             <div>
-                                <Label>Address</Label>
-                                <Input
-                                    placeholder="123 Main Street"
-                                    value={formData.address}
-                                    onChange={(e) => setFormData({...formData, address: e.target.value})}
+                                <Label>Church Address</Label>
+                                <Textarea
+                                    placeholder="123 Main Street, City, State, ZIP"
+                                    value={formData.church_address}
+                                    onChange={(e) => setFormData({...formData, church_address: e.target.value})}
+                                    rows={3}
                                 />
-                            </div>
-
-                            <div className="grid md:grid-cols-3 gap-4">
-                                <div>
-                                    <Label>City</Label>
-                                    <Input
-                                        value={formData.city}
-                                        onChange={(e) => setFormData({...formData, city: e.target.value})}
-                                    />
-                                </div>
-                                <div>
-                                    <Label>State</Label>
-                                    <Input
-                                        value={formData.state}
-                                        onChange={(e) => setFormData({...formData, state: e.target.value})}
-                                    />
-                                </div>
-                                <div>
-                                    <Label>ZIP Code</Label>
-                                    <Input
-                                        value={formData.zip_code}
-                                        onChange={(e) => setFormData({...formData, zip_code: e.target.value})}
-                                    />
-                                </div>
                             </div>
                         </div>
                     )}
@@ -413,75 +302,109 @@ export default function OnboardingWizard({ userEmail, userName, userType = "visi
                     {currentStep === 3 && (
                         <div className="space-y-4">
                             <p className="text-slate-600 mb-4">
-                                Select the ministries and activities you're interested in. We'll help connect you with these areas.
+                                Who should we contact for important updates and support?
                             </p>
                             
-                            <div className="grid md:grid-cols-2 gap-3">
-                                {MINISTRY_INTERESTS.map(ministry => (
-                                    <button
-                                        key={ministry.value}
-                                        onClick={() => toggleInterest(ministry.value)}
-                                        className={`p-4 rounded-lg border-2 text-left transition-all ${
-                                            formData.interests.includes(ministry.value)
-                                                ? 'border-blue-500 bg-blue-50'
-                                                : 'border-slate-200 hover:border-slate-300'
-                                        }`}
-                                    >
-                                        <div className="flex items-center justify-between">
-                                            <span className="font-medium text-slate-900">{ministry.label}</span>
-                                            {formData.interests.includes(ministry.value) && (
-                                                <CheckCircle className="w-5 h-5 text-blue-600" />
-                                            )}
-                                        </div>
-                                    </button>
-                                ))}
+                            <div>
+                                <Label>Primary Point of Contact *</Label>
+                                <Input
+                                    placeholder="Pastor John Smith"
+                                    value={formData.point_of_contact}
+                                    onChange={(e) => setFormData({...formData, point_of_contact: e.target.value})}
+                                    required
+                                />
                             </div>
 
-                            <div className="bg-amber-50 p-4 rounded-lg mt-4">
-                                <p className="text-sm text-amber-900">
-                                    💡 Selected {formData.interests.length} interest{formData.interests.length !== 1 ? 's' : ''}. 
-                                    You can always update these later in your profile.
-                                </p>
+                            <div>
+                                <Label>Contact Phone Number *</Label>
+                                <div className="relative">
+                                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                    <Input
+                                        placeholder="+1 (555) 123-4567"
+                                        value={formData.contact_phone}
+                                        onChange={(e) => setFormData({...formData, contact_phone: e.target.value})}
+                                        className="pl-10"
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <Label>Contact Email</Label>
+                                <Input
+                                    type="email"
+                                    value={formData.contact_email}
+                                    onChange={(e) => setFormData({...formData, contact_email: e.target.value})}
+                                    disabled
+                                />
+                                <p className="text-xs text-slate-500 mt-1">Using your login email</p>
                             </div>
                         </div>
                     )}
 
                     {currentStep === 4 && (
-                        <div className="space-y-4">
+                        <div className="space-y-6">
                             <p className="text-slate-600 mb-4">
-                                Here are some resources to help you get started:
+                                Connect Stripe to accept online donations and process payments.
                             </p>
 
-                            <div className="space-y-3">
-                                {[
-                                    { id: 'guide1', title: 'New Member Guide', description: 'Everything you need to know about our church' },
-                                    { id: 'guide2', title: 'Ministry Opportunities', description: 'Ways to get involved and serve' },
-                                    { id: 'guide3', title: 'Small Groups Directory', description: 'Find a group that fits your schedule' },
-                                    { id: 'guide4', title: 'Upcoming Events', description: 'See what\'s happening this month' }
-                                ].map(resource => (
-                                    <Card key={resource.id} className="hover:shadow-md transition-shadow">
-                                        <CardContent className="p-4 flex items-center justify-between">
-                                            <div className="flex items-center gap-3">
-                                                <BookOpen className="w-8 h-8 text-blue-600" />
-                                                <div>
-                                                    <h4 className="font-semibold text-slate-900">{resource.title}</h4>
-                                                    <p className="text-sm text-slate-600">{resource.description}</p>
-                                                </div>
-                                            </div>
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                onClick={() => {
-                                                    markResourceViewed(resource.id);
-                                                    window.open('#', '_blank');
-                                                }}
-                                                className={formData.resources_viewed.includes(resource.id) ? 'bg-green-50' : ''}
-                                            >
-                                                {formData.resources_viewed.includes(resource.id) ? 'Viewed' : 'View'}
-                                            </Button>
-                                        </CardContent>
-                                    </Card>
-                                ))}
+                            <div className="bg-gradient-to-br from-purple-50 to-blue-50 p-6 rounded-lg border-2 border-purple-200">
+                                <div className="flex items-start gap-4 mb-4">
+                                    <CreditCard className="w-10 h-10 text-purple-600 flex-shrink-0" />
+                                    <div>
+                                        <h3 className="font-bold text-slate-900 mb-2">Stripe Connect Setup</h3>
+                                        <p className="text-sm text-slate-600 mb-3">
+                                            Stripe is the payment processor used by churches worldwide. It's secure, reliable, 
+                                            and deposits donations directly to your bank account.
+                                        </p>
+                                        <ul className="text-sm text-slate-700 space-y-1">
+                                            <li>✓ Secure payment processing</li>
+                                            <li>✓ Direct bank deposits (2-3 business days)</li>
+                                            <li>✓ Automatic donation receipts</li>
+                                            <li>✓ Credit card, debit card, and bank transfers</li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                {!formData.stripe_connected ? (
+                                    <Button 
+                                        onClick={handleConnectStripe}
+                                        className="w-full bg-purple-600 hover:bg-purple-700"
+                                    >
+                                        <CreditCard className="w-4 h-4 mr-2" />
+                                        Connect Stripe Account
+                                    </Button>
+                                ) : (
+                                    <div className="bg-green-50 p-4 rounded-lg border border-green-200 flex items-center gap-3">
+                                        <CheckCircle className="w-6 h-6 text-green-600" />
+                                        <div>
+                                            <p className="font-semibold text-green-900">Stripe Connected!</p>
+                                            <p className="text-sm text-green-700">Your payment processing is ready</p>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                                <h4 className="font-semibold text-blue-900 mb-2">💡 You'll Need</h4>
+                                <ul className="text-sm text-blue-800 space-y-1">
+                                    <li>• Your church's EIN/Tax ID number</li>
+                                    <li>• Bank account and routing numbers</li>
+                                    <li>• Business representative's information</li>
+                                </ul>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                <input 
+                                    type="checkbox" 
+                                    id="bank_added"
+                                    checked={formData.bank_account_added}
+                                    onChange={(e) => setFormData({...formData, bank_account_added: e.target.checked})}
+                                    className="w-4 h-4"
+                                />
+                                <Label htmlFor="bank_added" className="cursor-pointer">
+                                    I've added my bank account in Stripe
+                                </Label>
                             </div>
                         </div>
                     )}
@@ -490,16 +413,33 @@ export default function OnboardingWizard({ userEmail, userName, userType = "visi
                         <div className="text-center space-y-4">
                             <CheckCircle className="w-16 h-16 text-green-600 mx-auto" />
                             <h2 className="text-2xl font-bold text-slate-900">
-                                You're All Set!
+                                Setup Complete! 🎉
                             </h2>
                             <p className="text-slate-600 max-w-xl mx-auto">
-                                Thank you for completing your onboarding. We've sent a welcome email with additional 
-                                information and next steps.
+                                Your church is now ready to use REACH Church Connect. You can start managing members, 
+                                accepting donations, scheduling events, and engaging your congregation.
                             </p>
-                            <div className="bg-blue-50 p-4 rounded-lg">
-                                <p className="text-sm text-blue-900 font-medium">
-                                    📧 Check your email for your welcome package and ministry coordinator contacts
-                                </p>
+                            <div className="grid md:grid-cols-2 gap-4 mt-6 text-left">
+                                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                                    <h4 className="font-semibold text-green-900 mb-2">✓ Organization Profile</h4>
+                                    <p className="text-sm text-green-700">{formData.church_name}</p>
+                                </div>
+                                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                                    <h4 className="font-semibold text-blue-900 mb-2">✓ Contact Information</h4>
+                                    <p className="text-sm text-blue-700">{formData.point_of_contact}</p>
+                                </div>
+                                <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                                    <h4 className="font-semibold text-purple-900 mb-2">✓ Payment Processing</h4>
+                                    <p className="text-sm text-purple-700">
+                                        {formData.stripe_connected ? 'Stripe Connected' : 'Ready to connect'}
+                                    </p>
+                                </div>
+                                <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
+                                    <h4 className="font-semibold text-amber-900 mb-2">✓ Bank Account</h4>
+                                    <p className="text-sm text-amber-700">
+                                        {formData.bank_account_added ? 'Connected' : 'Pending setup'}
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     )}
@@ -517,8 +457,12 @@ export default function OnboardingWizard({ userEmail, userName, userType = "visi
                         <Button
                             onClick={handleNext}
                             className="bg-blue-600 hover:bg-blue-700"
+                            disabled={
+                                (currentStep === 2 && !formData.church_name) ||
+                                (currentStep === 3 && (!formData.point_of_contact || !formData.contact_phone))
+                            }
                         >
-                            {currentStep === 5 ? 'Finish' : 'Next'}
+                            {currentStep === 5 ? 'Complete Setup & Go to Dashboard' : 'Next'}
                             <ArrowRight className="w-4 h-4 ml-2" />
                         </Button>
                     </div>
