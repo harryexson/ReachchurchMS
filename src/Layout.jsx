@@ -108,19 +108,24 @@ export default function Layout({ children, currentPageName }) {
         pageLower.includes(path.toLowerCase()) ||
         pageLower === 'publicgiving'
       );
-      
-      if (isPublicPage) {
-        console.log('Public page detected:', currentPageName, location.pathname);
-        setIsLoadingUser(false);
-        setCurrentUser(null);
-        setAuthError(null);
-        return;
-      }
 
       try {
         const user = await base44.auth.me();
 
         if (user) {
+          // CRITICAL: Redirect authenticated users away from landing/signup pages IMMEDIATELY
+          if (currentPageName?.toLowerCase() === 'landingpage' || 
+              currentPageName?.toLowerCase() === 'subscriptionplans' || 
+              location.pathname === '/' || 
+              location.pathname.toLowerCase().includes('subscriptionplans')) {
+            const dashboardUrl = user.role === 'admin' 
+              ? createPageUrl('Dashboard') 
+              : createPageUrl('MemberDashboard');
+            console.log('🔀 Authenticated user on public page - redirecting to:', dashboardUrl);
+            window.location.href = dashboardUrl;
+            return;
+          }
+
           // Update last login silently - don't block on this
           base44.auth.updateMe({
             last_login: new Date().toISOString()
@@ -132,21 +137,6 @@ export default function Layout({ children, currentPageName }) {
             setCurrentUser(user);
             setAuthError(null);
             setIsLoadingUser(false);
-            return;
-          }
-
-          // IMPORTANT: Redirect authenticated users from public pages FIRST
-          // This prevents them from getting stuck on landing/subscription pages
-          if (isPublicPage && (currentPageName?.toLowerCase() === 'landingpage' || 
-              currentPageName?.toLowerCase() === 'subscriptionplans' || 
-              location.pathname === '/' || 
-              location.pathname.toLowerCase().includes('subscriptionplans'))) {
-            const dashboardUrl = user.role === 'admin' 
-              ? createPageUrl('Dashboard') 
-              : createPageUrl('MemberDashboard');
-            console.log('🔀 Redirecting authenticated user from public page to dashboard');
-            setCurrentUser(user);
-            window.location.href = dashboardUrl;
             return;
           }
 
@@ -252,8 +242,8 @@ export default function Layout({ children, currentPageName }) {
           // User is authenticated - set them as current user
           setCurrentUser(user);
           setAuthError(null);
-          }
-          } catch (error) {
+        }
+      } catch (error) {
         // Ignore aborted requests and WebSocket errors (transient connection issues)
         if (error.message && (
           error.message.includes('aborted') || 
@@ -261,6 +251,15 @@ export default function Layout({ children, currentPageName }) {
           error.message.includes('closed')
         )) {
           console.log('Connection issue (will retry):', error.message);
+          return;
+        }
+
+        // On public pages, authentication failure is normal - just show public content
+        if (isPublicPage) {
+          console.log('Public page - no authentication required');
+          setCurrentUser(null);
+          setAuthError(null);
+          setIsLoadingUser(false);
           return;
         }
 
