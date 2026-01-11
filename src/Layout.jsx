@@ -294,9 +294,10 @@ export default function Layout({ children, currentPageName }) {
     setShowLogout(false);
   };
 
-  const handleLogin = () => {
-    // Base44 handles authentication automatically
-    window.location.reload();
+  const handleLogin = async () => {
+    // Redirect to Base44 login page, then return to dashboard after authentication
+    const dashboardUrl = createPageUrl('Dashboard');
+    await base44.auth.redirectToLogin(dashboardUrl);
   };
 
   const handleRetry = () => {
@@ -678,7 +679,7 @@ export default function Layout({ children, currentPageName }) {
                   <Button variant="ghost">Pricing</Button>
                 </Link>
                 {!currentUser && (
-                  <Button onClick={() => window.location.reload()} className="bg-blue-600 hover:bg-blue-700">
+                  <Button onClick={handleLogin} className="bg-blue-600 hover:bg-blue-700">
                     Sign In
                   </Button>
                 )}
