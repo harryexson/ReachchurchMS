@@ -126,6 +126,15 @@ export default function Layout({ children, currentPageName }) {
             last_login: new Date().toISOString()
           }).catch(() => {});
 
+          // Skip subscription check for developers
+          if (user.email === "david@base44.app" || user.developer_access) {
+            console.log('👨‍💻 Developer account - skipping subscription checks');
+            setCurrentUser(user);
+            setAuthError(null);
+            setIsLoadingUser(false);
+            return;
+          }
+
           // Check subscription status
           let hasValidAccess = false;
           let shouldRedirectToUpgrade = false;
