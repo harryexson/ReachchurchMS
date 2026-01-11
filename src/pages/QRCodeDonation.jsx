@@ -39,7 +39,7 @@ export default function QRCodeDonation() {
             }
 
             // Generate public donation URL (no login required)
-            const baseUrl = window.location.origin;
+            const baseUrl = 'https://reachchurchms.com';
             const givingUrl = `${baseUrl}/PublicGiving`;
             setDonationUrl(givingUrl);
 
@@ -69,7 +69,7 @@ export default function QRCodeDonation() {
         setIsCasting(true);
         try {
             // Create casting session
-            const displayUrl = `${window.location.origin}/DisplayScreen?content=qr_donation`;
+            const displayUrl = `https://reachchurchms.com/DisplayScreen?content=qr_donation`;
             
             await base44.entities.CastingSession.create({
                 session_name: "QR Code Donation Display",
@@ -90,7 +90,7 @@ export default function QRCodeDonation() {
     };
 
     const handleFullscreen = () => {
-        const url = `${window.location.origin}/DisplayScreen?content=qr_donation`;
+        const url = `https://reachchurchms.com/DisplayScreen?content=qr_donation`;
         window.open(url, '_blank', 'width=1920,height=1080');
     };
 

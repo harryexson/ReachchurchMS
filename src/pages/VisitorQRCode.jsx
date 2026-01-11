@@ -14,7 +14,7 @@ export default function VisitorQRCodePage() {
 
     useEffect(() => {
         loadSettings();
-        const baseUrl = window.location.origin;
+        const baseUrl = 'https://reachchurchms.com';
         const visitorFormUrl = `${baseUrl}${createPageUrl('PublicVisitorRegistration')}`;
         const displayScreenUrl = `${baseUrl}${createPageUrl('VisitorQRDisplay')}`;
         

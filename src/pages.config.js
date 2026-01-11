@@ -79,6 +79,7 @@ import SMSDiagnostics from './pages/SMSDiagnostics';
 import SMSGivingSetup from './pages/SMSGivingSetup';
 import Sermons from './pages/Sermons';
 import Settings from './pages/Settings';
+import SignalhouseSetup from './pages/SignalhouseSetup';
 import SinchSetupGuide from './pages/SinchSetupGuide';
 import SinchWebhookDiagnostics from './pages/SinchWebhookDiagnostics';
 import SinchWebhookTest from './pages/SinchWebhookTest';
@@ -104,7 +105,6 @@ import VolunteerPortal from './pages/VolunteerPortal';
 import VolunteerRegistration from './pages/VolunteerRegistration';
 import Volunteers from './pages/Volunteers';
 import backoffice from './pages/backoffice';
-import SignalhouseSetup from './pages/SignalhouseSetup';
 import __Layout from './Layout.jsx';
 
 
@@ -190,6 +190,7 @@ export const PAGES = {
     "SMSGivingSetup": SMSGivingSetup,
     "Sermons": Sermons,
     "Settings": Settings,
+    "SignalhouseSetup": SignalhouseSetup,
     "SinchSetupGuide": SinchSetupGuide,
     "SinchWebhookDiagnostics": SinchWebhookDiagnostics,
     "SinchWebhookTest": SinchWebhookTest,
@@ -215,7 +216,6 @@ export const PAGES = {
     "VolunteerRegistration": VolunteerRegistration,
     "Volunteers": Volunteers,
     "backoffice": backoffice,
-    "SignalhouseSetup": SignalhouseSetup,
 }
 
 export const pagesConfig = {

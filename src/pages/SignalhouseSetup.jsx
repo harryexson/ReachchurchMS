@@ -17,7 +17,7 @@ export default function SignalhouseSetup() {
     const [error, setError] = useState(null);
     const [activeTab, setActiveTab] = useState('sms');
 
-    const webhookUrl = `${window.location.origin}/api/functions/handleSignalhouseWebhook`;
+    const webhookUrl = `https://reachchurchms.com/api/functions/handleSignalhouseWebhook`;
 
     const handleTestSMS = async () => {
         setLoading(true);
