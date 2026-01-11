@@ -19,7 +19,10 @@ export default function SubscriptionPlansPage() {
     // Check if this is an upgrade from expired trial
     React.useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('upgrade') === 'true') {
+        const isExpired = urlParams.get('expired') === 'true';
+        const isUpgradeParam = urlParams.get('upgrade') === 'true';
+        
+        if (isUpgradeParam || isExpired) {
             setIsUpgrade(true);
         }
         
@@ -225,14 +228,21 @@ export default function SubscriptionPlansPage() {
                         transition={{ duration: 0.6 }}
                     >
                         <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
-                              {isUpgrade ? "Upgrade Your Subscription" : "Simple, Transparent Pricing"}
+                              {isUpgrade ? "Your Trial Has Ended - Choose Your Plan" : "Simple, Transparent Pricing"}
                           </h1>
                           <p className="text-xl text-blue-100 mb-8 max-w-3xl mx-auto">
                               {isUpgrade 
-                                  ? "Your trial has ended. Choose a plan to continue using all features. Your data and settings are preserved!"
+                                  ? "Thank you for trying REACH Church Connect! Your trial has ended, but all your data and settings are safely preserved. Choose a plan below to continue your ministry with full access."
                                   : "Choose the perfect plan for your church. No hidden fees, no surprises. Cancel anytime."
                               }
                           </p>
+                          {isUpgrade && (
+                              <div className="bg-white/20 backdrop-blur-sm rounded-lg px-6 py-4 inline-block mb-4">
+                                  <p className="text-white font-semibold">
+                                      ✅ All your data is safe • No setup required • Continue where you left off
+                                  </p>
+                              </div>
+                          )}
                           {isUpgrade && existingSubscription && (
                               <div className="bg-white/20 backdrop-blur-sm rounded-lg px-6 py-3 inline-block mb-4">
                                   <p className="text-white">

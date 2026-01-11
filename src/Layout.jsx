@@ -175,10 +175,31 @@ export default function Layout({ children, currentPageName }) {
                 hasValidAccess = true;
                 console.log('⚠️ Unknown subscription status:', subscription.status);
               }
+
+              // If user has valid access, check onboarding status
+              if (hasValidAccess && user.role === 'admin' && !pageLower.includes('onboarding')) {
+                try {
+                  const onboardingRecords = await base44.entities.OnboardingProgress.filter({
+                    user_email: user.email
+                  });
+
+                  if (onboardingRecords.length === 0 || !onboardingRecords[0].onboarding_completed) {
+                    console.log('🎯 First-time admin - redirecting to onboarding');
+                    window.location.href = createPageUrl('OnboardingWizard');
+                    return;
+                  } else {
+                    console.log('✅ Onboarding already completed');
+                  }
+                } catch (onboardingError) {
+                  console.log('⚠️ Could not check onboarding status:', onboardingError.message);
+                }
+              }
             } else {
-              // No subscription found - user needs to subscribe
-              shouldRedirectToUpgrade = true;
-              console.log('❌ No subscription found - user must subscribe');
+              // No subscription found - only redirect to subscription if not on public pages or onboarding
+              if (!pageLower.includes('onboarding') && !pageLower.includes('subscriptionplans')) {
+                shouldRedirectToUpgrade = true;
+                console.log('❌ No subscription found - user must subscribe');
+              }
             }
           } catch (subError) {
             console.error('❌ Error checking subscription:', subError.message);
@@ -197,17 +218,10 @@ export default function Layout({ children, currentPageName }) {
             }
           }
 
-          // Redirect to subscription page if needed (unless already on that page)
+          // Redirect to subscription page with upgrade message if trial expired
           if (shouldRedirectToUpgrade && !pageLower.includes('subscriptionplans')) {
             console.log('🔀 Redirecting to subscription upgrade page');
-            window.location.href = createPageUrl('SubscriptionPlans') + '?upgrade=true';
-            return;
-          }
-
-          // Block access if no valid subscription and not on subscription page
-          if (!hasValidAccess && !shouldRedirectToUpgrade && !pageLower.includes('subscriptionplans')) {
-            console.log('❌ No valid access - redirecting to subscription page');
-            window.location.href = createPageUrl('SubscriptionPlans');
+            window.location.href = createPageUrl('SubscriptionPlans') + '?upgrade=true&expired=true';
             return;
           }
 
