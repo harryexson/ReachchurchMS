@@ -135,7 +135,22 @@ export default function Layout({ children, currentPageName }) {
             return;
           }
 
-          // Check subscription status
+          // IMPORTANT: Redirect authenticated users from public pages FIRST
+          // This prevents them from getting stuck on landing/subscription pages
+          if (isPublicPage && (currentPageName?.toLowerCase() === 'landingpage' || 
+              currentPageName?.toLowerCase() === 'subscriptionplans' || 
+              location.pathname === '/' || 
+              location.pathname.toLowerCase().includes('subscriptionplans'))) {
+            const dashboardUrl = user.role === 'admin' 
+              ? createPageUrl('Dashboard') 
+              : createPageUrl('MemberDashboard');
+            console.log('🔀 Redirecting authenticated user from public page to dashboard');
+            setCurrentUser(user);
+            window.location.href = dashboardUrl;
+            return;
+          }
+
+          // Check subscription status (only for non-public pages)
           let hasValidAccess = false;
           let shouldRedirectToUpgrade = false;
 
@@ -237,16 +252,6 @@ export default function Layout({ children, currentPageName }) {
           // User is authenticated - set them as current user
           setCurrentUser(user);
           setAuthError(null);
-
-          // Redirect authenticated users away from public pages to their dashboard
-          if (isPublicPage && (currentPageName?.toLowerCase() === 'landingpage' || location.pathname === '/')) {
-            const dashboardUrl = user.role === 'admin' 
-              ? createPageUrl('Dashboard') 
-              : createPageUrl('MemberDashboard');
-            console.log('🔀 Redirecting authenticated user to dashboard');
-            window.location.href = dashboardUrl;
-            return;
-          }
           }
           } catch (error) {
         // Ignore aborted requests and WebSocket errors (transient connection issues)
