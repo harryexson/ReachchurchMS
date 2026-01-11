@@ -130,99 +130,110 @@ export default function Layout({ children, currentPageName }) {
           let hasValidAccess = false;
           let shouldRedirectToUpgrade = false;
 
-          try {
-            const subscriptions = await base44.entities.Subscription.filter({
-              church_admin_email: user.email
-            });
+          // MEMBERS (invited users) - Skip subscription checks entirely
+          if (user.role !== 'admin') {
+            hasValidAccess = true;
+            console.log('✅ Member user - access granted (no subscription check)');
 
-            if (subscriptions.length > 0) {
-              const subscription = subscriptions[0];
-              console.log('📋 Subscription found:', {
-                status: subscription.status,
-                tier: subscription.subscription_tier,
-                trial_end: subscription.trial_end_date
+            // Set user and continue to their dashboard
+            setCurrentUser(user);
+            setAuthError(null);
+          } else {
+            // ADMINS ONLY - Check subscription
+            try {
+              const subscriptions = await base44.entities.Subscription.filter({
+                church_admin_email: user.email
               });
 
-              // Check subscription status
-              if (subscription.status === 'active') {
-                hasValidAccess = true;
-                console.log('✅ Active paid subscription - access granted');
-              } else if (subscription.status === 'trial') {
-                if (subscription.trial_end_date) {
-                  const trialEnd = new Date(subscription.trial_end_date);
-                  const now = new Date();
+              if (subscriptions.length > 0) {
+                const subscription = subscriptions[0];
+                console.log('📋 Subscription found:', {
+                  status: subscription.status,
+                  tier: subscription.subscription_tier,
+                  trial_end: subscription.trial_end_date
+                });
 
-                  if (now <= trialEnd) {
-                    hasValidAccess = true;
-                    console.log('✅ Trial valid until:', subscription.trial_end_date);
-                  } else {
-                    shouldRedirectToUpgrade = true;
-                    console.log('❌ Trial expired on:', subscription.trial_end_date);
-                  }
-                } else {
-                  // Trial without end date - treat as valid
+                // Check subscription status
+                if (subscription.status === 'active') {
                   hasValidAccess = true;
-                  console.log('✅ Trial active (no end date set)');
-                }
-              } else if (subscription.status === 'past_due') {
-                shouldRedirectToUpgrade = true;
-                console.log('❌ Subscription past due - payment required');
-              } else if (subscription.status === 'cancelled' || subscription.status === 'suspended') {
-                shouldRedirectToUpgrade = true;
-                console.log('❌ Subscription cancelled/suspended');
-              } else {
-                // Unknown status - allow access to be safe
-                hasValidAccess = true;
-                console.log('⚠️ Unknown subscription status:', subscription.status);
-              }
+                  console.log('✅ Active paid subscription - access granted');
+                } else if (subscription.status === 'trial') {
+                  if (subscription.trial_end_date) {
+                    const trialEnd = new Date(subscription.trial_end_date);
+                    const now = new Date();
 
-              // If user has valid access, check onboarding status
-              if (hasValidAccess && user.role === 'admin' && !pageLower.includes('onboarding')) {
-                try {
-                  const onboardingRecords = await base44.entities.OnboardingProgress.filter({
-                    user_email: user.email
-                  });
-
-                  if (onboardingRecords.length === 0 || !onboardingRecords[0].onboarding_completed) {
-                    console.log('🎯 First-time admin - redirecting to onboarding');
-                    window.location.href = createPageUrl('OnboardingWizard');
-                    return;
+                    if (now <= trialEnd) {
+                      hasValidAccess = true;
+                      console.log('✅ Trial valid until:', subscription.trial_end_date);
+                    } else {
+                      shouldRedirectToUpgrade = true;
+                      console.log('❌ Trial expired on:', subscription.trial_end_date);
+                    }
                   } else {
-                    console.log('✅ Onboarding already completed');
+                    // Trial without end date - treat as valid
+                    hasValidAccess = true;
+                    console.log('✅ Trial active (no end date set)');
                   }
-                } catch (onboardingError) {
-                  console.log('⚠️ Could not check onboarding status:', onboardingError.message);
+                } else if (subscription.status === 'past_due') {
+                  shouldRedirectToUpgrade = true;
+                  console.log('❌ Subscription past due - payment required');
+                } else if (subscription.status === 'cancelled' || subscription.status === 'suspended') {
+                  shouldRedirectToUpgrade = true;
+                  console.log('❌ Subscription cancelled/suspended');
+                } else {
+                  // Unknown status - allow access to be safe
+                  hasValidAccess = true;
+                  console.log('⚠️ Unknown subscription status:', subscription.status);
+                }
+
+                // If user has valid access, check onboarding status
+                if (hasValidAccess && !pageLower.includes('onboarding')) {
+                  try {
+                    const onboardingRecords = await base44.entities.OnboardingProgress.filter({
+                      user_email: user.email
+                    });
+
+                    if (onboardingRecords.length === 0 || !onboardingRecords[0].onboarding_completed) {
+                      console.log('🎯 First-time admin - redirecting to onboarding');
+                      window.location.href = createPageUrl('OnboardingWizard');
+                      return;
+                    } else {
+                      console.log('✅ Onboarding already completed');
+                    }
+                  } catch (onboardingError) {
+                    console.log('⚠️ Could not check onboarding status:', onboardingError.message);
+                  }
+                }
+              } else {
+                // No subscription found - only redirect to subscription if not on public pages or onboarding
+                if (!pageLower.includes('onboarding') && !pageLower.includes('subscriptionplans')) {
+                  shouldRedirectToUpgrade = true;
+                  console.log('❌ No subscription found - admin must subscribe');
                 }
               }
-            } else {
-              // No subscription found - only redirect to subscription if not on public pages or onboarding
-              if (!pageLower.includes('onboarding') && !pageLower.includes('subscriptionplans')) {
+            } catch (subError) {
+              console.error('❌ Error checking subscription:', subError.message);
+              // On error, check if user just signed up (within last 5 minutes)
+              const userCreated = new Date(user.created_date || 0);
+              const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+
+              if (userCreated > fiveMinutesAgo) {
+                // New user - allow access, they might be in signup flow
+                hasValidAccess = true;
+                console.log('⚠️ New user - allowing access during signup');
+              } else {
+                // Existing user with error - safer to require subscription
                 shouldRedirectToUpgrade = true;
-                console.log('❌ No subscription found - user must subscribe');
+                console.log('⚠️ Subscription check error for existing user');
               }
             }
-          } catch (subError) {
-            console.error('❌ Error checking subscription:', subError.message);
-            // On error, check if user just signed up (within last 5 minutes)
-            const userCreated = new Date(user.created_date || 0);
-            const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
 
-            if (userCreated > fiveMinutesAgo) {
-              // New user - allow access, they might be in signup flow
-              hasValidAccess = true;
-              console.log('⚠️ New user - allowing access during signup');
-            } else {
-              // Existing user with error - safer to require subscription
-              shouldRedirectToUpgrade = true;
-              console.log('⚠️ Subscription check error for existing user');
+            // Redirect to subscription page with upgrade message if trial expired
+            if (shouldRedirectToUpgrade && !pageLower.includes('subscriptionplans')) {
+              console.log('🔀 Redirecting admin to subscription upgrade page');
+              window.location.href = createPageUrl('SubscriptionPlans') + '?upgrade=true&expired=true';
+              return;
             }
-          }
-
-          // Redirect to subscription page with upgrade message if trial expired
-          if (shouldRedirectToUpgrade && !pageLower.includes('subscriptionplans')) {
-            console.log('🔀 Redirecting to subscription upgrade page');
-            window.location.href = createPageUrl('SubscriptionPlans') + '?upgrade=true&expired=true';
-            return;
           }
 
           // User is authenticated - set them as current user
