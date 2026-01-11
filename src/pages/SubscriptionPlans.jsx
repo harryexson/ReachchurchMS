@@ -164,11 +164,31 @@ export default function SubscriptionPlansPage() {
                 console.log('Found subscriptions:', subscriptions);
 
                 if (subscriptions.length > 0) {
-                    const activeSub = subscriptions.find(s => s.status === 'active' || s.status === 'trial');
-                    if (activeSub && activeSub.subscription_tier === plan.tier) {
-                        alert(`You already have the ${plan.name} plan active!`);
-                        setIsLoading(false);
-                        return;
+                    const activeSub = subscriptions.find(s => 
+                        (s.status === 'active' || s.status === 'trial') && 
+                        s.subscription_tier === plan.tier
+                    );
+                    
+                    // Only block if they have an ACTIVE subscription for THIS exact plan
+                    if (activeSub) {
+                        // Check if trial is still valid
+                        if (activeSub.status === 'trial' && activeSub.trial_end_date) {
+                            const trialEnd = new Date(activeSub.trial_end_date);
+                            const now = new Date();
+                            
+                            // If trial expired, let them subscribe
+                            if (now > trialEnd) {
+                                console.log('Trial expired, allowing new subscription');
+                            } else {
+                                alert(`You already have the ${plan.name} plan active!`);
+                                setIsLoading(false);
+                                return;
+                            }
+                        } else if (activeSub.status === 'active') {
+                            alert(`You already have the ${plan.name} plan active!`);
+                            setIsLoading(false);
+                            return;
+                        }
                     }
                 }
             }
