@@ -291,8 +291,8 @@ export default function Layout({ children, currentPageName }) {
   };
 
   const handleLogin = () => {
-    // Redirect to dashboard after login, not homepage
-    base44.auth.redirectToLogin();
+    // Base44 handles authentication automatically
+    window.location.reload();
   };
 
   const handleRetry = () => {
@@ -674,7 +674,7 @@ export default function Layout({ children, currentPageName }) {
                   <Button variant="ghost">Pricing</Button>
                 </Link>
                 {!currentUser && (
-                  <Button onClick={() => base44.auth.redirectToLogin()} className="bg-blue-600 hover:bg-blue-700">
+                  <Button onClick={() => window.location.reload()} className="bg-blue-600 hover:bg-blue-700">
                     Sign In
                   </Button>
                 )}
