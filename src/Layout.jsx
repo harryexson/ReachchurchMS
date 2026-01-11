@@ -678,11 +678,8 @@ export default function Layout({ children, currentPageName }) {
         }
 
   if (!currentUser && !authError) {
-        // User is not authenticated - trigger Base44's authentication
-        useEffect(() => {
-          base44.auth.redirectToLogin();
-        }, []);
-
+        // User is not authenticated - show login prompt
+        // Base44 will handle the actual authentication flow
         return (
           <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50/30">
             <div className="text-center space-y-6 p-8">
@@ -691,8 +688,20 @@ export default function Layout({ children, currentPageName }) {
                 alt="REACH Church Connect Logo"
                 className="h-32 w-auto max-w-[400px] mx-auto mb-4 object-contain"
               />
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="text-slate-600">Redirecting to login...</p>
+              <div>
+                <h1 className="text-3xl font-bold text-slate-900 mb-2">Welcome to REACH Church Connect</h1>
+                <p className="text-slate-600 mb-6">Please sign in to continue</p>
+                <Button 
+                  onClick={() => {
+                    // Base44 handles authentication - just trigger the login flow
+                    window.location.reload();
+                  }} 
+                  size="lg" 
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  Sign In
+                </Button>
+              </div>
             </div>
           </div>
         );
