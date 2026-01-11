@@ -4,39 +4,40 @@ import { createPageUrl } from "@/utils";
 import { Link, useLocation } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import {
-        Church,
-        Users,
-        Calendar,
-        DollarSign,
-        UserPlus,
-        Megaphone,
-        BarChart3,
-        BookOpen,
-        Settings,
-        LogOut,
-        Menu,
-        X,
-        CreditCard,
-        UserCog,
-        MessageSquare,
-        Video,
-        Mail,
-        Image,
-        Shield,
-        UserCheck,
-        User as UserIcon,
-        Heart,
-        Baby,
-        Coffee,
-        Book,
-        Monitor,
-        Package,
-        ShoppingCart,
-        Printer,
-        Radio,
-        Wifi,
-        Bell
-      } from "lucide-react";
+              Church,
+              Users,
+              Calendar,
+              DollarSign,
+              UserPlus,
+              Megaphone,
+              BarChart3,
+              BookOpen,
+              Settings,
+              LogOut,
+              Menu,
+              X,
+              CreditCard,
+              UserCog,
+              MessageSquare,
+              Video,
+              Mail,
+              Image,
+              Shield,
+              UserCheck,
+              User as UserIcon,
+              Heart,
+              Baby,
+              Coffee,
+              Book,
+              Monitor,
+              Package,
+              ShoppingCart,
+              Printer,
+              Radio,
+              Wifi,
+              Bell,
+              Loader2
+            } from "lucide-react";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import { Button } from "@/components/ui/button";
 
@@ -703,9 +704,11 @@ export default function Layout({ children, currentPageName }) {
 
   if (!currentUser && !authError) {
         // User is not authenticated - redirect to login page
-        const dashboardUrl = createPageUrl('Dashboard');
-        base44.auth.redirectToLogin(dashboardUrl);
-        
+        React.useEffect(() => {
+          const dashboardUrl = createPageUrl('Dashboard');
+          base44.auth.redirectToLogin(dashboardUrl);
+        }, []);
+
         // Show loading while redirecting
         return (
           <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50/30">
@@ -716,7 +719,8 @@ export default function Layout({ children, currentPageName }) {
                 className="h-32 w-auto max-w-[400px] mx-auto mb-4 object-contain"
               />
               <div>
-                <h1 className="text-3xl font-bold text-slate-900 mb-2">Redirecting to Sign In...</h1>
+                <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
+                <h1 className="text-2xl font-bold text-slate-900 mb-2">Redirecting to Sign In...</h1>
                 <p className="text-slate-600">Please wait</p>
               </div>
             </div>

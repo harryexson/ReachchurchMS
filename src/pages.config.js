@@ -78,6 +78,7 @@ import SMSAutomation from './pages/SMSAutomation';
 import SMSDiagnosticReport from './pages/SMSDiagnosticReport';
 import SMSDiagnostics from './pages/SMSDiagnostics';
 import SMSGivingSetup from './pages/SMSGivingSetup';
+import SMSHealthCheck from './pages/SMSHealthCheck';
 import Sermons from './pages/Sermons';
 import Settings from './pages/Settings';
 import SignalhouseSetup from './pages/SignalhouseSetup';
@@ -106,7 +107,6 @@ import VolunteerPortal from './pages/VolunteerPortal';
 import VolunteerRegistration from './pages/VolunteerRegistration';
 import Volunteers from './pages/Volunteers';
 import backoffice from './pages/backoffice';
-import SMSHealthCheck from './pages/SMSHealthCheck';
 import __Layout from './Layout.jsx';
 
 
@@ -191,6 +191,7 @@ export const PAGES = {
     "SMSDiagnosticReport": SMSDiagnosticReport,
     "SMSDiagnostics": SMSDiagnostics,
     "SMSGivingSetup": SMSGivingSetup,
+    "SMSHealthCheck": SMSHealthCheck,
     "Sermons": Sermons,
     "Settings": Settings,
     "SignalhouseSetup": SignalhouseSetup,
@@ -219,7 +220,6 @@ export const PAGES = {
     "VolunteerRegistration": VolunteerRegistration,
     "Volunteers": Volunteers,
     "backoffice": backoffice,
-    "SMSHealthCheck": SMSHealthCheck,
 }
 
 export const pagesConfig = {
