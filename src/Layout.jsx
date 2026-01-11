@@ -237,8 +237,18 @@ export default function Layout({ children, currentPageName }) {
           // User is authenticated - set them as current user
           setCurrentUser(user);
           setAuthError(null);
-        }
-      } catch (error) {
+
+          // Redirect authenticated users away from public pages to their dashboard
+          if (isPublicPage && (currentPageName?.toLowerCase() === 'landingpage' || location.pathname === '/')) {
+            const dashboardUrl = user.role === 'admin' 
+              ? createPageUrl('Dashboard') 
+              : createPageUrl('MemberDashboard');
+            console.log('🔀 Redirecting authenticated user to dashboard');
+            window.location.href = dashboardUrl;
+            return;
+          }
+          }
+          } catch (error) {
         // Ignore aborted requests and WebSocket errors (transient connection issues)
         if (error.message && (
           error.message.includes('aborted') || 
