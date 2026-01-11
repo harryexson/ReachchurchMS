@@ -72,6 +72,47 @@ Deno.serve(async (req) => {
         const keyword = messageBody.trim().split(/\s+/)[0].toUpperCase();
         console.log('🔑 Detected keyword:', keyword);
 
+        // Get Sinch credentials BEFORE processing any keywords
+        let sinchServicePlanId = Deno.env.get("SINCH_SERVICE_PLAN_ID");
+        let sinchApiToken = Deno.env.get("SINCH_API_TOKEN");
+        let sinchPhoneNumber = Deno.env.get("SINCH_PHONE_NUMBER");
+
+        console.log('📋 Checking Sinch credentials...');
+        console.log('From env - Service Plan ID:', sinchServicePlanId ? 'SET' : 'NOT SET');
+        console.log('From env - API Token:', sinchApiToken ? 'SET' : 'NOT SET');
+        console.log('From env - Phone Number:', sinchPhoneNumber || 'NOT SET');
+
+        // If not in environment, try to load from database
+        if (!sinchServicePlanId || !sinchApiToken || !sinchPhoneNumber) {
+            console.log('⚠️ Credentials not in environment, attempting to load from database...');
+            try {
+                const settings = await base44.asServiceRole.entities.ChurchSettings.list();
+                if (settings.length > 0) {
+                    const churchSettings = settings[0];
+                    sinchServicePlanId = sinchServicePlanId || churchSettings.sinch_service_plan_id;
+                    sinchApiToken = sinchApiToken || churchSettings.sinch_api_token;
+                    sinchPhoneNumber = sinchPhoneNumber || churchSettings.sinch_phone_number;
+                    
+                    console.log('From DB - Service Plan ID:', sinchServicePlanId ? 'SET' : 'NOT SET');
+                    console.log('From DB - API Token:', sinchApiToken ? 'SET' : 'NOT SET');
+                    console.log('From DB - Phone Number:', sinchPhoneNumber || 'NOT SET');
+                }
+            } catch (dbError) {
+                console.error('❌ Failed to load from database:', dbError);
+            }
+        }
+
+        if (!sinchServicePlanId || !sinchApiToken || !sinchPhoneNumber) {
+            console.error('❌ CRITICAL: Sinch credentials not found in environment OR database!');
+            console.error('Please set credentials in Dashboard → Code → Environment Variables');
+            return Response.json({
+                error: 'SMS not configured',
+                message: 'Please contact admin - SMS system not configured'
+            }, { status: 200 });
+        }
+
+        console.log('✅ Sinch credentials loaded successfully');
+
         // Handle STOP/UNSUBSCRIBE requests
         if (['STOP', 'UNSUBSCRIBE', 'CANCEL', 'END', 'QUIT'].includes(keyword)) {
             console.log('🛑 Processing opt-out request...');
@@ -147,47 +188,6 @@ Deno.serve(async (req) => {
         } catch (dbError) {
             console.error('⚠️ Failed to log message (non-critical):', dbError.message);
         }
-
-        // Get Sinch credentials for sending response
-        let sinchServicePlanId = Deno.env.get("SINCH_SERVICE_PLAN_ID");
-        let sinchApiToken = Deno.env.get("SINCH_API_TOKEN");
-        let sinchPhoneNumber = Deno.env.get("SINCH_PHONE_NUMBER");
-
-        console.log('📋 Checking Sinch credentials...');
-        console.log('From env - Service Plan ID:', sinchServicePlanId ? 'SET' : 'NOT SET');
-        console.log('From env - API Token:', sinchApiToken ? 'SET' : 'NOT SET');
-        console.log('From env - Phone Number:', sinchPhoneNumber || 'NOT SET');
-
-        // If not in environment, try to load from database
-        if (!sinchServicePlanId || !sinchApiToken || !sinchPhoneNumber) {
-            console.log('⚠️ Credentials not in environment, attempting to load from database...');
-            try {
-                const settings = await base44.asServiceRole.entities.ChurchSettings.list();
-                if (settings.length > 0) {
-                    const churchSettings = settings[0];
-                    sinchServicePlanId = sinchServicePlanId || churchSettings.sinch_service_plan_id;
-                    sinchApiToken = sinchApiToken || churchSettings.sinch_api_token;
-                    sinchPhoneNumber = sinchPhoneNumber || churchSettings.sinch_phone_number;
-                    
-                    console.log('From DB - Service Plan ID:', sinchServicePlanId ? 'SET' : 'NOT SET');
-                    console.log('From DB - API Token:', sinchApiToken ? 'SET' : 'NOT SET');
-                    console.log('From DB - Phone Number:', sinchPhoneNumber || 'NOT SET');
-                }
-            } catch (dbError) {
-                console.error('❌ Failed to load from database:', dbError);
-            }
-        }
-
-        if (!sinchServicePlanId || !sinchApiToken || !sinchPhoneNumber) {
-            console.error('❌ CRITICAL: Sinch credentials not found in environment OR database!');
-            console.error('Please set credentials in Dashboard → Code → Environment Variables');
-            return Response.json({
-                error: 'SMS not configured',
-                message: 'Please contact admin - SMS system not configured'
-            }, { status: 200 });
-        }
-
-        console.log('✅ Sinch credentials loaded successfully');
 
         // Check for existing visitor with this phone number
         let existingVisitors = [];
