@@ -45,9 +45,8 @@ const GENDERS = [
 ];
 
 export default function MemberFilters({ filters, onFilterChange, members, memberGroups = [], onClearFilters }) {
-    // Extract unique cities and regions from members
+    // Extract unique cities, states, and regions from members
     const uniqueCities = [...new Set(members.map(m => m.city).filter(Boolean))].sort();
-    const uniqueRegions = [...new Set(members.map(m => m.region).filter(Boolean))].sort();
     const uniqueStates = [...new Set(members.map(m => m.state).filter(Boolean))].sort();
     const uniqueRegions = [...new Set(members.map(m => m.region).filter(Boolean))].sort();
 
@@ -183,7 +182,7 @@ export default function MemberFilters({ filters, onFilterChange, members, member
                     </div>
 
                     {/* Ministry Involvement */}
-                    <div className="md:col-span-2">
+                    <div>
                         <Label className="text-xs text-slate-500">Ministry Involvement</Label>
                         <Select
                             value={filters.ministry || "all"}
@@ -196,6 +195,44 @@ export default function MemberFilters({ filters, onFilterChange, members, member
                                 <SelectItem value="all">All Ministries</SelectItem>
                                 {MINISTRY_AREAS.map(m => (
                                     <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    {/* Region */}
+                    <div>
+                        <Label className="text-xs text-slate-500">Region</Label>
+                        <Select
+                            value={filters.region || "all"}
+                            onValueChange={(value) => onFilterChange("region", value)}
+                        >
+                            <SelectTrigger className="h-9">
+                                <SelectValue placeholder="All Regions" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Regions</SelectItem>
+                                {uniqueRegions.map(region => (
+                                    <SelectItem key={region} value={region}>{region}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    {/* Member Groups */}
+                    <div>
+                        <Label className="text-xs text-slate-500">Member Group</Label>
+                        <Select
+                            value={filters.group || "all"}
+                            onValueChange={(value) => onFilterChange("group", value)}
+                        >
+                            <SelectTrigger className="h-9">
+                                <SelectValue placeholder="All Groups" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Groups</SelectItem>
+                                {memberGroups.map(group => (
+                                    <SelectItem key={group.id} value={group.id}>{group.group_name}</SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
