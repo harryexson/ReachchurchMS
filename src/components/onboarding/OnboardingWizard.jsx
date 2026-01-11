@@ -207,7 +207,7 @@ export default function OnboardingWizard({ userEmail, userName, userType = "visi
                     <div className="flex justify-between items-center mb-4">
                         {ONBOARDING_STEPS.map((step) => {
                             const Icon = step.icon;
-                            const isCompleted = progress.completed_steps.includes(step.id);
+                            const isCompleted = progress.steps_completed?.includes(`step${step.id}`);
                             const isCurrent = currentStep === step.id;
                             
                             return (
