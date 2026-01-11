@@ -702,8 +702,11 @@ export default function Layout({ children, currentPageName }) {
         }
 
   if (!currentUser && !authError) {
-        // User is not authenticated - show login prompt
-        // Base44 will handle the actual authentication flow
+        // User is not authenticated - redirect to login page
+        const dashboardUrl = createPageUrl('Dashboard');
+        base44.auth.redirectToLogin(dashboardUrl);
+        
+        // Show loading while redirecting
         return (
           <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50/30">
             <div className="text-center space-y-6 p-8">
@@ -713,18 +716,8 @@ export default function Layout({ children, currentPageName }) {
                 className="h-32 w-auto max-w-[400px] mx-auto mb-4 object-contain"
               />
               <div>
-                <h1 className="text-3xl font-bold text-slate-900 mb-2">Welcome to REACH Church Connect</h1>
-                <p className="text-slate-600 mb-6">Please sign in to continue</p>
-                <Button 
-                  onClick={() => {
-                    // Base44 handles authentication - just trigger the login flow
-                    window.location.reload();
-                  }} 
-                  size="lg" 
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  Sign In
-                </Button>
+                <h1 className="text-3xl font-bold text-slate-900 mb-2">Redirecting to Sign In...</h1>
+                <p className="text-slate-600">Please wait</p>
               </div>
             </div>
           </div>
