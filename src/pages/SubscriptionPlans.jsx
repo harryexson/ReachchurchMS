@@ -183,8 +183,8 @@ export default function SubscriptionPlansPage() {
             const response = await base44.functions.invoke('createCheckoutSession', {
                 priceId: priceId,
                 planName: `${plan.name} (${selectedBilling})`,
-                successUrl: `${window.location.origin}${createPageUrl('Dashboard')}?subscription=success`,
-                cancelUrl: `${window.location.origin}${createPageUrl('SubscriptionPlans')}?subscription=cancelled`,
+                successUrl: `https://reachchurchms.com${createPageUrl('Dashboard')}?subscription=success`,
+                cancelUrl: `https://reachchurchms.com${createPageUrl('SubscriptionPlans')}?subscription=cancelled`,
                 metadata: {
                     plan_tier: plan.tier,
                     plan_name: plan.name,
