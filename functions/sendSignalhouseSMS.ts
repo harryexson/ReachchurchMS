@@ -1,5 +1,8 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+// TCPA Compliance - Required disclaimer for all SMS messages
+const SMS_DISCLAIMER = "\n\nWe respect your privacy. Your information is used only for church communications and is never shared. Msg & data rates may apply. Reply STOP to opt-out.";
+
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
@@ -26,6 +29,9 @@ Deno.serve(async (req) => {
             }, { status: 500 });
         }
 
+        // Append compliance disclaimer to message
+        const messageWithDisclaimer = message + SMS_DISCLAIMER;
+
         // Send SMS via Signalhouse API
         const response = await fetch('https://api.signalhouse.com/v1/sms/send', {
             method: 'POST',
@@ -36,7 +42,7 @@ Deno.serve(async (req) => {
             body: JSON.stringify({
                 to: to,
                 from: from || defaultFrom,
-                message: message
+                message: messageWithDisclaimer
             })
         });
 

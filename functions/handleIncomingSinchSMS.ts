@@ -1,7 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 
 // TCPA Compliance - Required disclaimer for all SMS messages
-const SMS_DISCLAIMER = "\n\nMsg & Data Rates may apply. Text STOP to opt-out. Text YES to opt-in.";
+const SMS_DISCLAIMER = "\n\nWe respect your privacy. Your information is used only for church communications and is never shared. Msg & data rates may apply. Reply STOP to opt-out.";
 
 Deno.serve(async (req) => {
     console.log('=== SINCH WEBHOOK RECEIVED ===');
@@ -71,6 +71,67 @@ Deno.serve(async (req) => {
         // Extract keyword (first word, uppercase)
         const keyword = messageBody.trim().split(/\s+/)[0].toUpperCase();
         console.log('🔑 Detected keyword:', keyword);
+
+        // Handle STOP/UNSUBSCRIBE requests
+        if (['STOP', 'UNSUBSCRIBE', 'CANCEL', 'END', 'QUIT'].includes(keyword)) {
+            console.log('🛑 Processing opt-out request...');
+            
+            try {
+                // Find and update subscriber to opted-out
+                const subscribers = await base44.asServiceRole.entities.TextSubscriber.filter({ 
+                    phone_number: from 
+                });
+                
+                if (subscribers.length > 0) {
+                    await base44.asServiceRole.entities.TextSubscriber.update(subscribers[0].id, {
+                        status: 'opted_out',
+                        opt_out_date: new Date().toISOString()
+                    });
+                    console.log('✅ Subscriber opted out');
+                }
+                
+                // Send confirmation message
+                const confirmMessage = 'You have been unsubscribed from church messages. No further messages will be sent. Reply HELP for support.';
+                const sendResult = await sendSinchSMS(from, confirmMessage, sinchServicePlanId, sinchApiToken, sinchPhoneNumber);
+                
+                // Log the opt-out
+                await base44.asServiceRole.entities.TextMessage.create({
+                    phone_number: from,
+                    direction: 'outbound',
+                    message_body: confirmMessage,
+                    keyword_triggered: keyword,
+                    status: sendResult.success ? 'sent' : 'failed'
+                });
+                
+                return Response.json({
+                    status: 'ok',
+                    message: 'User opted out successfully'
+                }, { status: 200 });
+            } catch (error) {
+                console.error('❌ Error processing opt-out:', error);
+            }
+        }
+
+        // Handle HELP requests
+        if (['HELP', 'INFO', 'SUPPORT'].includes(keyword)) {
+            console.log('❓ Processing help request...');
+            
+            const helpMessage = 'REACH Church Connect - For support, contact us at support@reachchurchms.com or reply STOP to unsubscribe.';
+            const sendResult = await sendSinchSMS(from, helpMessage, sinchServicePlanId, sinchApiToken, sinchPhoneNumber);
+            
+            await base44.asServiceRole.entities.TextMessage.create({
+                phone_number: from,
+                direction: 'outbound',
+                message_body: helpMessage,
+                keyword_triggered: keyword,
+                status: sendResult.success ? 'sent' : 'failed'
+            });
+            
+            return Response.json({
+                status: 'ok',
+                message: 'Help response sent'
+            }, { status: 200 });
+        }
         
         // Log incoming message to database - USE SERVICE ROLE (no auth required)
         try {

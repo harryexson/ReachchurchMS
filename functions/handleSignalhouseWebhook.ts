@@ -1,5 +1,8 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+// TCPA Compliance - Required disclaimer for all SMS messages
+const SMS_DISCLAIMER = "\n\nWe respect your privacy. Your information is used only for church communications and is never shared. Msg & data rates may apply. Reply STOP to opt-out.";
+
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
@@ -52,6 +55,7 @@ async function handleIncomingSMS(base44, payload) {
     const from = payload.from || payload.sender;
     const message = payload.message || payload.body || payload.text;
     const to = payload.to || payload.recipient;
+    const keyword = message.trim().split(/\s+/)[0].toUpperCase();
 
     try {
         // Log the incoming message
@@ -66,8 +70,85 @@ async function handleIncomingSMS(base44, payload) {
         });
 
         console.log('✅ Incoming SMS logged');
+
+        // Handle STOP/UNSUBSCRIBE requests
+        if (['STOP', 'UNSUBSCRIBE', 'CANCEL', 'END', 'QUIT'].includes(keyword)) {
+            console.log('🛑 Processing opt-out request...');
+            
+            const subscribers = await base44.asServiceRole.entities.TextSubscriber.filter({ 
+                phone_number: from 
+            });
+            
+            if (subscribers.length > 0) {
+                await base44.asServiceRole.entities.TextSubscriber.update(subscribers[0].id, {
+                    status: 'opted_out',
+                    opt_out_date: new Date().toISOString()
+                });
+                console.log('✅ Subscriber opted out');
+            }
+            
+            // Send confirmation (no disclaimer needed for opt-out confirmation)
+            const confirmMessage = 'You have been unsubscribed from church messages. No further messages will be sent. Reply HELP for support.';
+            await sendOptOutSMS(base44, from, confirmMessage);
+        }
+
+        // Handle HELP requests
+        if (['HELP', 'INFO', 'SUPPORT'].includes(keyword)) {
+            console.log('❓ Processing help request...');
+            const helpMessage = 'REACH Church Connect - For support, contact us at support@reachchurchms.com or reply STOP to unsubscribe.';
+            await sendHelpSMS(base44, from, helpMessage);
+        }
     } catch (error) {
         console.error('Error logging incoming SMS:', error);
+    }
+}
+
+async function sendOptOutSMS(base44, to, message) {
+    try {
+        // Send opt-out confirmation without disclaimer
+        const apiKey = Deno.env.get('SIGNALHOUSE_API_KEY');
+        const defaultFrom = Deno.env.get('SIGNALHOUSE_PHONE_NUMBER');
+        
+        if (!apiKey) return;
+        
+        await fetch('https://api.signalhouse.com/v1/sms/send', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                to: to,
+                from: defaultFrom,
+                message: message
+            })
+        });
+    } catch (error) {
+        console.error('Error sending opt-out SMS:', error);
+    }
+}
+
+async function sendHelpSMS(base44, to, message) {
+    try {
+        const apiKey = Deno.env.get('SIGNALHOUSE_API_KEY');
+        const defaultFrom = Deno.env.get('SIGNALHOUSE_PHONE_NUMBER');
+        
+        if (!apiKey) return;
+        
+        await fetch('https://api.signalhouse.com/v1/sms/send', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                to: to,
+                from: defaultFrom,
+                message: message
+            })
+        });
+    } catch (error) {
+        console.error('Error sending help SMS:', error);
     }
 }
 
