@@ -44,11 +44,12 @@ const GENDERS = [
     { value: "prefer_not_to_say", label: "Prefer Not to Say" }
 ];
 
-export default function MemberFilters({ filters, onFilterChange, members, onClearFilters }) {
+export default function MemberFilters({ filters, onFilterChange, members, memberGroups = [], onClearFilters }) {
     // Extract unique cities and regions from members
     const uniqueCities = [...new Set(members.map(m => m.city).filter(Boolean))].sort();
     const uniqueRegions = [...new Set(members.map(m => m.region).filter(Boolean))].sort();
     const uniqueStates = [...new Set(members.map(m => m.state).filter(Boolean))].sort();
+    const uniqueRegions = [...new Set(members.map(m => m.region).filter(Boolean))].sort();
 
     const activeFilterCount = Object.values(filters).filter(v => v && v !== "all" && v !== "").length;
 

@@ -27,11 +27,17 @@ export default function MembersPage() {
         ageGroup: "all",
         city: "all",
         state: "all",
-        ministry: "all"
+        ministry: "all",
+        region: "all",
+        group: "all"
     });
+    const [memberGroups, setMemberGroups] = useState([]);
+    const [groupAssignments, setGroupAssignments] = useState([]);
 
     useEffect(() => {
         loadMembers();
+        loadMemberGroups();
+        loadGroupAssignments();
     }, []);
 
     const loadMembers = async () => {
@@ -39,6 +45,24 @@ export default function MembersPage() {
         const memberList = await base44.entities.Member.list("-created_date");
         setMembers(memberList);
         setIsLoading(false);
+    };
+
+    const loadMemberGroups = async () => {
+        try {
+            const groups = await base44.entities.MemberGroup.filter({ is_active: true });
+            setMemberGroups(groups);
+        } catch (error) {
+            console.error('Error loading groups:', error);
+        }
+    };
+
+    const loadGroupAssignments = async () => {
+        try {
+            const assignments = await base44.entities.MemberGroupAssignment.filter({ is_active: true });
+            setGroupAssignments(assignments);
+        } catch (error) {
+            console.error('Error loading group assignments:', error);
+        }
     };
 
     const handleFormSubmit = async (data) => {
@@ -80,19 +104,24 @@ export default function MembersPage() {
             ageGroup: "all",
             city: "all",
             state: "all",
-            ministry: "all"
+            ministry: "all",
+            region: "all",
+            group: "all"
         });
     };
 
     const filteredMembers = useMemo(() => {
         return members.filter(member => {
-            // Search filter
+            // Search filter - enhanced to include more fields
             if (filters.search) {
                 const searchLower = filters.search.toLowerCase();
                 const matchesSearch = 
                     `${member.first_name} ${member.last_name}`.toLowerCase().includes(searchLower) ||
                     member.email?.toLowerCase().includes(searchLower) ||
-                    member.phone?.includes(filters.search);
+                    member.phone?.includes(filters.search) ||
+                    member.address?.toLowerCase().includes(searchLower) ||
+                    member.city?.toLowerCase().includes(searchLower) ||
+                    member.notes?.toLowerCase().includes(searchLower);
                 if (!matchesSearch) return false;
             }
 
@@ -127,6 +156,19 @@ export default function MembersPage() {
                 if (!involvements.includes(filters.ministry)) {
                     return false;
                 }
+            }
+
+            // Region filter
+            if (filters.region !== "all" && member.region !== filters.region) {
+                return false;
+            }
+
+            // Group filter
+            if (filters.group !== "all") {
+                const memberInGroup = groupAssignments.some(
+                    assignment => assignment.member_id === member.id && assignment.group_id === filters.group
+                );
+                if (!memberInGroup) return false;
             }
 
             return true;
@@ -178,6 +220,7 @@ export default function MembersPage() {
                         filters={filters}
                         onFilterChange={handleFilterChange}
                         members={members}
+                        memberGroups={memberGroups}
                         onClearFilters={clearFilters}
                     />
                 )}
