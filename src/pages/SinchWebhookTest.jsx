@@ -15,12 +15,22 @@ export default function SinchWebhookTest() {
         setTestResult(null);
 
         try {
+            // Send a mock Sinch webhook payload
+            const mockPayload = {
+                id: "test-message-id",
+                from: "+15551234567",
+                to: ["+15743755450"],
+                body: "TEST",
+                received_at: new Date().toISOString(),
+                type: "mo_text"
+            };
+
             const response = await fetch(webhookUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({})
+                body: JSON.stringify(mockPayload)
             });
 
             const data = await response.json();
