@@ -1,13 +1,11 @@
 import React, { useState } from "react";
+import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, CheckCircle, XCircle, AlertCircle, Send } from "lucide-react";
-import { ChurchSettings } from "@/entities/ChurchSettings";
-import { TextKeyword } from "@/entities/TextKeyword";
-import { TextMessage } from "@/entities/TextMessage";
 
 export default function SMSDiagnostics() {
     const [diagnostics, setDiagnostics] = useState(null);
@@ -27,22 +25,21 @@ export default function SMSDiagnostics() {
         // Check 1: Test Sinch Connection
         try {
             console.log('Testing Sinch connection...');
-            const { testSinchConnection } = await import("@/functions/testSinchConnection");
-            const connectionTest = await testSinchConnection();
+            const { data: connectionTest } = await base44.functions.invoke('testSinchConnection');
             
-            if (connectionTest.data.success) {
+            if (connectionTest.success) {
                 results.checks.push({
                     name: "Sinch API Connection",
                     status: "success",
-                    message: connectionTest.data.message,
-                    details: connectionTest.data.details
+                    message: connectionTest.message,
+                    details: connectionTest.details
                 });
             } else {
                 results.checks.push({
                     name: "Sinch API Connection",
                     status: "error",
-                    message: connectionTest.data.error,
-                    details: connectionTest.data.details
+                    message: connectionTest.error,
+                    details: connectionTest.details
                 });
             }
         } catch (error) {
@@ -55,7 +52,7 @@ export default function SMSDiagnostics() {
 
         // Check 2: Church Settings
         try {
-            const settings = await ChurchSettings.list();
+            const settings = await base44.entities.ChurchSettings.list();
             if (settings.length === 0) {
                 results.checks.push({
                     name: "Church Settings",
@@ -102,7 +99,7 @@ export default function SMSDiagnostics() {
 
         // Check 3: Keywords
         try {
-            const keywords = await TextKeyword.list();
+            const keywords = await base44.entities.TextKeyword.list();
             const activeKeywords = keywords.filter(k => k.is_active);
             
             if (keywords.length === 0) {
@@ -145,7 +142,7 @@ export default function SMSDiagnostics() {
 
         // Check 4: Recent Messages
         try {
-            const messages = await TextMessage.list('-created_date', 10);
+            const messages = await base44.entities.TextMessage.list('-created_date', 10);
             
             if (messages.length === 0) {
                 results.checks.push({
@@ -228,23 +225,22 @@ export default function SMSDiagnostics() {
         setTestResult(null);
 
         try {
-            const { sendSinchSMS } = await import("@/functions/sendSinchSMS");
-            const response = await sendSinchSMS({
-                to: [testPhone],
+            const { data } = await base44.functions.invoke('sendSinchSMS', {
+                to: testPhone,
                 message: testMessage
             });
 
-            if (response.data.success) {
+            if (data.success) {
                 setTestResult({
                     success: true,
                     message: `✅ Test SMS sent successfully to ${testPhone}!`,
-                    details: response.data
+                    details: data
                 });
             } else {
                 setTestResult({
                     success: false,
                     message: `❌ Failed to send test SMS`,
-                    details: response.data
+                    details: data
                 });
             }
         } catch (error) {
