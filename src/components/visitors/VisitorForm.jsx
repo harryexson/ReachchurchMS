@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,10 +10,14 @@ const initialVisitorState = {
     name: "",
     email: "",
     phone: "",
+    address: "",
     visit_date: new Date().toISOString().split('T')[0],
     follow_up_status: "new",
-    interests: [], // Added new field
-    notes: ""
+    interests: [],
+    notes: "",
+    how_did_you_hear: "",
+    prayer_requests: "",
+    family_info: ""
 };
 
 export default function VisitorForm({ isOpen, setIsOpen, onSubmit, visitor }) {
@@ -27,10 +30,14 @@ export default function VisitorForm({ isOpen, setIsOpen, onSubmit, visitor }) {
                 name: visitor.name || "",
                 email: visitor.email || "",
                 phone: visitor.phone || "",
+                address: visitor.address || "",
                 visit_date: visitor.visit_date || new Date().toISOString().split('T')[0],
                 follow_up_status: visitor.follow_up_status || "new",
-                interests: visitor.interests || [], // Initialize new field
-                notes: visitor.notes || ""
+                interests: visitor.interests || [],
+                notes: visitor.notes || "",
+                how_did_you_hear: visitor.how_did_you_hear || "",
+                prayer_requests: visitor.prayer_requests || "",
+                family_info: visitor.family_info || ""
             });
         } else {
             setFormData(initialVisitorState);
@@ -82,8 +89,37 @@ export default function VisitorForm({ isOpen, setIsOpen, onSubmit, visitor }) {
                             <Input id="phone" name="phone" value={formData.phone} onChange={handleChange} />
                         </div>
                         <div className="space-y-2">
+                            <Label htmlFor="address">Address (Optional)</Label>
+                            <Input id="address" name="address" value={formData.address} onChange={handleChange} placeholder="Full address" />
+                        </div>
+                        <div className="space-y-2">
                             <Label htmlFor="visit_date">First Visit Date</Label>
                             <Input id="visit_date" name="visit_date" type="date" value={formData.visit_date} onChange={handleChange} required />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="how_did_you_hear">How Did You Hear About Us?</Label>
+                            <Select name="how_did_you_hear" value={formData.how_did_you_hear} onValueChange={(value) => handleSelectChange('how_did_you_hear', value)}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="friend_family">Friend/Family</SelectItem>
+                                    <SelectItem value="social_media">Social Media</SelectItem>
+                                    <SelectItem value="website">Website</SelectItem>
+                                    <SelectItem value="google_search">Google Search</SelectItem>
+                                    <SelectItem value="drove_by">Drove By</SelectItem>
+                                    <SelectItem value="event">Church Event</SelectItem>
+                                    <SelectItem value="other">Other</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="family_info">Family Information (Optional)</Label>
+                            <Textarea id="family_info" name="family_info" value={formData.family_info} onChange={handleChange} placeholder="e.g., Spouse name, kids (ages), etc." rows={2} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="prayer_requests">Prayer Requests (Optional)</Label>
+                            <Textarea id="prayer_requests" name="prayer_requests" value={formData.prayer_requests} onChange={handleChange} placeholder="Any prayer needs they shared..." rows={2} />
                         </div>
                         {visitor && (
                             <div className="space-y-2">
