@@ -100,17 +100,17 @@ import VideoMeeting from './pages/VideoMeeting';
 import VideoMeetings from './pages/VideoMeetings';
 import ViewMMS from './pages/ViewMMS';
 import ViewMMSCampaign from './pages/ViewMMSCampaign';
+import VisitorAnalytics from './pages/VisitorAnalytics';
 import VisitorFollowUp from './pages/VisitorFollowUp';
 import VisitorQRCode from './pages/VisitorQRCode';
 import VisitorQRDisplay from './pages/VisitorQRDisplay';
+import VisitorSMSWorkflows from './pages/VisitorSMSWorkflows';
 import Visitors from './pages/Visitors';
 import VolunteerConfirm from './pages/VolunteerConfirm';
 import VolunteerPortal from './pages/VolunteerPortal';
 import VolunteerRegistration from './pages/VolunteerRegistration';
 import Volunteers from './pages/Volunteers';
 import backoffice from './pages/backoffice';
-import VisitorSMSWorkflows from './pages/VisitorSMSWorkflows';
-import VisitorAnalytics from './pages/VisitorAnalytics';
 import __Layout from './Layout.jsx';
 
 
@@ -217,17 +217,17 @@ export const PAGES = {
     "VideoMeetings": VideoMeetings,
     "ViewMMS": ViewMMS,
     "ViewMMSCampaign": ViewMMSCampaign,
+    "VisitorAnalytics": VisitorAnalytics,
     "VisitorFollowUp": VisitorFollowUp,
     "VisitorQRCode": VisitorQRCode,
     "VisitorQRDisplay": VisitorQRDisplay,
+    "VisitorSMSWorkflows": VisitorSMSWorkflows,
     "Visitors": Visitors,
     "VolunteerConfirm": VolunteerConfirm,
     "VolunteerPortal": VolunteerPortal,
     "VolunteerRegistration": VolunteerRegistration,
     "Volunteers": Volunteers,
     "backoffice": backoffice,
-    "VisitorSMSWorkflows": VisitorSMSWorkflows,
-    "VisitorAnalytics": VisitorAnalytics,
 }
 
 export const pagesConfig = {

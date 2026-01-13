@@ -155,20 +155,32 @@ export default function SettingsPage() {
         setConnectResult(null);
 
         try {
-            const { createStripeConnectAccount } = await import("@/functions/createStripeConnectAccount");
-            
-            const response = await createStripeConnectAccount({
+            const response = await base44.functions.invoke('createStripeConnectAccount', {
                 church_name: settings.church_name,
                 return_url: `${window.location.origin}${window.location.pathname}?connected=true`,
                 refresh_url: `${window.location.origin}${window.location.pathname}`
             });
 
-            if (response.data.onboarding_url) {
+            console.log('Stripe Connect response:', response);
+
+            if (response.data?.onboarding_url) {
                 window.location.href = response.data.onboarding_url;
+            } else if (response.onboarding_url) {
+                window.location.href = response.onboarding_url;
+            } else {
+                throw new Error('No onboarding URL received from Stripe. Response: ' + JSON.stringify(response));
             }
         } catch (error) {
             console.error('Bank account connection failed:', error);
-            alert("Failed to connect bank account. Please try again or contact support.");
+            setConnectResult({ success: false, error: error.message });
+            
+            // More detailed error message
+            const errorMsg = error.message || 'Unknown error';
+            if (errorMsg.includes('STRIPE_API_KEY')) {
+                alert("❌ Stripe is not configured!\n\nPlease set STRIPE_API_KEY environment variable first:\n\n1. Go to Dashboard → Code → Environment Variables\n2. Add: STRIPE_API_KEY = sk_test_... (your SECRET key)\n3. Click 'Save & Deploy'\n4. Try again");
+            } else {
+                alert(`Failed to connect Stripe: ${errorMsg}\n\nIf this persists, please check:\n- STRIPE_API_KEY is set in environment variables\n- You're using SECRET key (sk_...) not publishable key (pk_...)`);
+            }
         }
         
         setIsConnecting(false);
