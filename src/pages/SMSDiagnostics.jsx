@@ -196,20 +196,40 @@ export default function SMSDiagnostics() {
         });
 
         // Check 6: Environment Variables
-        results.checks.push({
-            name: "Environment Variables",
-            status: "warning",
-            message: "CRITICAL: Environment variables must be set for webhooks to work",
-            details: {
-                required_vars: [
-                    "SINCH_SERVICE_PLAN_ID",
-                    "SINCH_API_TOKEN",
-                    "SINCH_PHONE_NUMBER"
-                ],
-                location: "Dashboard → Code → Environment Variables",
-                note: "Webhooks come from external servers and CANNOT access database settings. Environment variables are required!"
+        try {
+            const response = await base44.functions.invoke('checkEnvVars');
+            const envCheck = response.data || response;
+            
+            if (envCheck.all_set) {
+                results.checks.push({
+                    name: "Environment Variables",
+                    status: "success",
+                    message: "All required environment variables are set ✅",
+                    details: envCheck.variables
+                });
+            } else {
+                results.checks.push({
+                    name: "Environment Variables",
+                    status: "error",
+                    message: "Some environment variables are missing",
+                    details: {
+                        ...envCheck.variables,
+                        location: "Dashboard → Code → Environment Variables",
+                        note: "Environment variables are required for webhooks!"
+                    }
+                });
             }
-        });
+        } catch (error) {
+            results.checks.push({
+                name: "Environment Variables",
+                status: "warning",
+                message: "Could not verify environment variables",
+                details: {
+                    error: error.message,
+                    note: "Webhooks require: SINCH_SERVICE_PLAN_ID, SINCH_API_TOKEN, SINCH_PHONE_NUMBER"
+                }
+            });
+        }
 
         setDiagnostics(results);
         setIsRunning(false);
