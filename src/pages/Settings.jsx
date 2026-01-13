@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { ChurchSettings } from "@/entities/ChurchSettings";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -79,7 +78,7 @@ export default function SettingsPage() {
     const loadSettings = async () => {
         setIsLoading(true);
         try {
-            const settingsList = await ChurchSettings.list();
+            const settingsList = await base44.entities.ChurchSettings.list();
             if (settingsList.length > 0) {
                 setSettings(prevSettings => ({
                     ...prevSettings,
@@ -129,11 +128,11 @@ export default function SettingsPage() {
         };
 
         try {
-            const settingsList = await ChurchSettings.list();
+            const settingsList = await base44.entities.ChurchSettings.list();
             if (settingsList.length > 0) {
-                await ChurchSettings.update(settingsList[0].id, payload);
+                await base44.entities.ChurchSettings.update(settingsList[0].id, payload);
             } else {
-                await ChurchSettings.create(payload);
+                await base44.entities.ChurchSettings.create(payload);
             }
             return true;
         } catch (error) {
@@ -206,9 +205,9 @@ export default function SettingsPage() {
             };
             setSettings(updatedSettings);
             
-            const settingsList = await ChurchSettings.list();
+            const settingsList = await base44.entities.ChurchSettings.list();
             if (settingsList.length > 0) {
-                await ChurchSettings.update(settingsList[0].id, updatedSettings);
+                await base44.entities.ChurchSettings.update(settingsList[0].id, updatedSettings);
             }
 
         } catch (error) {
@@ -236,8 +235,7 @@ export default function SettingsPage() {
         await new Promise(resolve => setTimeout(resolve, 500));
 
         try {
-            const { testSinchSetup } = await import("@/functions/testSinchSetup");
-            const testResponse = await testSinchSetup();
+            const testResponse = await base44.functions.invoke('testSinchSetup', {});
             
             console.log('Test response:', testResponse.data);
             
@@ -256,9 +254,9 @@ export default function SettingsPage() {
                 setSettings(updatedSettings);
                 
                 // Save configured status to database
-                const settingsList = await ChurchSettings.list();
+                const settingsList = await base44.entities.ChurchSettings.list();
                 if (settingsList.length > 0) {
-                    await ChurchSettings.update(settingsList[0].id, { sinch_configured: true });
+                    await base44.entities.ChurchSettings.update(settingsList[0].id, { sinch_configured: true });
                 }
             } else {
                 // Show detailed error
@@ -270,9 +268,9 @@ export default function SettingsPage() {
                 });
                 
                 // Update configured status
-                const settingsList = await ChurchSettings.list();
+                const settingsList = await base44.entities.ChurchSettings.list();
                 if (settingsList.length > 0) {
-                    await ChurchSettings.update(settingsList[0].id, { sinch_configured: false });
+                    await base44.entities.ChurchSettings.update(settingsList[0].id, { sinch_configured: false });
                 }
             }
             
@@ -283,9 +281,9 @@ export default function SettingsPage() {
                 message: error.message || 'Failed to validate Sinch credentials. Please check your Service Plan ID and API Token.' 
             });
             
-            const settingsList = await ChurchSettings.list();
+            const settingsList = await base44.entities.ChurchSettings.list();
             if (settingsList.length > 0) {
-                await ChurchSettings.update(settingsList[0].id, { sinch_configured: false });
+                await base44.entities.ChurchSettings.update(settingsList[0].id, { sinch_configured: false });
             }
         }
     };
