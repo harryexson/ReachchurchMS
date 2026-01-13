@@ -410,15 +410,10 @@ export default function Layout({ children, currentPageName }) {
       icon: Heart,
     },
     {
-        title: "Communications",
-        url: createPageUrl("Communications"),
-        icon: Megaphone,
-      },
-      {
-        title: "Communication Hub",
-        url: createPageUrl("CommunicationHub"),
-        icon: Megaphone,
-      },
+      title: "Communication Hub",
+      url: createPageUrl("CommunicationHub"),
+      icon: Megaphone,
+    },
     {
       title: "Text Messaging",
       url: createPageUrl("TextMessaging"),
