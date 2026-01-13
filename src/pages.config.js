@@ -74,7 +74,9 @@ import QuickExpense from './pages/QuickExpense';
 import Reports from './pages/Reports';
 import Resources from './pages/Resources';
 import RoleManagement from './pages/RoleManagement';
+import SMSAutoResponder from './pages/SMSAutoResponder';
 import SMSAutomation from './pages/SMSAutomation';
+import SMSCampaigns from './pages/SMSCampaigns';
 import SMSDiagnosticReport from './pages/SMSDiagnosticReport';
 import SMSDiagnostics from './pages/SMSDiagnostics';
 import SMSGivingSetup from './pages/SMSGivingSetup';
@@ -107,8 +109,6 @@ import VolunteerPortal from './pages/VolunteerPortal';
 import VolunteerRegistration from './pages/VolunteerRegistration';
 import Volunteers from './pages/Volunteers';
 import backoffice from './pages/backoffice';
-import SMSCampaigns from './pages/SMSCampaigns';
-import SMSAutoResponder from './pages/SMSAutoResponder';
 import __Layout from './Layout.jsx';
 
 
@@ -189,7 +189,9 @@ export const PAGES = {
     "Reports": Reports,
     "Resources": Resources,
     "RoleManagement": RoleManagement,
+    "SMSAutoResponder": SMSAutoResponder,
     "SMSAutomation": SMSAutomation,
+    "SMSCampaigns": SMSCampaigns,
     "SMSDiagnosticReport": SMSDiagnosticReport,
     "SMSDiagnostics": SMSDiagnostics,
     "SMSGivingSetup": SMSGivingSetup,
@@ -222,8 +224,6 @@ export const PAGES = {
     "VolunteerRegistration": VolunteerRegistration,
     "Volunteers": Volunteers,
     "backoffice": backoffice,
-    "SMSCampaigns": SMSCampaigns,
-    "SMSAutoResponder": SMSAutoResponder,
 }
 
 export const pagesConfig = {

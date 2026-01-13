@@ -43,8 +43,8 @@ export default function SMSHealthCheck() {
     const runHealthCheck = async () => {
         setLoading(true);
         try {
-            const { data } = await base44.functions.invoke('testSinchSetup');
-            setHealthStatus(data);
+            const result = await base44.functions.invoke('testSinchSetup');
+            setHealthStatus(result.data || result);
         } catch (error) {
             console.error('Health check failed:', error);
             setHealthStatus({ error: error.message });
