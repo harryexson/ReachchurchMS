@@ -161,26 +161,24 @@ export default function SettingsPage() {
                 refresh_url: `${window.location.origin}${window.location.pathname}`
             });
 
-            console.log('Stripe Connect response:', response);
+            console.log('✅ Stripe Connect response:', response);
 
-            if (response.data?.onboarding_url) {
-                window.location.href = response.data.onboarding_url;
-            } else if (response.onboarding_url) {
-                window.location.href = response.onboarding_url;
+            // Handle response - the data is in response.data
+            const data = response.data || response;
+            
+            if (data.onboarding_url) {
+                console.log('🔗 Redirecting to Stripe onboarding:', data.onboarding_url);
+                window.location.href = data.onboarding_url;
             } else {
-                throw new Error('No onboarding URL received from Stripe. Response: ' + JSON.stringify(response));
+                console.error('❌ No onboarding URL in response:', data);
+                throw new Error('No onboarding URL received from Stripe');
             }
         } catch (error) {
-            console.error('Bank account connection failed:', error);
+            console.error('❌ Bank account connection failed:', error);
             setConnectResult({ success: false, error: error.message });
             
-            // More detailed error message
             const errorMsg = error.message || 'Unknown error';
-            if (errorMsg.includes('STRIPE_API_KEY')) {
-                alert("❌ Stripe is not configured!\n\nPlease set STRIPE_API_KEY environment variable first:\n\n1. Go to Dashboard → Code → Environment Variables\n2. Add: STRIPE_API_KEY = sk_test_... (your SECRET key)\n3. Click 'Save & Deploy'\n4. Try again");
-            } else {
-                alert(`Failed to connect Stripe: ${errorMsg}\n\nIf this persists, please check:\n- STRIPE_API_KEY is set in environment variables\n- You're using SECRET key (sk_...) not publishable key (pk_...)`);
-            }
+            alert(`Failed to connect Stripe: ${errorMsg}\n\nPlease contact support if this persists.`);
         }
         
         setIsConnecting(false);
