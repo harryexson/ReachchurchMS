@@ -173,6 +173,26 @@ Deno.serve(async (req) => {
                 message: 'Help response sent'
             }, { status: 200 });
         }
+
+        // AI-Powered Auto-Responder for common questions
+        const aiResponse = await analyzeAndRespond(messageBody, base44);
+        if (aiResponse) {
+            console.log('🤖 AI Auto-responder triggered');
+            const sendResult = await sendSinchSMS(from, aiResponse, sinchServicePlanId, sinchApiToken, sinchPhoneNumber);
+            
+            await base44.asServiceRole.entities.TextMessage.create({
+                phone_number: from,
+                direction: 'outbound',
+                message_body: aiResponse,
+                keyword_triggered: 'AI_RESPONSE',
+                status: sendResult.success ? 'sent' : 'failed'
+            });
+            
+            return Response.json({
+                status: 'ok',
+                message: 'AI response sent'
+            }, { status: 200 });
+        }
         
         // Log incoming message to database - USE SERVICE ROLE (no auth required)
         try {
@@ -422,6 +442,43 @@ Deno.serve(async (req) => {
         });
     }
 });
+
+// AI-powered auto-responder to detect common questions
+async function analyzeAndRespond(message, base44) {
+    try {
+        const messageLower = message.toLowerCase();
+        
+        // Get all active church info responses
+        const churchInfos = await base44.asServiceRole.entities.ChurchInfo.filter({ is_active: true });
+        
+        // Sort by priority
+        churchInfos.sort((a, b) => (b.priority || 0) - (a.priority || 0));
+        
+        // Check for keyword matches
+        for (const info of churchInfos) {
+            const keywords = info.question_keywords || [];
+            const hasMatch = keywords.some(keyword => 
+                messageLower.includes(keyword.toLowerCase())
+            );
+            
+            if (hasMatch) {
+                console.log('✅ AI matched question type:', info.info_type);
+                return info.response_text;
+            }
+        }
+        
+        // If no match found, suggest HELP
+        if (messageLower.includes('?') || messageLower.includes('how') || messageLower.includes('what') || messageLower.includes('when') || messageLower.includes('where')) {
+            console.log('❓ Question detected but no match - suggesting HELP');
+            return "Thanks for your question! For specific information, reply with HELP to connect with our team. We're here to help! 🙏";
+        }
+        
+        return null;
+    } catch (error) {
+        console.error('AI responder error:', error);
+        return null;
+    }
+}
 
 // Helper function to send SMS via Sinch API
 async function sendSinchSMS(to, message, servicePlanId, apiToken, fromNumber) {
