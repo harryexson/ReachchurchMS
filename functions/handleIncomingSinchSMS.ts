@@ -18,8 +18,15 @@ Deno.serve(async (req) => {
         try {
             const rawBody = await req.text();
             console.log('Raw body:', rawBody);
-            body = JSON.parse(rawBody);
-            console.log('✅ Parsed body:', JSON.stringify(body, null, 2));
+            
+            // Handle empty body - this is expected when testing manually
+            if (!rawBody || rawBody.trim() === '' || rawBody === '{}') {
+                console.log('⚠️ Empty body received - this is a manual test, not a real Sinch webhook');
+                body = {};
+            } else {
+                body = JSON.parse(rawBody);
+                console.log('✅ Parsed body:', JSON.stringify(body, null, 2));
+            }
         } catch (parseError) {
             console.error('❌ Failed to parse JSON body:', parseError);
             return Response.json({
@@ -44,20 +51,23 @@ Deno.serve(async (req) => {
             // If this is a manual test (empty body), provide helpful info
             if (!from && !to && !messageBody) {
                 return Response.json({ 
-                    status: 'test_mode',
-                    message: 'Webhook is configured correctly! When Sinch sends an SMS, it will include the required fields.',
-                    expected_format: {
+                    status: 'webhook_ready',
+                    message: '✅ Webhook is working and ready to receive SMS messages from Sinch!',
+                    next_steps: [
+                        '1. Copy this webhook URL from your Dashboard → Code → Functions → handleIncomingSinchSMS',
+                        '2. Go to Sinch Dashboard → SMS → Service Configuration',
+                        '3. Set "Inbound Callback URL" to this webhook URL',
+                        '4. Send an SMS with a keyword (like VISIT) to your Sinch number',
+                        '5. Check these logs to see Sinch\'s webhook payload and your automated response'
+                    ],
+                    expected_sinch_format: {
                         from: '+15551234567',
                         to: '+15743755450',
-                        body: 'TEST',
+                        body: 'VISIT',
                         id: 'message_id',
                         type: 'mo_text'
                     },
-                    instructions: [
-                        '1. Verify this webhook URL is configured in Sinch Dashboard',
-                        '2. Send an SMS with a keyword to your Sinch number',
-                        '3. Check the logs to see the actual webhook payload from Sinch'
-                    ]
+                    note: 'This empty body means you called the webhook manually (not from Sinch). When Sinch sends a real SMS, the body will contain the message data.'
                 }, { status: 200 });
             }
 
