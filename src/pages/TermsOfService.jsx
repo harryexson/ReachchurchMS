@@ -1,5 +1,9 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { createPageUrl } from "@/utils";
+import { Link } from "react-router-dom";
+import { MessageSquare, Shield, AlertCircle } from "lucide-react";
 
 export default function TermsOfServicePage() {
     return (
@@ -8,7 +12,7 @@ export default function TermsOfServicePage() {
             <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-12">
                 <div className="max-w-4xl mx-auto px-4">
                     <h1 className="text-3xl font-bold mb-2">Terms of Service</h1>
-                    <p className="text-blue-100">Last updated: November 26, 2024</p>
+                    <p className="text-blue-100">Last updated: January 13, 2026</p>
                 </div>
             </div>
 
@@ -99,14 +103,72 @@ export default function TermsOfServicePage() {
                             We are not responsible for third-party service availability or performance.
                         </p>
 
-                        <h2>8. SMS/Communication Services</h2>
-                        <p>When using our SMS and communication features:</p>
+                        <h2>8. SMS/Text Messaging Services</h2>
+                        <div className="bg-amber-50 border-l-4 border-amber-600 p-4 my-4">
+                            <div className="flex items-start gap-3">
+                                <AlertCircle className="w-5 h-5 text-amber-600 mt-1" />
+                                <div>
+                                    <p className="font-semibold text-amber-900 mb-2">Important Compliance Requirements</p>
+                                    <p className="text-slate-700 text-sm">
+                                        By using our SMS/MMS messaging features, you agree to comply with all applicable laws 
+                                        and regulations, including TCPA (Telephone Consumer Protection Act), CTIA guidelines, 
+                                        and A2P 10DLC requirements.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h3>8.1 Opt-In Requirements</h3>
+                        <p>When using our SMS and communication features, you must:</p>
                         <ul>
-                            <li>You must comply with TCPA, CAN-SPAM, and other applicable regulations</li>
-                            <li>You must obtain proper consent before sending messages</li>
-                            <li>You must honor opt-out requests promptly</li>
-                            <li>Message costs are your responsibility</li>
+                            <li>Obtain <strong>explicit written or digital consent</strong> before sending any messages</li>
+                            <li>Clearly disclose the purpose of messages (informational, faith-based, church operations)</li>
+                            <li>Provide opt-in disclosures stating message frequency, data rates, and opt-out instructions</li>
+                            <li>Support text-to-join keywords (e.g., JOIN, EVENTS, INFO, GIVE)</li>
+                            <li>Maintain records of all opt-in consents</li>
                         </ul>
+
+                        <h3>8.2 Message Content Requirements</h3>
+                        <ul>
+                            <li>Messages must be informational and faith-based, NOT promotional or mass marketing</li>
+                            <li>Approved message types: event registrations, service information, confirmations, reminders, 
+                                donor-initiated text-to-give confirmations, church announcements</li>
+                            <li>Prohibited content: SHAFT (Sex, Hate, Alcohol, Firearms, Tobacco), political campaigns, 
+                                third-party marketing</li>
+                            <li>All messages must include clear opt-out instructions</li>
+                        </ul>
+
+                        <h3>8.3 Opt-Out Compliance</h3>
+                        <ul>
+                            <li>Honor opt-out requests (STOP, UNSUBSCRIBE, CANCEL) <strong>immediately</strong></li>
+                            <li>Send confirmation message when user opts out</li>
+                            <li>Maintain an opt-out list and never re-subscribe without new consent</li>
+                            <li>Provide HELP keyword support for assistance</li>
+                        </ul>
+
+                        <h3>8.4 Message Costs & Frequency</h3>
+                        <ul>
+                            <li>Message and data rates may apply for recipients based on their carrier plan</li>
+                            <li>You must disclose typical message frequency (1-4 messages per month for most campaigns)</li>
+                            <li>SMS service costs are included in your subscription tier</li>
+                            <li>Additional charges may apply for usage exceeding plan limits</li>
+                        </ul>
+
+                        <h3>8.5 Detailed SMS Terms</h3>
+                        <div className="flex flex-wrap gap-3 my-4">
+                            <Link to={createPageUrl("SMSTermsAndConditions")}>
+                                <Button variant="outline" size="sm">
+                                    <Shield className="w-4 h-4 mr-2" />
+                                    View Full SMS Terms & Conditions
+                                </Button>
+                            </Link>
+                            <Link to={createPageUrl("SMSPrivacyPolicy")}>
+                                <Button variant="outline" size="sm">
+                                    <MessageSquare className="w-4 h-4 mr-2" />
+                                    View SMS Privacy Policy
+                                </Button>
+                            </Link>
+                        </div>
 
                         <h2>9. Donation Processing</h2>
                         <p>
@@ -163,7 +225,23 @@ export default function TermsOfServicePage() {
                             conflict of law principles. Any disputes shall be resolved in the courts of Delaware.
                         </p>
 
-                        <h2>17. Contact Information</h2>
+                        <h2>17. Additional Resources</h2>
+                        <div className="flex flex-wrap gap-3 my-6">
+                            <Link to={createPageUrl("SMSTermsAndConditions")}>
+                                <Button variant="outline">SMS Terms & Conditions</Button>
+                            </Link>
+                            <Link to={createPageUrl("SMSPrivacyPolicy")}>
+                                <Button variant="outline">SMS Privacy Policy</Button>
+                            </Link>
+                            <Link to={createPageUrl("SMSHelpCenter")}>
+                                <Button variant="outline">SMS Help Center</Button>
+                            </Link>
+                            <Link to={createPageUrl("PrivacyPolicy")}>
+                                <Button variant="outline">Full Privacy Policy</Button>
+                            </Link>
+                        </div>
+
+                        <h2>18. Contact Information</h2>
                         <p>For questions about these Terms, contact us at:</p>
                         <ul>
                             <li>Email: support@reachchurchMS.com</li>

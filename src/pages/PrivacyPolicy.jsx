@@ -1,5 +1,9 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { createPageUrl } from "@/utils";
+import { Link } from "react-router-dom";
+import { MessageSquare, Shield } from "lucide-react";
 
 export default function PrivacyPolicyPage() {
     return (
@@ -8,7 +12,7 @@ export default function PrivacyPolicyPage() {
             <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-12">
                 <div className="max-w-4xl mx-auto px-4">
                     <h1 className="text-3xl font-bold mb-2">Privacy Policy</h1>
-                    <p className="text-blue-100">Last updated: November 26, 2024</p>
+                    <p className="text-blue-100">Last updated: January 13, 2026</p>
                 </div>
             </div>
 
@@ -51,13 +55,17 @@ export default function PrivacyPolicyPage() {
                             <li>Prevent fraud and ensure security</li>
                         </ul>
 
-                        <h2>Information Sharing</h2>
-                        <p>We do not sell your personal information. We may share information with:</p>
+                        <h2>Data Sharing & Security</h2>
+                        <p><strong>We do not sell your personal information to third parties.</strong> Your data is shared only with:</p>
                         <ul>
-                            <li><strong>Service Providers:</strong> Third parties that help us operate our platform (e.g., Stripe for payments, Sinch for SMS).</li>
-                            <li><strong>Church Administrators:</strong> Authorized users within your church organization can access member and giving data.</li>
-                            <li><strong>Legal Requirements:</strong> When required by law or to protect our rights.</li>
+                            <li><strong>Your Church Administrators:</strong> For church management purposes, authorized users within your church organization can access member and giving data.</li>
+                            <li><strong>Service Providers:</strong> Necessary for platform operations - Stripe (payments), Sinch (SMS messaging), and other essential service providers.</li>
+                            <li><strong>Legal Requirements:</strong> As required by law or legal process.</li>
                         </ul>
+                        <p className="mt-4">
+                            All service providers are bound by strict confidentiality agreements and are prohibited from 
+                            using your data for any purpose other than providing services to us.
+                        </p>
 
                         <h2>Data Security</h2>
                         <p>
@@ -96,22 +104,73 @@ export default function PrivacyPolicyPage() {
                             please contact us immediately.
                         </p>
 
+                        <h2>SMS/Text Messaging Privacy</h2>
+                        <div className="bg-blue-50 border-l-4 border-blue-600 p-4 my-4">
+                            <div className="flex items-start gap-3">
+                                <MessageSquare className="w-5 h-5 text-blue-600 mt-1" />
+                                <div>
+                                    <p className="font-semibold text-blue-900 mb-2">Special Privacy Protections for SMS Users</p>
+                                    <p className="text-slate-700 text-sm">
+                                        When you opt in to receive text messages from your church through REACH Church Connect:
+                                    </p>
+                                    <ul className="list-disc pl-5 mt-2 text-sm text-slate-700 space-y-1">
+                                        <li>Your phone number is used ONLY for church communications</li>
+                                        <li>We NEVER share your phone number with third parties</li>
+                                        <li>We NEVER sell your information to marketers</li>
+                                        <li>You can opt out anytime by replying STOP</li>
+                                        <li>Message and data rates may apply based on your carrier</li>
+                                    </ul>
+                                    <div className="mt-3">
+                                        <Link to={createPageUrl("SMSPrivacyPolicy")}>
+                                            <Button variant="outline" size="sm" className="text-blue-600 border-blue-300">
+                                                View Detailed SMS Privacy Policy
+                                            </Button>
+                                        </Link>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <h2>Third-Party Services</h2>
                         <p>
                             Our platform integrates with third-party services including:
                         </p>
                         <ul>
-                            <li><strong>Stripe:</strong> Payment processing</li>
-                            <li><strong>Sinch:</strong> SMS messaging</li>
+                            <li><strong>Stripe:</strong> Payment processing (PCI-DSS compliant)</li>
+                            <li><strong>Sinch:</strong> SMS messaging (TCPA compliant)</li>
                             <li><strong>YouTube/Facebook:</strong> Live streaming</li>
                         </ul>
-                        <p>These services have their own privacy policies that govern their use of your data.</p>
+                        <p>
+                            These services have their own privacy policies that govern their use of your data. 
+                            We carefully select partners who maintain high security and privacy standards.
+                        </p>
 
                         <h2>Changes to This Policy</h2>
                         <p>
                             We may update this Privacy Policy from time to time. We will notify you of any material 
                             changes by posting the new policy on this page and updating the "Last updated" date.
                         </p>
+
+                        <h2>Additional Resources</h2>
+                        <div className="flex flex-wrap gap-3 my-6">
+                            <Link to={createPageUrl("SMSPrivacyPolicy")}>
+                                <Button variant="outline">
+                                    <MessageSquare className="w-4 h-4 mr-2" />
+                                    SMS Privacy Policy
+                                </Button>
+                            </Link>
+                            <Link to={createPageUrl("SMSTermsAndConditions")}>
+                                <Button variant="outline">
+                                    <Shield className="w-4 h-4 mr-2" />
+                                    SMS Terms & Conditions
+                                </Button>
+                            </Link>
+                            <Link to={createPageUrl("SMSHelpCenter")}>
+                                <Button variant="outline">
+                                    SMS Help Center
+                                </Button>
+                            </Link>
+                        </div>
 
                         <h2>Contact Us</h2>
                         <p>
