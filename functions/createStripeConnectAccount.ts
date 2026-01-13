@@ -12,14 +12,18 @@ Deno.serve(async (req) => {
 
         const stripeApiKey = Deno.env.get("STRIPE_API_KEY");
         if (!stripeApiKey) {
-            return Response.json({ error: 'Stripe not configured' }, { status: 500 });
+            console.error('❌ STRIPE_API_KEY not found in environment');
+            return Response.json({ 
+                error: 'STRIPE_API_KEY environment variable is not set. Please configure it in Dashboard → Code → Environment Variables' 
+            }, { status: 500 });
         }
 
-        const stripe = new Stripe(stripeApiKey, {
-            apiVersion: '2024-12-18.acacia'
-        });
+        console.log('✅ Stripe API key found, initializing...');
+        const stripe = new Stripe(stripeApiKey);
         const body = await req.json();
         const { church_name, return_url, refresh_url } = body;
+
+        console.log('📝 Creating Stripe Connect account for:', church_name);
 
         // Create a connected account for the church
         const account = await stripe.accounts.create({
@@ -33,7 +37,10 @@ Deno.serve(async (req) => {
             }
         });
 
+        console.log('✅ Account created:', account.id);
+
         // Create an account link for onboarding
+        console.log('🔗 Creating onboarding link...');
         const accountLink = await stripe.accountLinks.create({
             account: account.id,
             return_url: return_url,
@@ -41,16 +48,19 @@ Deno.serve(async (req) => {
             type: 'account_onboarding',
         });
 
+        console.log('✅ Onboarding URL generated:', accountLink.url);
+
         // Save the Stripe account ID to church settings
-        const settings = await base44.entities.ChurchSettings.list();
+        console.log('💾 Saving account ID to settings...');
+        const settings = await base44.asServiceRole.entities.ChurchSettings.list();
         if (settings.length > 0) {
-            await base44.entities.ChurchSettings.update(settings[0].id, {
+            await base44.asServiceRole.entities.ChurchSettings.update(settings[0].id, {
                 stripe_account_id: account.id,
                 bank_account_connected: false, // Will be updated via webhook
                 payouts_enabled: false
             });
         } else {
-            await base44.entities.ChurchSettings.create({
+            await base44.asServiceRole.entities.ChurchSettings.create({
                 church_name: church_name,
                 stripe_account_id: account.id,
                 bank_account_connected: false,
@@ -58,7 +68,9 @@ Deno.serve(async (req) => {
             });
         }
 
+        console.log('✅ Success! Returning onboarding URL');
         return Response.json({
+            success: true,
             account_id: account.id,
             onboarding_url: accountLink.url
         });
