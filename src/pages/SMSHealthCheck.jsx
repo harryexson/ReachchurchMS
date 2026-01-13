@@ -63,7 +63,7 @@ export default function SMSHealthCheck() {
         setTestResult(null);
         
         try {
-            const { data } = await base44.functions.invoke('sendSinchSMS', {
+            const response = await base44.functions.invoke('sendSinchSMS', {
                 to: testPhone,
                 message: 'Test message from REACH Church Connect. If you received this, SMS is working! 🎉'
             });
@@ -71,7 +71,7 @@ export default function SMSHealthCheck() {
             setTestResult({
                 success: true,
                 message: 'Test SMS sent successfully!',
-                details: data
+                details: response.data || response
             });
             
             // Reload messages
@@ -88,8 +88,10 @@ export default function SMSHealthCheck() {
     };
 
     const copyWebhookURL = () => {
-        navigator.clipboard.writeText(healthStatus.webhook_url);
-        alert('Webhook URL copied to clipboard!');
+        if (healthStatus?.webhook_url) {
+            navigator.clipboard.writeText(healthStatus.webhook_url);
+            alert('Webhook URL copied to clipboard!');
+        }
     };
 
     if (loading) {
