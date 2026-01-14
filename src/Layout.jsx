@@ -342,6 +342,11 @@ export default function Layout({ children, currentPageName }) {
       icon: Church,
     },
     {
+      title: "Messages",
+      url: createPageUrl("AdminMessaging"),
+      icon: MessageSquare,
+    },
+    {
       title: "Role Management",
       url: createPageUrl("RoleManagement"),
       icon: Shield,
