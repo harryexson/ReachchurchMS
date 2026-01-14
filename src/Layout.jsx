@@ -154,7 +154,16 @@ export default function Layout({ children, currentPageName }) {
             return;
           }
 
-          // Check subscription status (only for non-public pages)
+          // Members don't need their own subscription - they're covered by church's subscription
+          if (user.role !== 'admin') {
+            console.log('✅ Member account - no subscription check needed');
+            setCurrentUser(user);
+            setAuthError(null);
+            setIsLoadingUser(false);
+            return;
+          }
+
+          // Check subscription status (only for admin users)
           let hasValidAccess = false;
           let shouldRedirectToUpgrade = false;
 
