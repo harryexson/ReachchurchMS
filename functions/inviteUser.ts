@@ -12,24 +12,33 @@ Deno.serve(async (req) => {
             }, { status: 403 });
         }
 
-        const { email, full_name, role = 'user' } = await req.json();
+        const body = await req.json();
+        const { email, full_name, role = 'user', phone } = body;
 
-        // Get church name from settings
+        // Get church name and phone from settings
         let churchName = 'REACH Church Connect';
+        let churchPhone = null;
         try {
             const settings = await base44.asServiceRole.entities.ChurchSettings.list();
-            if (settings.length > 0 && settings[0].church_name) {
-                churchName = settings[0].church_name;
+            if (settings.length > 0) {
+                churchName = settings[0].church_name || churchName;
+                churchPhone = settings[0].church_phone;
             }
         } catch (err) {
             console.log('Using default church name');
         }
 
-        // Invite user via Base44's built-in invitation system
-        await base44.users.inviteUser(email, role);
+        // Get member phone if provided
+        const { phone } = await req.json();
 
-        // Send welcome email/SMS with church branding
-        const invitationLink = `${Deno.env.get('BASE44_APP_URL') || 'https://your-app-url.base44.app'}`;
+        // Invite user via Base44's built-in invitation system
+        // This creates the user account and sends Base44's invitation email with password setup link
+        const invitationResult = await base44.users.inviteUser(email, role);
+        
+        console.log('✅ Base44 invitation sent to:', email);
+
+        // Send branded welcome email from church
+        const appUrl = Deno.env.get('BASE44_APP_URL') || 'https://your-app-url.base44.app';
         
         const emailBody = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -47,6 +56,12 @@ Deno.serve(async (req) => {
                         on our church management platform!
                     </p>
                     
+                    <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; margin: 20px 0; border-radius: 4px;">
+                        <p style="font-size: 16px; color: #92400e; margin: 0; font-weight: 600;">
+                            📧 Check your email for your invitation link to create your password and complete signup.
+                        </p>
+                    </div>
+                    
                     <p style="font-size: 16px; color: #334155; line-height: 1.6;">
                         As a member, you'll have access to:
                     </p>
@@ -61,14 +76,13 @@ Deno.serve(async (req) => {
                     </ul>
                     
                     <div style="text-align: center; margin: 30px 0;">
-                        <a href="${invitationLink}" style="display: inline-block; background: #667eea; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: 600;">
-                            Accept Invitation & Sign In
+                        <a href="${appUrl}" style="display: inline-block; background: #667eea; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: 600;">
+                            Go to ${churchName} Portal
                         </a>
                     </div>
                     
                     <p style="font-size: 14px; color: #64748b; line-height: 1.6;">
-                        Note: You're joining under ${churchName}'s subscription, so you won't need to sign up for your own account.
-                        Simply click the button above to complete your registration.
+                        Note: You're joining under ${churchName}'s subscription. After creating your password, you'll be directed to your member dashboard.
                     </p>
                     
                     <p style="font-size: 16px; color: #334155; line-height: 1.6;">
@@ -88,9 +102,41 @@ Deno.serve(async (req) => {
         await base44.asServiceRole.integrations.Core.SendEmail({
             to: email,
             from_name: churchName,
-            subject: `You're invited to join ${churchName}! 🎉`,
+            subject: `Complete Your Signup at ${churchName}! 🎉`,
             body: emailBody
         });
+
+        // Send SMS invitation if phone number provided and Sinch is configured
+        if (phone) {
+            try {
+                const sinchPhone = Deno.env.get('SINCH_PHONE_NUMBER');
+                const sinchToken = Deno.env.get('SINCH_API_TOKEN');
+                const sinchServicePlan = Deno.env.get('SINCH_SERVICE_PLAN_ID');
+
+                if (sinchPhone && sinchToken && sinchServicePlan) {
+                    const smsMessage = `Welcome to ${churchName}! You've been invited to join our church platform. Check your email (${email}) to create your password and complete signup. - ${churchName} Team`;
+
+                    await fetch(`https://us.sms.api.sinch.com/xms/v1/${sinchServicePlan}/batches`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${sinchToken}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            from: sinchPhone,
+                            to: [phone],
+                            body: smsMessage
+                        })
+                    });
+
+                    console.log('✅ SMS invitation sent to:', phone);
+                } else {
+                    console.log('⚠️ Sinch not configured, skipping SMS');
+                }
+            } catch (smsError) {
+                console.error('SMS error (non-critical):', smsError);
+            }
+        }
 
         return Response.json({ 
             success: true,
