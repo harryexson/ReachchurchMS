@@ -25,8 +25,16 @@ export default function MemberGroups() {
         group_name: '',
         description: '',
         group_type: 'custom',
-        color: '#3b82f6'
+        color: '#3b82f6',
+        leader_emails: [],
+        leader_names: [],
+        meeting_schedule: '',
+        meeting_location: '',
+        is_open: true,
+        requires_approval: false,
+        max_members: null
     });
+    const [leaderSearch, setLeaderSearch] = useState('');
 
     useEffect(() => {
         loadData();
@@ -73,7 +81,19 @@ export default function MemberGroups() {
             await loadData();
             setShowGroupForm(false);
             setEditingGroup(null);
-            setGroupForm({ group_name: '', description: '', group_type: 'custom', color: '#3b82f6' });
+            setGroupForm({
+                group_name: '',
+                description: '',
+                group_type: 'custom',
+                color: '#3b82f6',
+                leader_emails: [],
+                leader_names: [],
+                meeting_schedule: '',
+                meeting_location: '',
+                is_open: true,
+                requires_approval: false,
+                max_members: null
+            });
         } catch (error) {
             console.error('Error saving group:', error);
             alert('Failed to save group');
@@ -232,11 +252,81 @@ export default function MemberGroups() {
                             </div>
                         </div>
 
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <Label>Meeting Schedule</Label>
+                                <Input
+                                    placeholder="e.g., Every Sunday at 10am"
+                                    value={groupForm.meeting_schedule}
+                                    onChange={(e) => setGroupForm({...groupForm, meeting_schedule: e.target.value})}
+                                />
+                            </div>
+                            <div>
+                                <Label>Meeting Location</Label>
+                                <Input
+                                    placeholder="e.g., Room 101"
+                                    value={groupForm.meeting_location}
+                                    onChange={(e) => setGroupForm({...groupForm, meeting_location: e.target.value})}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-3 p-4 bg-slate-50 rounded-lg">
+                            <div className="flex items-center gap-3">
+                                <input
+                                    type="checkbox"
+                                    id="is_open"
+                                    checked={groupForm.is_open}
+                                    onChange={(e) => setGroupForm({...groupForm, is_open: e.target.checked})}
+                                    className="w-4 h-4"
+                                />
+                                <Label htmlFor="is_open" className="cursor-pointer">
+                                    Allow members to join freely
+                                </Label>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <input
+                                    type="checkbox"
+                                    id="requires_approval"
+                                    checked={groupForm.requires_approval}
+                                    onChange={(e) => setGroupForm({...groupForm, requires_approval: e.target.checked})}
+                                    className="w-4 h-4"
+                                />
+                                <Label htmlFor="requires_approval" className="cursor-pointer">
+                                    Require leader approval for joining
+                                </Label>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <Label htmlFor="max_members">Max Members (optional):</Label>
+                                <Input
+                                    id="max_members"
+                                    type="number"
+                                    min="1"
+                                    placeholder="No limit"
+                                    value={groupForm.max_members || ''}
+                                    onChange={(e) => setGroupForm({...groupForm, max_members: e.target.value ? parseInt(e.target.value) : null})}
+                                    className="w-32"
+                                />
+                            </div>
+                        </div>
+
                         <div className="flex justify-end gap-3 pt-4">
                             <Button variant="outline" onClick={() => {
                                 setShowGroupForm(false);
                                 setEditingGroup(null);
-                                setGroupForm({ group_name: '', description: '', group_type: 'custom', color: '#3b82f6' });
+                                setGroupForm({
+                                    group_name: '',
+                                    description: '',
+                                    group_type: 'custom',
+                                    color: '#3b82f6',
+                                    leader_emails: [],
+                                    leader_names: [],
+                                    meeting_schedule: '',
+                                    meeting_location: '',
+                                    is_open: true,
+                                    requires_approval: false,
+                                    max_members: null
+                                });
                             }}>
                                 Cancel
                             </Button>
@@ -275,7 +365,14 @@ export default function MemberGroups() {
                                                     group_name: group.group_name,
                                                     description: group.description || '',
                                                     group_type: group.group_type,
-                                                    color: group.color
+                                                    color: group.color,
+                                                    leader_emails: group.leader_emails || [],
+                                                    leader_names: group.leader_names || [],
+                                                    meeting_schedule: group.meeting_schedule || '',
+                                                    meeting_location: group.meeting_location || '',
+                                                    is_open: group.is_open !== false,
+                                                    requires_approval: group.requires_approval || false,
+                                                    max_members: group.max_members || null
                                                 });
                                                 setShowGroupForm(true);
                                             }}
