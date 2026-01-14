@@ -116,6 +116,7 @@ import Volunteers from './pages/Volunteers';
 import backoffice from './pages/backoffice';
 import Messages from './pages/Messages';
 import AdminMessaging from './pages/AdminMessaging';
+import GroupJoinRequests from './pages/GroupJoinRequests';
 import __Layout from './Layout.jsx';
 
 
@@ -238,6 +239,7 @@ export const PAGES = {
     "backoffice": backoffice,
     "Messages": Messages,
     "AdminMessaging": AdminMessaging,
+    "GroupJoinRequests": GroupJoinRequests,
 }
 
 export const pagesConfig = {
