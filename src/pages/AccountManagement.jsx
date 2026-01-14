@@ -13,6 +13,9 @@ import { createPageUrl } from "@/utils";
 import { Link } from "react-router-dom";
 
 export default function AccountManagementPage() {
+    const [currentUser, setCurrentUser] = useState(null);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+
     const { 
         subscription, 
         features, 
@@ -23,9 +26,6 @@ export default function AccountManagementPage() {
         refresh,
         lastRefresh
     } = useSubscription();
-    
-    const [currentUser, setCurrentUser] = useState(null);
-    const [isRefreshing, setIsRefreshing] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -48,6 +48,14 @@ export default function AccountManagementPage() {
         setIsRefreshing(false);
     };
 
+    const planIcons = {
+        starter: Shield,
+        growth: TrendingUp,
+        premium: Crown
+    };
+
+    const PlanIcon = subscription ? planIcons[subscription.subscription_tier] : Shield;
+
     if (subscriptionLoading) {
         return (
             <div className="p-6 bg-gradient-to-br from-slate-50 to-blue-50/30 min-h-screen">
@@ -60,14 +68,6 @@ export default function AccountManagementPage() {
             </div>
         );
     }
-
-    const planIcons = {
-        starter: Shield,
-        growth: TrendingUp,
-        premium: Crown
-    };
-
-    const PlanIcon = subscription ? planIcons[subscription.subscription_tier] : Shield;
 
     return (
         <div className="p-6 bg-gradient-to-br from-slate-50 to-blue-50/30 min-h-screen">
