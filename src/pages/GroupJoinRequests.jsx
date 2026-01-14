@@ -224,3 +224,7 @@ export default function GroupJoinRequestsPage() {
                         ))}
                     </div>
                 )}
+            </div>
+        </div>
+    );
+}
