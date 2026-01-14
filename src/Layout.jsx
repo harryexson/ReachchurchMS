@@ -535,6 +535,16 @@ export default function Layout({ children, currentPageName }) {
       icon: Users,
     },
     {
+      title: "Group Requests",
+      url: createPageUrl("GroupJoinRequests"),
+      icon: UserCheck,
+    },
+    {
+      title: "Admin Messaging",
+      url: createPageUrl("AdminMessaging"),
+      icon: MessageSquare,
+    },
+    {
       title: "Settings",
       url: createPageUrl("Settings"),
       icon: Settings,
@@ -614,6 +624,11 @@ export default function Layout({ children, currentPageName }) {
       title: "My Groups",
       url: createPageUrl("MyGroups"),
       icon: Users,
+    },
+    {
+      title: "Messages",
+      url: createPageUrl("Messages"),
+      icon: MessageSquare,
     },
     {
       title: "Church Contacts",
