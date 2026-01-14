@@ -151,9 +151,9 @@ export default function MyGroupsPage() {
     const filteredGroups = allGroups.filter(group => {
         const search = searchQuery.toLowerCase();
         return (
-            group.group_name.toLowerCase().includes(search) ||
+            group.group_name?.toLowerCase().includes(search) ||
             group.description?.toLowerCase().includes(search) ||
-            group.group_type.toLowerCase().includes(search)
+            group.group_type?.toLowerCase().includes(search)
         );
     });
 
