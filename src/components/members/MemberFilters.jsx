@@ -156,7 +156,7 @@ export default function MemberFilters({ filters, onFilterChange, members, member
                             <SelectContent>
                                 <SelectItem value="all">All Cities</SelectItem>
                                 {uniqueCities.map(city => (
-                                    <SelectItem key={city} value={city}>{city}</SelectItem>
+                                    <SelectItem key={city} value={String(city)}>{city}</SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
@@ -175,7 +175,7 @@ export default function MemberFilters({ filters, onFilterChange, members, member
                             <SelectContent>
                                 <SelectItem value="all">All States</SelectItem>
                                 {uniqueStates.map(state => (
-                                    <SelectItem key={state} value={state}>{state}</SelectItem>
+                                    <SelectItem key={state} value={String(state)}>{state}</SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
@@ -194,7 +194,7 @@ export default function MemberFilters({ filters, onFilterChange, members, member
                             <SelectContent>
                                 <SelectItem value="all">All Ministries</SelectItem>
                                 {MINISTRY_AREAS.map(m => (
-                                    <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                                    <SelectItem key={m.value} value={String(m.value)}>{m.label}</SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
@@ -213,7 +213,7 @@ export default function MemberFilters({ filters, onFilterChange, members, member
                             <SelectContent>
                                 <SelectItem value="all">All Regions</SelectItem>
                                 {uniqueRegions.map(region => (
-                                    <SelectItem key={region} value={region}>{region}</SelectItem>
+                                    <SelectItem key={region} value={String(region)}>{region}</SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
