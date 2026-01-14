@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
@@ -120,7 +119,7 @@ export default function EventForm({ isOpen, setIsOpen, onSubmit, event, voluntee
                     linked_sermon_id: value, // Ensure ID is set
                     linked_sermon_title: selectedSermon.title
                 }));
-            } else if (value === null || value === "") { // If "No Sermon Linked" or cleared
+            } else if (value === null || value === "" || value === "none") { // If "No Sermon Linked" or cleared
                 setFormData(prev => ({
                     ...prev,
                     linked_sermon_id: "",
@@ -255,14 +254,14 @@ export default function EventForm({ isOpen, setIsOpen, onSubmit, event, voluntee
                         <div className="col-span-1 md:col-span-2 space-y-2 p-4 bg-blue-50/20 rounded-lg border border-blue-100">
                             <Label htmlFor="linked_sermon_id">Link to Sermon (Optional)</Label>
                             <Select 
-                                value={formData.linked_sermon_id} 
+                                value={formData.linked_sermon_id || "none"} 
                                 onValueChange={(value) => handleSelectChange('linked_sermon_id', value)}
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select a sermon to link" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value={""}>No Sermon Linked</SelectItem> {/* Changed null to empty string for consistency with formData */}
+                                    <SelectItem value="none">No Sermon Linked</SelectItem>
                                     {sermons.map(sermon => (
                                         <SelectItem key={sermon.id} value={sermon.id}>
                                             {sermon.title} {sermon.speaker ? ` - ${sermon.speaker}` : ''}
