@@ -133,10 +133,10 @@ export default function VisitorForm({ isOpen, setIsOpen, onSubmit, visitor }) {
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="how_did_you_hear">How Did You Hear About Us?</Label>
-                                    <Select name="how_did_you_hear" value={formData.how_did_you_hear} onValueChange={(value) => handleSelectChange('how_did_you_hear', value)}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select..." />
-                                        </SelectTrigger>
+                                    <Select name="how_did_you_hear" value={formData.how_did_you_hear || undefined} onValueChange={(value) => handleSelectChange('how_did_you_hear', value)}>
+                                       <SelectTrigger>
+                                           <SelectValue placeholder="Select..." />
+                                       </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="friend_family">Friend/Family Invitation</SelectItem>
                                             <SelectItem value="social_media">Social Media (Facebook, Instagram)</SelectItem>
