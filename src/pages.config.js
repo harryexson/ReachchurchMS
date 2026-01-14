@@ -31,6 +31,8 @@ import EventRegistration from './pages/EventRegistration';
 import Events from './pages/Events';
 import FinancialManagement from './pages/FinancialManagement';
 import FinancialReports from './pages/FinancialReports';
+import Forum from './pages/Forum';
+import ForumThread from './pages/ForumThread';
 import Giving from './pages/Giving';
 import GivingCategoryManagement from './pages/GivingCategoryManagement';
 import GivingMessages from './pages/GivingMessages';
@@ -117,8 +119,6 @@ import VolunteerPortal from './pages/VolunteerPortal';
 import VolunteerRegistration from './pages/VolunteerRegistration';
 import Volunteers from './pages/Volunteers';
 import backoffice from './pages/backoffice';
-import Forum from './pages/Forum';
-import ForumThread from './pages/ForumThread';
 import __Layout from './Layout.jsx';
 
 
@@ -156,6 +156,8 @@ export const PAGES = {
     "Events": Events,
     "FinancialManagement": FinancialManagement,
     "FinancialReports": FinancialReports,
+    "Forum": Forum,
+    "ForumThread": ForumThread,
     "Giving": Giving,
     "GivingCategoryManagement": GivingCategoryManagement,
     "GivingMessages": GivingMessages,
@@ -242,8 +244,6 @@ export const PAGES = {
     "VolunteerRegistration": VolunteerRegistration,
     "Volunteers": Volunteers,
     "backoffice": backoffice,
-    "Forum": Forum,
-    "ForumThread": ForumThread,
 }
 
 export const pagesConfig = {

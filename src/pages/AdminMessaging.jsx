@@ -136,12 +136,12 @@ export default function AdminMessagingPage() {
     };
 
     const groupOptions = memberGroups.map(g => ({
-        value: g.id,
+        value: String(g.id),
         label: g.group_name
     }));
 
     const memberOptions = allMembers.map(m => ({
-        value: m.email,
+        value: String(m.email || ''),
         label: `${m.first_name} ${m.last_name} (${m.email})`
     }));
 
