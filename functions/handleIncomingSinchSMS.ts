@@ -1,7 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 
 // TCPA Compliance - Required disclaimer for all SMS messages
-const SMS_DISCLAIMER = "\n\nWe respect your privacy. Your information is used only for church communications and is never shared. Msg & data rates may apply. Reply STOP to opt-out.";
+const SMS_DISCLAIMER = "\n\nMsg & data rates may apply. Reply STOP to opt out. Text HELP for assistance.";
 
 Deno.serve(async (req) => {
     console.log('=== SINCH WEBHOOK RECEIVED ===');
