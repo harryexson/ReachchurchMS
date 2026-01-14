@@ -1,13 +1,22 @@
-import React from "react";
+import React, { useState } from "react";
+import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CreditCard, Pause, Play, Trash2 } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHead, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { CreditCard, Pause, Play, Trash2, MessageSquare, FileText, Phone, Mail } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 
-export default function SubscriptionDashboard({ subscriptions, isLoading, onRefresh }) {
+export default function SubscriptionDashboard({ subscriptions, isLoading, onRefresh, canManage }) {
+    const [selectedSubscription, setSelectedSubscription] = useState(null);
+    const [showActionsDialog, setShowActionsDialog] = useState(false);
+    const [actionType, setActionType] = useState(null);
+    const [actionNote, setActionNote] = useState("");
+    const [isSaving, setIsSaving] = useState(false);
     const statusColors = {
         active: "bg-green-100 text-green-800",
         trial: "bg-blue-100 text-blue-800",
@@ -17,9 +26,59 @@ export default function SubscriptionDashboard({ subscriptions, isLoading, onRefr
     };
 
     const tierColors = {
-        basic: "bg-slate-100 text-slate-800",
-        standard: "bg-blue-100 text-blue-800",
+        starter: "bg-slate-100 text-slate-800",
+        growth: "bg-blue-100 text-blue-800",
         premium: "bg-purple-100 text-purple-800"
+    };
+
+    const handleOpenActions = (subscription, type) => {
+        setSelectedSubscription(subscription);
+        setActionType(type);
+        setShowActionsDialog(true);
+        setActionNote("");
+    };
+
+    const handleSaveAction = async () => {
+        if (!selectedSubscription || !actionNote.trim()) return;
+        
+        setIsSaving(true);
+        try {
+            // Create interaction record
+            await base44.entities.CustomerInteraction.create({
+                church_name: selectedSubscription.church_name,
+                contact_person: selectedSubscription.church_admin_email.split('@')[0],
+                contact_email: selectedSubscription.church_admin_email,
+                interaction_type: actionType === 'note' ? 'chat' : actionType,
+                subject: `${actionType === 'note' ? 'Internal Note' : actionType === 'support' ? 'Support Ticket' : 'Call'} - ${selectedSubscription.church_name}`,
+                notes: actionNote,
+                outcome: 'neutral',
+                team_member: 'Back Office Team'
+            });
+
+            // If support ticket, also create SupportTicket
+            if (actionType === 'support') {
+                await base44.entities.SupportTicket.create({
+                    ticket_id: `TICKET-${Date.now()}`,
+                    church_name: selectedSubscription.church_name,
+                    contact_email: selectedSubscription.church_admin_email,
+                    contact_name: selectedSubscription.church_admin_email.split('@')[0],
+                    subject: `Subscription Support - ${selectedSubscription.church_name}`,
+                    description: actionNote,
+                    priority: 'medium',
+                    category: 'billing',
+                    status: 'open'
+                });
+            }
+
+            setShowActionsDialog(false);
+            setActionNote("");
+            onRefresh();
+        } catch (error) {
+            console.error('Error saving action:', error);
+            alert('Failed to save action');
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     return (
@@ -85,12 +144,38 @@ export default function SubscriptionDashboard({ subscriptions, isLoading, onRefr
                                             }
                                         </TableCell>
                                         <TableCell>
-                                            <div className="flex gap-1">
-                                                <Button size="sm" variant="outline">
-                                                    <CreditCard className="w-3 h-3" />
+                                            <div className="flex gap-1 flex-wrap">
+                                                <Button 
+                                                    size="sm" 
+                                                    variant="outline"
+                                                    onClick={() => handleOpenActions(subscription, 'note')}
+                                                    title="Add Note"
+                                                >
+                                                    <MessageSquare className="w-3 h-3" />
                                                 </Button>
-                                                <Button size="sm" variant="outline">
-                                                    <Pause className="w-3 h-3" />
+                                                <Button 
+                                                    size="sm" 
+                                                    variant="outline"
+                                                    onClick={() => handleOpenActions(subscription, 'support')}
+                                                    title="Create Support Ticket"
+                                                >
+                                                    <FileText className="w-3 h-3" />
+                                                </Button>
+                                                <Button 
+                                                    size="sm" 
+                                                    variant="outline"
+                                                    onClick={() => handleOpenActions(subscription, 'call')}
+                                                    title="Log Call"
+                                                >
+                                                    <Phone className="w-3 h-3" />
+                                                </Button>
+                                                <Button 
+                                                    size="sm" 
+                                                    variant="outline"
+                                                    onClick={() => window.location.href = `mailto:${subscription.church_admin_email}`}
+                                                    title="Send Email"
+                                                >
+                                                    <Mail className="w-3 h-3" />
                                                 </Button>
                                             </div>
                                         </TableCell>
@@ -100,6 +185,62 @@ export default function SubscriptionDashboard({ subscriptions, isLoading, onRefr
                         </TableBody>
                     </Table>
                 </div>
+
+                <Dialog open={showActionsDialog} onOpenChange={setShowActionsDialog}>
+                    <DialogContent className="max-w-2xl">
+                        <DialogHeader>
+                            <DialogTitle>
+                                {actionType === 'note' && '📝 Add Note'}
+                                {actionType === 'support' && '🎫 Create Support Ticket'}
+                                {actionType === 'call' && '📞 Log Call'}
+                            </DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                            {selectedSubscription && (
+                                <div className="bg-slate-50 p-4 rounded-lg">
+                                    <p className="font-semibold">{selectedSubscription.church_name}</p>
+                                    <p className="text-sm text-slate-600">{selectedSubscription.church_admin_email}</p>
+                                    <Badge className="mt-2">{selectedSubscription.subscription_tier}</Badge>
+                                </div>
+                            )}
+                            
+                            <div>
+                                <Label>
+                                    {actionType === 'note' && 'Note Details'}
+                                    {actionType === 'support' && 'Ticket Description'}
+                                    {actionType === 'call' && 'Call Summary'}
+                                </Label>
+                                <Textarea
+                                    value={actionNote}
+                                    onChange={(e) => setActionNote(e.target.value)}
+                                    placeholder={
+                                        actionType === 'note' ? 'Enter internal note...' :
+                                        actionType === 'support' ? 'Describe the issue...' :
+                                        'Summarize the call...'
+                                    }
+                                    rows={6}
+                                    className="mt-2"
+                                />
+                            </div>
+
+                            <div className="flex justify-end gap-2">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setShowActionsDialog(false)}
+                                    disabled={isSaving}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    onClick={handleSaveAction}
+                                    disabled={isSaving || !actionNote.trim()}
+                                >
+                                    {isSaving ? 'Saving...' : 'Save'}
+                                </Button>
+                            </div>
+                        </div>
+                    </DialogContent>
+                </Dialog>
             </CardContent>
         </Card>
     );
