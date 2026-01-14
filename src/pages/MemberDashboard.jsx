@@ -1,20 +1,19 @@
-
 import React, { useState, useEffect } from "react";
-import { User } from "@/entities/User";
-import { Donation } from "@/entities/Donation";
-import { Announcement } from "@/entities/Announcement";
-import { MMSCampaign } from "@/entities/MMSCampaign";
+import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Heart, Calendar, MessageSquare, DollarSign, Users, BookOpen } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Heart, Calendar, MessageSquare, DollarSign, Users, BookOpen, FileText, Download } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { Link } from "react-router-dom";
+import { format } from "date-fns";
 
 export default function MemberDashboard() {
     const [currentUser, setCurrentUser] = useState(null);
     const [myDonations, setMyDonations] = useState([]);
     const [recentAnnouncements, setRecentAnnouncements] = useState([]);
     const [recentCampaigns, setRecentCampaigns] = useState([]);
+    const [yearEndStatements, setYearEndStatements] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -24,25 +23,29 @@ export default function MemberDashboard() {
     const loadMemberData = async () => {
         setIsLoading(true);
         try {
-            const user = await User.me();
+            const user = await base44.auth.me();
             setCurrentUser(user);
 
-            // Load only MY donations
-            const [donations, announcements, campaigns] = await Promise.all([
-                Donation.filter({ 
-                    donor_email: user.donor_email || user.email 
+            // Load MY donations, announcements, campaigns, and statements
+            const [donations, announcements, campaigns, statements] = await Promise.all([
+                base44.entities.Donation.filter({ 
+                    donor_email: user.email 
                 }),
-                Announcement.filter({ 
+                base44.entities.Announcement.filter({ 
                     status: 'published' 
                 }, '-publish_date', 5),
-                MMSCampaign.filter({ 
+                base44.entities.MMSCampaign.filter({ 
                     status: 'sent' 
-                }, '-sent_date', 3)
+                }, '-sent_date', 3),
+                base44.entities.DonationStatement.filter({
+                    donor_email: user.email
+                }, '-statement_year', 3)
             ]);
 
             setMyDonations(donations);
             setRecentAnnouncements(announcements);
             setRecentCampaigns(campaigns);
+            setYearEndStatements(statements);
         } catch (error) {
             console.error("Failed to load member data:", error);
         }
@@ -107,6 +110,51 @@ export default function MemberDashboard() {
                         </CardContent>
                     </Card>
                 </div>
+
+                {/* Year-End Statements */}
+                {yearEndStatements.length > 0 && (
+                    <Card className="shadow-lg border-0 bg-gradient-to-br from-green-50 to-emerald-50">
+                        <CardHeader>
+                            <CardTitle className="flex items-center justify-between">
+                                <span className="flex items-center gap-2">
+                                    <FileText className="w-5 h-5 text-green-600" />
+                                    Year End Giving Statements
+                                </span>
+                                <Badge className="bg-green-600 text-white">Tax Deductible</Badge>
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-3">
+                                {yearEndStatements.map(statement => (
+                                    <div key={statement.id} className="p-4 bg-white rounded-lg border shadow-sm flex items-center justify-between">
+                                        <div>
+                                            <p className="text-lg font-bold text-slate-900">{statement.statement_year} Year-End Statement</p>
+                                            <p className="text-sm text-slate-600">
+                                                Total: ${statement.total_amount.toFixed(2)} • {statement.donation_count} donations
+                                            </p>
+                                            <p className="text-xs text-slate-500 mt-1">
+                                                Generated: {format(new Date(statement.statement_date), 'MMM d, yyyy')}
+                                            </p>
+                                        </div>
+                                        <Button
+                                            onClick={() => window.open(statement.statement_pdf_url, '_blank')}
+                                            size="sm"
+                                            className="bg-green-600 hover:bg-green-700"
+                                        >
+                                            <Download className="w-4 h-4 mr-2" />
+                                            PDF
+                                        </Button>
+                                    </div>
+                                ))}
+                            </div>
+                            <Link to={createPageUrl('MyDonations')}>
+                                <Button variant="outline" className="w-full mt-4">
+                                    View All Statements & Donations →
+                                </Button>
+                            </Link>
+                        </CardContent>
+                    </Card>
+                )}
 
                 {/* Quick Links */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

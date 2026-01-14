@@ -10,9 +10,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { 
     Heart, Download, Calendar, DollarSign, FileText, 
     Loader2, TrendingUp, CreditCard, Building2, RefreshCw,
-    Edit, Save, X, Check
+    Edit, Save, X, Check, CalendarRange
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 
 export default function MyDonations() {
     const [currentUser, setCurrentUser] = useState(null);
@@ -31,9 +32,15 @@ export default function MyDonations() {
     const [editFrequency, setEditFrequency] = useState('');
     const [isUpdating, setIsUpdating] = useState(false);
     const [showPaymentUpdate, setShowPaymentUpdate] = useState(null);
+    const [showCustomStatement, setShowCustomStatement] = useState(false);
+    const [customStartDate, setCustomStartDate] = useState('');
+    const [customEndDate, setCustomEndDate] = useState('');
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [yearEndStatements, setYearEndStatements] = useState([]);
 
     useEffect(() => {
         loadData();
+        loadYearEndStatements();
     }, [yearFilter]);
 
     const loadData = async () => {
@@ -86,6 +93,18 @@ export default function MyDonations() {
         setIsLoading(false);
     };
 
+    const loadYearEndStatements = async () => {
+        try {
+            const user = await base44.auth.me();
+            const statements = await base44.entities.DonationStatement.filter({
+                donor_email: user.email
+            });
+            setYearEndStatements(statements.sort((a, b) => b.statement_year - a.statement_year));
+        } catch (error) {
+            console.error('Error loading year-end statements:', error);
+        }
+    };
+
     const handleDownloadReceipt = async (donation) => {
         try {
             const response = await base44.functions.invoke('generateReceiptPDF', {
@@ -102,19 +121,57 @@ export default function MyDonations() {
     };
 
     const handleDownloadYearEndStatement = async () => {
+        setIsGenerating(true);
         try {
-            const response = await base44.functions.invoke('generateYearEndStatement', {
-                year: yearFilter,
-                donor_email: currentUser.email
+            const response = await base44.functions.invoke('generateGivingStatement', {
+                statement_year: yearFilter,
+                statement_type: 'year_end'
             });
 
             if (response.data?.pdf_url) {
+                toast.success('Year-end statement generated successfully!');
                 window.open(response.data.pdf_url, '_blank');
+                loadYearEndStatements();
             }
         } catch (error) {
             console.error('Error generating statement:', error);
-            alert('Failed to generate year-end statement');
+            toast.error('Failed to generate year-end statement');
         }
+        setIsGenerating(false);
+    };
+
+    const handleGenerateCustomStatement = async () => {
+        if (!customStartDate || !customEndDate) {
+            toast.error('Please select both start and end dates');
+            return;
+        }
+
+        if (new Date(customStartDate) > new Date(customEndDate)) {
+            toast.error('Start date must be before end date');
+            return;
+        }
+
+        setIsGenerating(true);
+        try {
+            const response = await base44.functions.invoke('generateGivingStatement', {
+                start_date: customStartDate,
+                end_date: customEndDate,
+                statement_type: 'custom'
+            });
+
+            if (response.data?.pdf_url) {
+                toast.success('Custom statement generated successfully!');
+                window.open(response.data.pdf_url, '_blank');
+                setShowCustomStatement(false);
+                setCustomStartDate('');
+                setCustomEndDate('');
+                loadYearEndStatements();
+            }
+        } catch (error) {
+            console.error('Error generating custom statement:', error);
+            toast.error(error.response?.data?.error || 'Failed to generate custom statement');
+        }
+        setIsGenerating(false);
     };
 
     const handleEditRecurring = (donation) => {
@@ -230,18 +287,33 @@ export default function MyDonations() {
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30 p-6">
             <div className="max-w-6xl mx-auto space-y-6">
                 {/* Header */}
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
                         <Heart className="w-8 h-8 text-red-500" />
                         <h1 className="text-3xl font-bold text-slate-900">My Donations</h1>
                     </div>
-                    <Button
-                        onClick={handleDownloadYearEndStatement}
-                        className="bg-blue-600 hover:bg-blue-700"
-                    >
-                        <Download className="w-4 h-4 mr-2" />
-                        {yearFilter} Statement
-                    </Button>
+                    <div className="flex flex-wrap gap-2">
+                        <Button
+                            onClick={() => setShowCustomStatement(true)}
+                            variant="outline"
+                            className="border-blue-600 text-blue-600 hover:bg-blue-50"
+                        >
+                            <CalendarRange className="w-4 h-4 mr-2" />
+                            Custom Date Range
+                        </Button>
+                        <Button
+                            onClick={handleDownloadYearEndStatement}
+                            disabled={isGenerating}
+                            className="bg-blue-600 hover:bg-blue-700"
+                        >
+                            {isGenerating ? (
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            ) : (
+                                <Download className="w-4 h-4 mr-2" />
+                            )}
+                            {yearFilter} Year-End Statement
+                        </Button>
+                    </div>
                 </div>
 
                 {/* Stats Cards */}
@@ -298,6 +370,54 @@ export default function MyDonations() {
                         </CardContent>
                     </Card>
                 </div>
+
+                {/* Year-End Statements Archive */}
+                {yearEndStatements.length > 0 && (
+                    <Card className="shadow-lg bg-gradient-to-br from-green-50 to-emerald-50">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <FileText className="w-5 h-5 text-green-600" />
+                                Year End Giving Statements (Tax Deductible Annual Statements)
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {yearEndStatements.slice(0, 6).map(statement => (
+                                    <div key={statement.id} className="p-4 bg-white rounded-lg border shadow-sm hover:shadow-md transition-shadow">
+                                        <div className="flex items-start justify-between mb-3">
+                                            <div>
+                                                <p className="text-2xl font-bold text-green-600">{statement.statement_year}</p>
+                                                <p className="text-sm text-slate-600">
+                                                    {statement.donation_count} donations
+                                                </p>
+                                            </div>
+                                            <Badge className="bg-green-100 text-green-800">
+                                                Year-End
+                                            </Badge>
+                                        </div>
+                                        <div className="mb-3">
+                                            <p className="text-xs text-slate-500 mb-1">Total Amount</p>
+                                            <p className="text-xl font-bold text-slate-900">
+                                                ${statement.total_amount.toFixed(2)}
+                                            </p>
+                                        </div>
+                                        <Button
+                                            onClick={() => window.open(statement.statement_pdf_url, '_blank')}
+                                            size="sm"
+                                            className="w-full bg-green-600 hover:bg-green-700"
+                                        >
+                                            <Download className="w-4 h-4 mr-2" />
+                                            Download PDF
+                                        </Button>
+                                        <p className="text-xs text-slate-500 mt-2 text-center">
+                                            Generated: {format(new Date(statement.statement_date), 'MMM d, yyyy')}
+                                        </p>
+                                    </div>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
 
                 {/* Recurring Donations Management */}
                 {recurringDonations.length > 0 && (
@@ -501,6 +621,71 @@ export default function MyDonations() {
                     </CardContent>
                 </Card>
             </div>
+
+            {/* Custom Statement Dialog */}
+            <Dialog open={showCustomStatement} onOpenChange={setShowCustomStatement}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <CalendarRange className="w-5 h-5 text-blue-600" />
+                            Generate Custom Date Range Statement
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div>
+                            <Label htmlFor="start-date">Start Date</Label>
+                            <Input
+                                id="start-date"
+                                type="date"
+                                value={customStartDate}
+                                onChange={(e) => setCustomStartDate(e.target.value)}
+                                max={customEndDate || new Date().toISOString().split('T')[0]}
+                            />
+                        </div>
+                        <div>
+                            <Label htmlFor="end-date">End Date</Label>
+                            <Input
+                                id="end-date"
+                                type="date"
+                                value={customEndDate}
+                                onChange={(e) => setCustomEndDate(e.target.value)}
+                                min={customStartDate}
+                                max={new Date().toISOString().split('T')[0]}
+                            />
+                        </div>
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                            <p className="text-sm text-blue-900">
+                                <strong>Note:</strong> This will generate a giving statement for all tax-deductible donations between the selected dates.
+                            </p>
+                        </div>
+                        <div className="flex gap-3">
+                            <Button
+                                onClick={handleGenerateCustomStatement}
+                                disabled={isGenerating}
+                                className="flex-1 bg-blue-600 hover:bg-blue-700"
+                            >
+                                {isGenerating ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                        Generating...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Download className="w-4 h-4 mr-2" />
+                                        Generate Statement
+                                    </>
+                                )}
+                            </Button>
+                            <Button
+                                onClick={() => setShowCustomStatement(false)}
+                                variant="outline"
+                            >
+                                Cancel
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

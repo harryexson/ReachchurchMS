@@ -1,206 +1,138 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 Deno.serve(async (req) => {
-    const requestId = Date.now().toString(36);
-    console.log(`[${requestId}] ===== YEAR-END TAX STATEMENTS =====`);
-    
     try {
         const base44 = createClientFromRequest(req);
         
-        // Verify authentication
+        // This is an admin-only scheduled task
         const user = await base44.auth.me();
-        if (!user || user.role !== 'admin') {
-            console.error(`[${requestId}] ❌ Unauthorized access attempt`);
-            return Response.json({ error: 'Unauthorized' }, { status: 401 });
+        if (user?.role !== 'admin') {
+            return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
         }
 
-        const body = await req.json().catch(() => ({}));
-        const { year } = body;
-        const targetYear = year || new Date().getFullYear();
+        const currentYear = new Date().getFullYear() - 1; // Previous year for year-end statements
         
-        console.log(`[${requestId}] Generating statements for year: ${targetYear}`);
+        console.log(`🎄 Starting year-end statement generation for ${currentYear}...`);
 
-        // Get all donations for the year
-        const yearStart = new Date(targetYear, 0, 1).toISOString();
-        const yearEnd = new Date(targetYear, 11, 31, 23, 59, 59).toISOString();
-        
-        const allDonations = await base44.asServiceRole.entities.Donation.list('-donation_date', 10000);
-        
-        const yearDonations = allDonations.filter(d => {
-            const donationDate = new Date(d.donation_date);
-            const yearStartDate = new Date(targetYear, 0, 1);
-            const yearEndDate = new Date(targetYear, 11, 31, 23, 59, 59);
-            return donationDate >= yearStartDate && 
-                   donationDate <= yearEndDate && 
-                   d.tax_deductible !== false;
+        // Get church settings
+        const settings = await base44.asServiceRole.entities.ChurchSettings.list();
+        const churchSettings = settings[0] || {};
+
+        // Get all donations from previous year, grouped by donor
+        const allDonations = await base44.asServiceRole.entities.Donation.filter({
+            tax_deductible: true
         });
 
-        console.log(`[${requestId}] Found ${yearDonations.length} tax-deductible donations`);
+        // Filter for the year
+        const yearDonations = allDonations.filter(d => {
+            return new Date(d.donation_date).getFullYear() === currentYear;
+        });
+
+        console.log(`📊 Found ${yearDonations.length} tax-deductible donations for ${currentYear}`);
 
         // Group by donor email
-        const donorMap = {};
+        const donorGroups = {};
         yearDonations.forEach(donation => {
-            const key = donation.donor_email.toLowerCase();
-            if (!donorMap[key]) {
-                donorMap[key] = {
-                    donor_name: donation.donor_name,
-                    donor_email: donation.donor_email,
-                    donor_address: donation.donor_address || '',
-                    donations: []
-                };
+            const email = donation.donor_email;
+            if (!donorGroups[email]) {
+                donorGroups[email] = [];
             }
-            donorMap[key].donations.push(donation);
+            donorGroups[email].push(donation);
         });
 
-        console.log(`[${requestId}] Found ${Object.keys(donorMap).length} unique donors`);
+        console.log(`👥 Processing ${Object.keys(donorGroups).length} unique donors...`);
 
         let successCount = 0;
-        let failCount = 0;
+        let errorCount = 0;
 
         // Generate and send statement for each donor
-        for (const [email, donorData] of Object.entries(donorMap)) {
+        for (const [donorEmail, donations] of Object.entries(donorGroups)) {
             try {
-                const totalAmount = donorData.donations.reduce((sum, d) => sum + (d.amount || 0), 0);
-                
-                const breakdown = donorData.donations.map(d => ({
-                    date: d.donation_date,
-                    amount: d.amount,
-                    type: d.donation_type,
-                    payment_method: d.payment_method
-                }));
-
-                // Check if statement already exists
-                const existingStatements = await base44.asServiceRole.entities.DonationStatement.filter({
-                    donor_email: email,
-                    statement_year: targetYear
+                // Generate statement
+                const statementResult = await base44.asServiceRole.functions.invoke('generateGivingStatement', {
+                    donor_email: donorEmail,
+                    statement_year: currentYear,
+                    statement_type: 'year_end'
                 });
 
-                let statementId;
-                if (existingStatements.length > 0) {
-                    // Update existing
-                    await base44.asServiceRole.entities.DonationStatement.update(existingStatements[0].id, {
-                        total_amount: totalAmount,
-                        donation_count: donorData.donations.length,
-                        donation_breakdown: breakdown,
-                        statement_date: new Date().toISOString().split('T')[0]
-                    });
-                    statementId = existingStatements[0].id;
-                } else {
-                    // Create new
-                    const newStatement = await base44.asServiceRole.entities.DonationStatement.create({
-                        statement_year: targetYear,
-                        donor_name: donorData.donor_name,
-                        donor_email: donorData.donor_email,
-                        donor_address: donorData.donor_address,
-                        total_amount: totalAmount,
-                        donation_count: donorData.donations.length,
-                        donation_breakdown: breakdown,
-                        statement_date: new Date().toISOString().split('T')[0],
-                        sent_via: 'not_sent'
-                    });
-                    statementId = newStatement.id;
+                if (!statementResult.data?.pdf_url) {
+                    throw new Error('Failed to generate PDF');
                 }
 
-                // Send email
-                // Format donation type for display
-                const formatDonationType = (type) => {
-                    return (type || 'offering')
-                        .replace(/_/g, ' ')
-                        .replace(/\b\w/g, l => l.toUpperCase());
-                };
-
-                // Group donations by type for summary
-                const typeBreakdown = {};
-                donorData.donations.forEach(d => {
-                    const type = d.donation_type || 'offering';
-                    if (!typeBreakdown[type]) {
-                        typeBreakdown[type] = { count: 0, total: 0 };
-                    }
-                    typeBreakdown[type].count++;
-                    typeBreakdown[type].total += d.amount;
-                });
-
-                const emailBody = `Dear ${donorData.donor_name},
-
-Thank you for your generous support throughout ${targetYear}! Your partnership in ministry has made a significant impact.
-
-TOTAL TAX-DEDUCTIBLE DONATIONS FOR ${targetYear}: $${totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-
-This statement includes all ${donorData.donations.length} tax-deductible donation(s) made to our church during the ${targetYear} calendar year.
-
-GIVING BY CATEGORY:
-${Object.entries(typeBreakdown).map(([type, data]) => 
-    `- ${formatDonationType(type)}: $${data.total.toFixed(2)} (${data.count} gift${data.count !== 1 ? 's' : ''})`
-).join('\n')}
-
-DETAILED TRANSACTION HISTORY:
-${breakdown.map(d => 
-    `${new Date(d.date).toLocaleDateString()} - ${formatDonationType(d.type)}: $${d.amount.toFixed(2)} (${d.payment_method})`
-).join('\n')}
-
-IMPORTANT TAX INFORMATION:
-- EIN: [Your Church Tax ID]
-- Tax-exempt status: 501(c)(3)
-- No goods or services were provided in exchange for these donations
-- Please retain this statement for your tax records
-
-If you have any questions about this statement, please contact us.
-
-Your generosity enables us to fulfill our mission and serve our community. Thank you for your faithful partnership!
-
-God bless you,
-Church Administration
-
----
-This is an official tax donation statement for the ${targetYear} calendar year.`;
-
+                // Send email with statement
+                const donor = donations[0];
                 await base44.asServiceRole.integrations.Core.SendEmail({
-                    to: donorData.donor_email,
-                    subject: `${targetYear} Tax Donation Statement`,
-                    body: emailBody
+                    to: donorEmail,
+                    from_name: churchSettings.church_name || 'Your Church',
+                    subject: `${currentYear} Year End Giving Statement (Tax Deductible Annual Statement)`,
+                    body: `
+                        <h2>Year End Giving Statement - ${currentYear}</h2>
+                        <p>Dear ${donor.donor_name},</p>
+                        
+                        <p>Thank you for your faithful giving and generosity throughout ${currentYear}. 
+                        Your support has made a significant impact in our church and community.</p>
+                        
+                        <p><strong>Total Tax-Deductible Donations for ${currentYear}: $${statementResult.data.total_amount.toFixed(2)}</strong></p>
+                        
+                        <p>Please find your complete Year End Giving Statement attached to this email. 
+                        This statement is for your tax records and includes all tax-deductible donations you made to 
+                        ${churchSettings.church_name || 'our church'} during the ${currentYear} calendar year.</p>
+                        
+                        <p><a href="${statementResult.data.pdf_url}" style="display:inline-block;padding:12px 24px;background-color:#2563eb;color:white;text-decoration:none;border-radius:6px;font-weight:600;">
+                            Download Your Statement
+                        </a></p>
+                        
+                        <p><strong>Important Tax Information:</strong></p>
+                        <ul>
+                            <li>No goods or services were provided in exchange for your contributions</li>
+                            <li>Please retain this statement for your tax records</li>
+                            <li>Consult your tax advisor for specific guidance on deductibility</li>
+                        </ul>
+                        
+                        <p>If you have any questions about your statement, please don't hesitate to contact us.</p>
+                        
+                        <p>God bless you,<br>
+                        ${churchSettings.church_name || 'Church Leadership'}</p>
+                        
+                        <hr style="margin-top: 30px; border: none; border-top: 1px solid #e5e7eb;">
+                        <p style="font-size: 12px; color: #6b7280;">
+                            Msg & data rates may apply. Reply STOP to opt out. Text HELP for assistance.
+                        </p>
+                    `
                 });
 
-                // Update statement as sent
-                await base44.asServiceRole.entities.DonationStatement.update(statementId, {
+                // Update statement record as sent
+                await base44.asServiceRole.entities.DonationStatement.update(statementResult.data.statement_id, {
                     sent_via: 'email',
                     sent_date: new Date().toISOString().split('T')[0]
                 });
 
-                // Mark donations as included
-                for (const donation of donorData.donations) {
-                    await base44.asServiceRole.entities.Donation.update(donation.id, { 
-                        included_in_statement: true 
-                    });
-                }
-
-                console.log(`[${requestId}] ✅ Sent statement to ${donorData.donor_email}`);
                 successCount++;
-                
-                // Small delay to avoid rate limiting
-                await new Promise(resolve => setTimeout(resolve, 500));
+                console.log(`✅ Sent statement to ${donorEmail}`);
+
             } catch (error) {
-                console.error(`[${requestId}] ❌ Failed for ${email}:`, error.message);
-                failCount++;
+                errorCount++;
+                console.error(`❌ Failed to send statement to ${donorEmail}:`, error.message);
             }
         }
 
-        console.log(`[${requestId}] ===== COMPLETED =====`);
-        console.log(`[${requestId}] Success: ${successCount}, Failed: ${failCount}`);
+        console.log(`✨ Year-end statement generation complete!`);
+        console.log(`   ✅ Successfully sent: ${successCount}`);
+        console.log(`   ❌ Errors: ${errorCount}`);
 
         return Response.json({
             success: true,
-            year: targetYear,
-            total_donors: Object.keys(donorMap).length,
-            sent: successCount,
-            failed: failCount
+            year: currentYear,
+            total_donors: Object.keys(donorGroups).length,
+            statements_sent: successCount,
+            errors: errorCount,
+            message: 'Year-end statements generated and sent'
         });
 
     } catch (error) {
-        console.error(`[${requestId}] ===== ERROR =====`);
-        console.error(`[${requestId}]`, error.message);
+        console.error('Error in year-end statement generation:', error);
         return Response.json({ 
-            error: 'Failed to send statements',
-            message: error.message 
+            error: error.message || 'Failed to generate year-end statements' 
         }, { status: 500 });
     }
 });
