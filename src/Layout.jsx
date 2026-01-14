@@ -653,6 +653,11 @@ export default function Layout({ children, currentPageName }) {
       icon: MessageSquare,
     },
     {
+      title: "Forum",
+      url: createPageUrl("Forum"),
+      icon: MessageSquare,
+    },
+    {
       title: "Church Contacts",
       url: createPageUrl("MemberContacts"),
       icon: Mail,
