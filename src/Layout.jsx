@@ -103,7 +103,7 @@ export default function Layout({ children, currentPageName }) {
     const fetchUser = async () => {
       const pathLower = location.pathname.toLowerCase();
       const pageLower = currentPageName?.toLowerCase() || '';
-      
+
       const isPublicPage = PUBLIC_PATHS.some(path => 
         pathLower.includes(path.toLowerCase()) || 
         pageLower.includes(path.toLowerCase()) ||
@@ -114,16 +114,29 @@ export default function Layout({ children, currentPageName }) {
         const user = await base44.auth.me();
 
         if (user) {
+          // CRITICAL: Check if on subscription plans page with upgrade/expired params - ALLOW ACCESS
+          const urlParams = new URLSearchParams(location.search);
+          const isUpgradeFlow = urlParams.get('upgrade') === 'true' || urlParams.get('expired') === 'true';
+
           // CRITICAL: Redirect authenticated users away from landing/signup pages IMMEDIATELY
-          if (currentPageName?.toLowerCase() === 'landingpage' || 
-              currentPageName?.toLowerCase() === 'subscriptionplans' || 
-              location.pathname === '/' || 
-              location.pathname.toLowerCase().includes('subscriptionplans')) {
+          // BUT allow subscription plans page during upgrade flow
+          if ((currentPageName?.toLowerCase() === 'landingpage' || 
+              location.pathname === '/') && !isUpgradeFlow) {
             const dashboardUrl = user.role === 'admin' 
               ? createPageUrl('Dashboard') 
               : createPageUrl('MemberDashboard');
             console.log('🔀 Authenticated user on public page - redirecting to:', dashboardUrl);
             window.location.href = dashboardUrl;
+            return;
+          }
+
+          // Allow subscription plans page if in upgrade flow
+          if ((currentPageName?.toLowerCase() === 'subscriptionplans' || 
+              location.pathname.toLowerCase().includes('subscriptionplans')) && isUpgradeFlow) {
+            console.log('✅ Allowing subscription page access during upgrade flow');
+            setCurrentUser(user);
+            setAuthError(null);
+            setIsLoadingUser(false);
             return;
           }
 
