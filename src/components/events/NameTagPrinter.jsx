@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,14 @@ export default function NameTagPrinter({ event }) {
     const [selectedPrinter, setSelectedPrinter] = useState(null);
     const [printPreview, setPrintPreview] = useState(null);
 
-    useState(() => {
+    const loadRegistrations = async () => {
+        setIsLoading(true);
+        const regList = await base44.entities.EventRegistration.filter({ event_id: event.id });
+        setRegistrations(regList);
+        setIsLoading(false);
+    };
+
+    useEffect(() => {
         loadRegistrations();
         
         // Load saved printer
@@ -26,13 +33,6 @@ export default function NameTagPrinter({ event }) {
             if (printer) setSelectedPrinter(printer);
         }
     }, [event.id]);
-
-    const loadRegistrations = async () => {
-        setIsLoading(true);
-        const regList = await base44.entities.EventRegistration.filter({ event_id: event.id });
-        setRegistrations(regList);
-        setIsLoading(false);
-    };
 
     const generateAllBadgesHTML = () => {
         return `
