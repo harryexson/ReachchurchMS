@@ -157,14 +157,22 @@ export default function OnboardingWizard({ userEmail, userName, userType = "visi
 
     const handleConnectStripe = async () => {
         try {
+            const currentUrl = window.location.origin + window.location.pathname;
             const response = await base44.functions.invoke('createStripeConnectAccount', {
-                email: userEmail,
-                church_name: formData.church_name
+                church_name: formData.church_name,
+                return_url: currentUrl,
+                refresh_url: currentUrl
             });
 
-            if (response.data?.account_link) {
-                window.open(response.data.account_link, '_blank');
-                setFormData(prev => ({ ...prev, stripe_connected: true }));
+            console.log('Stripe Connect response:', response);
+
+            const onboardingUrl = response.data?.onboarding_url || response?.onboarding_url;
+            
+            if (onboardingUrl) {
+                console.log('Redirecting to Stripe onboarding:', onboardingUrl);
+                window.location.href = onboardingUrl;
+            } else {
+                throw new Error('No onboarding URL received from server');
             }
         } catch (error) {
             console.error('Stripe Connect error:', error);
