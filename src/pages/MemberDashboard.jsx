@@ -156,6 +156,32 @@ export default function MemberDashboard() {
                     </Card>
                 )}
 
+                {/* Recent Messages Preview */}
+                <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                    <CardHeader>
+                        <CardTitle className="flex items-center justify-between">
+                            <span className="flex items-center gap-2">
+                                <MessageSquare className="w-5 h-5 text-blue-600" />
+                                Messages
+                            </span>
+                            <Link to={createPageUrl('Messages')}>
+                                <Button variant="ghost" size="sm">View All →</Button>
+                            </Link>
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <Link to={createPageUrl('Messages')}>
+                            <div className="text-center py-8 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer">
+                                <MessageSquare className="w-12 h-12 mx-auto mb-3 text-blue-600 opacity-70" />
+                                <p className="text-slate-600 mb-2">Check your messages</p>
+                                <Button className="bg-blue-600 hover:bg-blue-700">
+                                    Open Messages
+                                </Button>
+                            </div>
+                        </Link>
+                    </CardContent>
+                </Card>
+
                 {/* Quick Links */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <Link to={createPageUrl('MemberSermons')}>
