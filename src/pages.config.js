@@ -1,4 +1,5 @@
 import AccountManagement from './pages/AccountManagement';
+import AdminMessaging from './pages/AdminMessaging';
 import AnalyticsDashboard from './pages/AnalyticsDashboard';
 import AutoDeviceSetup from './pages/AutoDeviceSetup';
 import BackOffice from './pages/BackOffice';
@@ -33,6 +34,7 @@ import FinancialReports from './pages/FinancialReports';
 import Giving from './pages/Giving';
 import GivingCategoryManagement from './pages/GivingCategoryManagement';
 import GivingMessages from './pages/GivingMessages';
+import GroupJoinRequests from './pages/GroupJoinRequests';
 import HardwareRecommendations from './pages/HardwareRecommendations';
 import HardwareSetupWizard from './pages/HardwareSetupWizard';
 import HelpCenter from './pages/HelpCenter';
@@ -52,6 +54,7 @@ import MemberDashboard from './pages/MemberDashboard';
 import MemberGroups from './pages/MemberGroups';
 import MemberSermons from './pages/MemberSermons';
 import Members from './pages/Members';
+import Messages from './pages/Messages';
 import MultimediaMessaging from './pages/MultimediaMessaging';
 import MyDonations from './pages/MyDonations';
 import MyGroups from './pages/MyGroups';
@@ -114,14 +117,12 @@ import VolunteerPortal from './pages/VolunteerPortal';
 import VolunteerRegistration from './pages/VolunteerRegistration';
 import Volunteers from './pages/Volunteers';
 import backoffice from './pages/backoffice';
-import Messages from './pages/Messages';
-import AdminMessaging from './pages/AdminMessaging';
-import GroupJoinRequests from './pages/GroupJoinRequests';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "AccountManagement": AccountManagement,
+    "AdminMessaging": AdminMessaging,
     "AnalyticsDashboard": AnalyticsDashboard,
     "AutoDeviceSetup": AutoDeviceSetup,
     "BackOffice": BackOffice,
@@ -156,6 +157,7 @@ export const PAGES = {
     "Giving": Giving,
     "GivingCategoryManagement": GivingCategoryManagement,
     "GivingMessages": GivingMessages,
+    "GroupJoinRequests": GroupJoinRequests,
     "HardwareRecommendations": HardwareRecommendations,
     "HardwareSetupWizard": HardwareSetupWizard,
     "HelpCenter": HelpCenter,
@@ -175,6 +177,7 @@ export const PAGES = {
     "MemberGroups": MemberGroups,
     "MemberSermons": MemberSermons,
     "Members": Members,
+    "Messages": Messages,
     "MultimediaMessaging": MultimediaMessaging,
     "MyDonations": MyDonations,
     "MyGroups": MyGroups,
@@ -237,9 +240,6 @@ export const PAGES = {
     "VolunteerRegistration": VolunteerRegistration,
     "Volunteers": Volunteers,
     "backoffice": backoffice,
-    "Messages": Messages,
-    "AdminMessaging": AdminMessaging,
-    "GroupJoinRequests": GroupJoinRequests,
 }
 
 export const pagesConfig = {

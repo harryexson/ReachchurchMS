@@ -470,7 +470,7 @@ export default function MyProfilePage() {
                         <div>
                             <Label className="mb-2 block">Interests</Label>
                             <div className="flex flex-wrap gap-2 mb-3">
-                                {(formData.interests || []).map((interest, idx) => (
+                                {(formData.interests || []).filter(i => i && typeof i === 'string').map((interest, idx) => (
                                     <Badge key={idx} className="bg-purple-100 text-purple-800">
                                         {interest}
                                         {isEditing && (
@@ -499,7 +499,7 @@ export default function MyProfilePage() {
                         <div>
                             <Label className="mb-2 block">Skills & Talents</Label>
                             <div className="flex flex-wrap gap-2 mb-3">
-                                {(formData.skills || []).map((skill, idx) => (
+                                {(formData.skills || []).filter(s => s && typeof s === 'string').map((skill, idx) => (
                                     <Badge key={idx} className="bg-blue-100 text-blue-800">
                                         {skill}
                                         {isEditing && (
@@ -538,7 +538,7 @@ export default function MyProfilePage() {
                         </CardHeader>
                         <CardContent>
                             <div className="flex flex-wrap gap-2">
-                                {memberProfile.ministry_involvement.map((ministry, index) => (
+                                {memberProfile.ministry_involvement.filter(m => m && typeof m === 'string').map((ministry, index) => (
                                     <Badge key={index} className="bg-green-100 text-green-800">
                                         {ministry}
                                     </Badge>
