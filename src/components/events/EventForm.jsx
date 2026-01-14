@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import EventImageUploader from "./EventImageUploader";
 
 const initialEventState = {
     title: "",
@@ -81,6 +82,7 @@ export default function EventForm({ isOpen, setIsOpen, onSubmit, event, voluntee
                 enable_discussion: event.enable_discussion || false,
                 discussion_topic: event.discussion_topic || "",
                 promotion_image_url: event.promotion_image_url || "",
+                promotional_images: event.promotional_images || [],
                 social_share_enabled: event.social_share_enabled !== undefined ? event.social_share_enabled : true,
                 public_event: event.public_event !== undefined ? event.public_event : true,
                 allow_feedback: event.allow_feedback !== undefined ? event.allow_feedback : true
@@ -333,8 +335,15 @@ export default function EventForm({ isOpen, setIsOpen, onSubmit, event, voluntee
                                 </div>
                             </div>
 
+                            <EventImageUploader
+                                images={formData.promotional_images || []}
+                                onImagesChange={(images) => 
+                                    setFormData(prev => ({ ...prev, promotional_images: images }))
+                                }
+                            />
+
                             <div className="space-y-2">
-                                <Label htmlFor="promotion_image_url">Promotional Image URL (Optional)</Label>
+                                <Label htmlFor="promotion_image_url">Or enter single promotional image URL</Label>
                                 <Input
                                     id="promotion_image_url"
                                     name="promotion_image_url"
