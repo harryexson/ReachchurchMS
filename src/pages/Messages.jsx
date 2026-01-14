@@ -6,10 +6,12 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { MultiSelect } from '@/components/ui/multi-select';
+import { Label } from '@/components/ui/label';
 import { 
     MessageSquare, Send, Users, Search, Loader2, 
     Plus, ArrowLeft, Paperclip, AlertCircle, Bell,
-    Check, CheckCheck
+    Check, CheckCheck, UserPlus, Link as LinkIcon
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
@@ -22,9 +24,14 @@ export default function MessagesPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isSending, setIsSending] = useState(false);
     const [showNewMessage, setShowNewMessage] = useState(false);
+    const [showNewGroup, setShowNewGroup] = useState(false);
     const [newMessageBody, setNewMessageBody] = useState('');
     const [newMessageSubject, setNewMessageSubject] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
+    const [allMembers, setAllMembers] = useState([]);
+    const [myGroups, setMyGroups] = useState([]);
+    const [groupName, setGroupName] = useState('');
+    const [selectedParticipants, setSelectedParticipants] = useState([]);
 
     useEffect(() => {
         loadData();
@@ -56,6 +63,18 @@ export default function MessagesPage() {
             setThreads(myThreads.sort((a, b) => 
                 new Date(b.last_message_date) - new Date(a.last_message_date)
             ));
+
+            // Load all church members for creating new conversations
+            const members = await base44.entities.Member.filter({});
+            setAllMembers(members);
+
+            // Load user's groups
+            const groupAssignments = await base44.entities.MemberGroupAssignment.filter({
+                member_email: user.email
+            });
+            const groupIds = groupAssignments.map(g => g.group_id);
+            const groups = await base44.entities.MemberGroup.filter({});
+            setMyGroups(groups.filter(g => groupIds.includes(g.id)));
 
         } catch (error) {
             console.error('Error loading messages:', error);
@@ -146,6 +165,73 @@ export default function MessagesPage() {
         return title.includes(searchQuery.toLowerCase());
     });
 
+    const handleCreateThread = async () => {
+        if (selectedParticipants.length === 0) {
+            toast.error('Please select at least one participant');
+            return;
+        }
+        if (!newMessageBody.trim()) {
+            toast.error('Please enter a message');
+            return;
+        }
+
+        setIsSending(true);
+        try {
+            // Get participant names
+            const participantNames = selectedParticipants.map(email => {
+                const member = allMembers.find(m => m.email === email);
+                return member ? `${member.first_name} ${member.last_name}` : email;
+            });
+
+            // Create thread
+            const thread = await base44.entities.MessageThread.create({
+                thread_name: groupName || 'Conversation',
+                participant_emails: [currentUser.email, ...selectedParticipants],
+                participant_names: [currentUser.full_name, ...participantNames],
+                last_message_date: new Date().toISOString(),
+                last_message_preview: newMessageBody.substring(0, 100),
+                last_message_sender: currentUser.full_name,
+                thread_type: selectedParticipants.length > 1 ? 'group' : 'direct',
+                unread_count: {}
+            });
+
+            // Send initial message
+            await base44.functions.invoke('sendInAppMessage', {
+                subject: newMessageSubject || '(No Subject)',
+                message_body: newMessageBody,
+                recipient_emails: selectedParticipants,
+                message_type: 'general',
+                thread_id: thread.id,
+                send_email_notification: false
+            });
+
+            setShowNewMessage(false);
+            setNewMessageBody('');
+            setNewMessageSubject('');
+            setGroupName('');
+            setSelectedParticipants([]);
+            loadData();
+            toast.success('Conversation started!');
+
+        } catch (error) {
+            console.error('Error creating thread:', error);
+            toast.error('Failed to start conversation');
+        }
+        setIsSending(false);
+    };
+
+    const generateGroupInviteLink = (threadId) => {
+        const baseUrl = window.location.origin;
+        return `${baseUrl}/join-group?thread=${threadId}`;
+    };
+
+    const memberOptions = allMembers
+        .filter(m => m.email !== currentUser?.email)
+        .map(m => ({
+            value: m.email,
+            label: `${m.first_name} ${m.last_name} (${m.email})`
+        }));
+
     if (isLoading) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30 flex items-center justify-center p-6">
@@ -157,20 +243,29 @@ export default function MessagesPage() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30 p-6">
             <div className="max-w-7xl mx-auto">
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
                     <div className="flex items-center gap-3">
                         <MessageSquare className="w-8 h-8 text-blue-600" />
                         <h1 className="text-3xl font-bold text-slate-900">Messages</h1>
                     </div>
-                    {currentUser?.role === 'admin' && (
+                    <div className="flex gap-2">
                         <Button 
-                            onClick={() => window.location.href = '/admin-messaging'}
+                            onClick={() => setShowNewMessage(true)}
                             className="bg-blue-600 hover:bg-blue-700"
                         >
-                            <Users className="w-4 h-4 mr-2" />
-                            Admin Messaging
+                            <Plus className="w-4 h-4 mr-2" />
+                            New Message
                         </Button>
-                    )}
+                        {currentUser?.role === 'admin' && (
+                            <Button 
+                                onClick={() => window.location.href = '/admin-messaging'}
+                                variant="outline"
+                            >
+                                <Users className="w-4 h-4 mr-2" />
+                                Admin
+                            </Button>
+                        )}
+                    </div>
                 </div>
 
                 <div className="grid lg:grid-cols-3 gap-6">
@@ -342,6 +437,84 @@ export default function MessagesPage() {
                         )}
                     </Card>
                 </div>
+
+                {/* New Message Dialog */}
+                <Dialog open={showNewMessage} onOpenChange={setShowNewMessage}>
+                    <DialogContent className="max-w-2xl">
+                        <DialogHeader>
+                            <DialogTitle>Start New Conversation</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                            <div>
+                                <Label>Group Name (Optional)</Label>
+                                <Input
+                                    placeholder="e.g., Youth Team, Prayer Group"
+                                    value={groupName}
+                                    onChange={(e) => setGroupName(e.target.value)}
+                                />
+                            </div>
+
+                            <div>
+                                <Label>Select Members</Label>
+                                <MultiSelect
+                                    options={memberOptions}
+                                    value={selectedParticipants}
+                                    onChange={setSelectedParticipants}
+                                    placeholder="Select church members..."
+                                />
+                                <p className="text-xs text-slate-500 mt-1">
+                                    You can message fellow church members. For group chats, select multiple members.
+                                </p>
+                            </div>
+
+                            <div>
+                                <Label>Subject (Optional)</Label>
+                                <Input
+                                    placeholder="Message subject"
+                                    value={newMessageSubject}
+                                    onChange={(e) => setNewMessageSubject(e.target.value)}
+                                />
+                            </div>
+
+                            <div>
+                                <Label>Message</Label>
+                                <Textarea
+                                    placeholder="Type your message..."
+                                    value={newMessageBody}
+                                    onChange={(e) => setNewMessageBody(e.target.value)}
+                                    rows={4}
+                                />
+                            </div>
+
+                            <div className="flex justify-end gap-2">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => {
+                                        setShowNewMessage(false);
+                                        setNewMessageBody('');
+                                        setNewMessageSubject('');
+                                        setGroupName('');
+                                        setSelectedParticipants([]);
+                                    }}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    onClick={handleCreateThread}
+                                    disabled={isSending}
+                                    className="bg-blue-600 hover:bg-blue-700"
+                                >
+                                    {isSending ? (
+                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    ) : (
+                                        <Send className="w-4 h-4 mr-2" />
+                                    )}
+                                    Send
+                                </Button>
+                            </div>
+                        </div>
+                    </DialogContent>
+                </Dialog>
             </div>
         </div>
     );
