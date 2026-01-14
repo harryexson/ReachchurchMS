@@ -36,6 +36,7 @@ const initialEventState = {
     enable_discussion: false,
     discussion_topic: "",
     promotion_image_url: "",
+    promotional_images: [],
     social_share_enabled: true,
     public_event: true,
     allow_feedback: true

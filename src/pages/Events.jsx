@@ -23,6 +23,7 @@ import EventDiscussionBoard from "../components/events/EventDiscussionBoard";
 import EventFeedbackForm from "../components/events/EventFeedbackForm";
 import EventCommunicationManager from "../components/events/EventCommunicationManager";
 import EventInvitationManager from "../components/events/EventInvitationManager";
+import EventQRCodeGenerator from "../components/events/EventQRCodeGenerator";
 
 export default function EventsPage() {
     const [events, setEvents] = useState([]);
@@ -51,6 +52,8 @@ export default function EventsPage() {
     const [communicationsEvent, setCommunicationsEvent] = useState(null);
     const [showInvitationManager, setShowInvitationManager] = useState(false);
     const [selectedEventForInvite, setSelectedEventForInvite] = useState(null);
+    const [showQRCode, setShowQRCode] = useState(false);
+    const [qrCodeEvent, setQRCodeEvent] = useState(null);
 
     useEffect(() => {
         loadData();
@@ -442,8 +445,21 @@ REACH Church Team`);
                                                         
                                                         {event.registration_required && (
                                                             <>
+                                                                <Button
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    onClick={() => {
+                                                                        setQRCodeEvent(event);
+                                                                        setShowQRCode(true);
+                                                                    }}
+                                                                    className="text-indigo-700 border-indigo-200 hover:bg-indigo-50"
+                                                                >
+                                                                    <QrCode className="w-4 h-4 mr-1" />
+                                                                    QR Code & Share
+                                                                </Button>
+
                                                                 <EventPromotion event={event} registrationUrl={regUrl} />
-                                                                
+
                                                                 {/* NEW: Communications Button */}
                                                                 {eventRegistrations.length > 0 && (
                                                                     <Button 
@@ -746,6 +762,24 @@ REACH Church Team`);
                             setSelectedEventForInvite(null);
                         }}
                     />
+                )}
+
+                {/* QR Code Modal */}
+                {showQRCode && qrCodeEvent && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+                        <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                            <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-white z-10">
+                                <h2 className="text-xl font-semibold">Registration QR Code & Sharing</h2>
+                                <Button variant="outline" onClick={() => setShowQRCode(false)}>Close</Button>
+                            </div>
+                            <div className="p-6">
+                                <EventQRCodeGenerator 
+                                    event={qrCodeEvent}
+                                    registrationUrl={`${window.location.origin}${createPageUrl('EventRegistration')}?eventId=${qrCodeEvent.id}`}
+                                />
+                            </div>
+                        </div>
+                    </div>
                 )}
             </div>
         </div>
