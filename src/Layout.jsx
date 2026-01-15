@@ -653,7 +653,7 @@ export default function Layout({ children, currentPageName }) {
       icon: Users,
     },
     {
-      title: "Messages",
+      title: "ReachMessager",
       url: createPageUrl("Messages"),
       icon: MessageSquare,
     },
