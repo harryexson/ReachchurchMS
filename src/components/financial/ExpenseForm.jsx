@@ -108,7 +108,7 @@ export default function ExpenseForm({ isOpen, setIsOpen, onSubmit, expense }) {
                         <div>
                             <Label>Category *</Label>
                             <Select
-                                value={formData.category}
+                                value={String(formData.category)}
                                 onValueChange={(value) => setFormData({...formData, category: value, subcategory: ''})}
                             >
                                 <SelectTrigger>
@@ -141,7 +141,7 @@ export default function ExpenseForm({ isOpen, setIsOpen, onSubmit, expense }) {
                         <div>
                             <Label>Subcategory</Label>
                             <Select
-                                value={formData.subcategory}
+                                value={String(formData.subcategory)}
                                 onValueChange={(value) => setFormData({...formData, subcategory: value})}
                             >
                                 <SelectTrigger>
@@ -193,7 +193,7 @@ export default function ExpenseForm({ isOpen, setIsOpen, onSubmit, expense }) {
                         <div>
                             <Label>Payment Method</Label>
                             <Select
-                                value={formData.payment_method}
+                                value={String(formData.payment_method)}
                                 onValueChange={(value) => setFormData({...formData, payment_method: value})}
                             >
                                 <SelectTrigger>
@@ -260,7 +260,7 @@ export default function ExpenseForm({ isOpen, setIsOpen, onSubmit, expense }) {
                                     <div>
                                         <Label>Frequency</Label>
                                         <Select
-                                            value={formData.recurring_frequency}
+                                            value={String(formData.recurring_frequency)}
                                             onValueChange={(value) => setFormData({...formData, recurring_frequency: value})}
                                         >
                                             <SelectTrigger>
