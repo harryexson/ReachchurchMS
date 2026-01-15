@@ -89,7 +89,7 @@ export default function MemberForm({ isOpen, setIsOpen, onSubmit, member }) {
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="member_status">Status</Label>
-                            <Select name="member_status" value={formData.member_status} onValueChange={(value) => handleSelectChange('member_status', value)}>
+                            <Select name="member_status" value={String(formData.member_status)} onValueChange={(value) => handleSelectChange('member_status', value)}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select status" />
                                 </SelectTrigger>

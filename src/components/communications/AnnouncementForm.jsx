@@ -75,7 +75,7 @@ export default function AnnouncementForm({ isOpen, setIsOpen, onSubmit, announce
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="category">Category</Label>
-                            <Select value={formData.category} onValueChange={(value) => handleSelectChange('category', value)}>
+                            <Select value={String(formData.category)} onValueChange={(value) => handleSelectChange('category', value)}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select category" />
                                 </SelectTrigger>
@@ -91,7 +91,7 @@ export default function AnnouncementForm({ isOpen, setIsOpen, onSubmit, announce
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="priority">Priority</Label>
-                            <Select value={formData.priority} onValueChange={(value) => handleSelectChange('priority', value)}>
+                            <Select value={String(formData.priority)} onValueChange={(value) => handleSelectChange('priority', value)}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select priority" />
                                 </SelectTrigger>
@@ -105,7 +105,7 @@ export default function AnnouncementForm({ isOpen, setIsOpen, onSubmit, announce
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="target_audience">Target Audience</Label>
-                            <Select value={formData.target_audience} onValueChange={(value) => handleSelectChange('target_audience', value)}>
+                            <Select value={String(formData.target_audience)} onValueChange={(value) => handleSelectChange('target_audience', value)}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select audience" />
                                 </SelectTrigger>
@@ -120,7 +120,7 @@ export default function AnnouncementForm({ isOpen, setIsOpen, onSubmit, announce
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="status">Status</Label>
-                            <Select value={formData.status} onValueChange={(value) => handleSelectChange('status', value)}>
+                            <Select value={String(formData.status)} onValueChange={(value) => handleSelectChange('status', value)}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select status" />
                                 </SelectTrigger>
