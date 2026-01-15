@@ -1,88 +1,135 @@
 import React, { useState } from "react";
-import { Member } from "@/entities/Member";
+import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CheckCircle, Loader2, Church } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { CheckCircle, Loader2, UserPlus, Church } from "lucide-react";
 
-export default function PublicMemberRegistration() {
+export default function PublicMemberRegistrationPage() {
     const [formData, setFormData] = useState({
         first_name: "",
         last_name: "",
         email: "",
         phone: "",
         address: "",
+        city: "",
+        state: "",
+        zip_code: "",
+        gender: "",
+        age_group: "",
         birth_date: "",
-        family_members: [],
-        ministry_involvement: [],
+        interests: "",
+        skills: "",
         notes: ""
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isSuccess, setIsSuccess] = useState(false);
-    const [error, setError] = useState(null);
+    const [submitted, setSubmitted] = useState(false);
+    const [existingVisitor, setExistingVisitor] = useState(null);
+    const [checkingVisitor, setCheckingVisitor] = useState(false);
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+    const checkForExistingVisitor = async () => {
+        if (!formData.email && !formData.phone) return;
+
+        setCheckingVisitor(true);
+        try {
+            const visitors = await base44.entities.Visitor.filter({
+                $or: [
+                    { email: formData.email },
+                    { phone: formData.phone }
+                ]
+            });
+
+            if (visitors.length > 0) {
+                setExistingVisitor(visitors[0]);
+            }
+        } catch (error) {
+            console.error("Error checking visitor:", error);
+        }
+        setCheckingVisitor(false);
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
-        setError(null);
 
         try {
-            // Create member with initial status as "visitor" or "regular_attendee"
-            await Member.create({
-                ...formData,
-                member_status: "regular_attendee",
-                join_date: new Date().toISOString().split('T')[0]
+            // Check if already a member
+            const existingMembers = await base44.entities.Member.filter({
+                $or: [
+                    { email: formData.email },
+                    { phone: formData.phone }
+                ]
             });
 
-            setIsSuccess(true);
-            setFormData({
-                first_name: "",
-                last_name: "",
-                email: "",
-                phone: "",
-                address: "",
-                birth_date: "",
-                family_members: [],
-                ministry_involvement: [],
-                notes: ""
+            if (existingMembers.length > 0) {
+                alert("You're already registered as a member!");
+                setIsSubmitting(false);
+                return;
+            }
+
+            // Check for existing visitor to convert
+            const visitors = await base44.entities.Visitor.filter({
+                $or: [
+                    { email: formData.email },
+                    { phone: formData.phone }
+                ]
             });
-        } catch (err) {
-            console.error("Registration error:", err);
-            setError("Failed to submit registration. Please try again or contact us directly.");
+
+            const memberData = {
+                ...formData,
+                member_status: "member",
+                join_date: new Date().toISOString().split('T')[0],
+                interests: formData.interests ? formData.interests.split(',').map(i => i.trim()) : [],
+                skills: formData.skills ? formData.skills.split(',').map(s => s.trim()) : []
+            };
+
+            // If visitor exists, include visitor info
+            if (visitors.length > 0) {
+                const visitor = visitors[0];
+                memberData.visitor_id = visitor.id;
+                memberData.total_visits = visitor.total_visits || 1;
+                memberData.conversion_date = new Date().toISOString().split('T')[0];
+                
+                // Update visitor record to mark as converted
+                await base44.entities.Visitor.update(visitor.id, {
+                    conversion_status: "converted_to_member",
+                    member_conversion_date: new Date().toISOString().split('T')[0]
+                });
+            }
+
+            await base44.entities.Member.create(memberData);
+            setSubmitted(true);
+        } catch (error) {
+            console.error("Registration failed:", error);
+            alert("Registration failed. Please try again or contact the church office.");
         }
 
         setIsSubmitting(false);
     };
 
-    if (isSuccess) {
+    if (submitted) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-6">
-                <Card className="max-w-2xl w-full shadow-2xl">
-                    <CardContent className="pt-12 pb-12 text-center space-y-6">
-                        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                            <CheckCircle className="w-12 h-12 text-green-600" />
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-4">
+                <Card className="max-w-md w-full shadow-2xl">
+                    <CardContent className="p-8 text-center space-y-4">
+                        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                            <CheckCircle className="w-10 h-10 text-green-600" />
                         </div>
-                        <h1 className="text-3xl font-bold text-slate-900">
-                            Registration Received!
-                        </h1>
-                        <p className="text-lg text-slate-600">
-                            Thank you for registering with our church! We're excited to welcome you to our community.
-                        </p>
+                        <h1 className="text-2xl font-bold text-slate-900">Welcome to the Family!</h1>
                         <p className="text-slate-600">
-                            Someone from our team will reach out to you within 48 hours to complete your membership process.
+                            {existingVisitor 
+                                ? "Thank you for becoming a member! We're excited to have you transition from visitor to full member."
+                                : "Thank you for registering as a member! We're excited to have you join our church family."
+                            }
                         </p>
-                        <Button
-                            onClick={() => setIsSuccess(false)}
-                            className="mt-6"
-                        >
+                        <p className="text-sm text-slate-500">
+                            You'll receive a welcome email shortly with more information about next steps.
+                        </p>
+                        <Button onClick={() => window.location.reload()} className="w-full bg-blue-600 hover:bg-blue-700">
                             Register Another Person
                         </Button>
                     </CardContent>
@@ -92,154 +139,175 @@ export default function PublicMemberRegistration() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12 px-6">
-            <div className="max-w-3xl mx-auto">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 p-4">
+            <div className="max-w-2xl mx-auto py-8">
                 <div className="text-center mb-8">
-                    <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Church className="w-10 h-10 text-white" />
-                    </div>
-                    <h1 className="text-4xl font-bold text-slate-900 mb-3">
-                        Become a Member
-                    </h1>
-                    <p className="text-lg text-slate-600">
-                        We're thrilled that you want to join our church family! Please fill out the form below.
-                    </p>
+                    <Church className="w-16 h-16 text-blue-600 mx-auto mb-4" />
+                    <h1 className="text-4xl font-bold text-slate-900 mb-2">Become a Member</h1>
+                    <p className="text-slate-600">Join our church family today</p>
                 </div>
 
+                {existingVisitor && (
+                    <Alert className="mb-6 bg-blue-50 border-blue-200">
+                        <AlertDescription className="text-blue-800">
+                            <p className="font-semibold mb-1">Welcome back, {existingVisitor.first_name}!</p>
+                            <p className="text-sm">We see you've visited us before. Complete this form to officially become a member.</p>
+                        </AlertDescription>
+                    </Alert>
+                )}
+
                 <Card className="shadow-2xl">
-                    <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-                        <CardTitle className="text-2xl">Membership Registration Form</CardTitle>
+                    <CardHeader>
+                        <CardTitle>Member Registration Form</CardTitle>
                     </CardHeader>
-                    <CardContent className="pt-8">
-                        {error && (
-                            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                                <p className="text-red-800">{error}</p>
-                            </div>
-                        )}
-
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <Label htmlFor="first_name">
-                                        First Name <span className="text-red-500">*</span>
-                                    </Label>
+                    <CardContent>
+                        <form onSubmit={handleSubmit}>
+                            <div className="grid md:grid-cols-2 gap-4">
+                                <div>
+                                    <Label>First Name *</Label>
                                     <Input
-                                        id="first_name"
-                                        name="first_name"
                                         value={formData.first_name}
-                                        onChange={handleChange}
+                                        onChange={(e) => setFormData({...formData, first_name: e.target.value})}
                                         required
-                                        placeholder="John"
                                     />
                                 </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="last_name">
-                                        Last Name <span className="text-red-500">*</span>
-                                    </Label>
+                                <div>
+                                    <Label>Last Name *</Label>
                                     <Input
-                                        id="last_name"
-                                        name="last_name"
                                         value={formData.last_name}
-                                        onChange={handleChange}
+                                        onChange={(e) => setFormData({...formData, last_name: e.target.value})}
                                         required
-                                        placeholder="Doe"
                                     />
                                 </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <Label htmlFor="email">
-                                        Email Address <span className="text-red-500">*</span>
-                                    </Label>
+                                <div>
+                                    <Label>Email *</Label>
                                     <Input
-                                        id="email"
-                                        name="email"
                                         type="email"
                                         value={formData.email}
-                                        onChange={handleChange}
+                                        onChange={(e) => setFormData({...formData, email: e.target.value})}
+                                        onBlur={checkForExistingVisitor}
                                         required
-                                        placeholder="john@example.com"
                                     />
                                 </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="phone">
-                                        Phone Number <span className="text-red-500">*</span>
-                                    </Label>
+                                <div>
+                                    <Label>Phone *</Label>
                                     <Input
-                                        id="phone"
-                                        name="phone"
                                         type="tel"
                                         value={formData.phone}
-                                        onChange={handleChange}
+                                        onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                                        onBlur={checkForExistingVisitor}
                                         required
-                                        placeholder="+1 (555) 123-4567"
+                                    />
+                                </div>
+                                <div className="md:col-span-2">
+                                    <Label>Address</Label>
+                                    <Input
+                                        value={formData.address}
+                                        onChange={(e) => setFormData({...formData, address: e.target.value})}
+                                    />
+                                </div>
+                                <div>
+                                    <Label>City</Label>
+                                    <Input
+                                        value={formData.city}
+                                        onChange={(e) => setFormData({...formData, city: e.target.value})}
+                                    />
+                                </div>
+                                <div>
+                                    <Label>State</Label>
+                                    <Input
+                                        value={formData.state}
+                                        onChange={(e) => setFormData({...formData, state: e.target.value})}
+                                    />
+                                </div>
+                                <div>
+                                    <Label>ZIP Code</Label>
+                                    <Input
+                                        value={formData.zip_code}
+                                        onChange={(e) => setFormData({...formData, zip_code: e.target.value})}
+                                    />
+                                </div>
+                                <div>
+                                    <Label>Birth Date</Label>
+                                    <Input
+                                        type="date"
+                                        value={formData.birth_date}
+                                        onChange={(e) => setFormData({...formData, birth_date: e.target.value})}
+                                    />
+                                </div>
+                                <div>
+                                    <Label>Gender</Label>
+                                    <Select value={String(formData.gender)} onValueChange={(value) => setFormData({...formData, gender: value})}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select..." />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="male">Male</SelectItem>
+                                            <SelectItem value="female">Female</SelectItem>
+                                            <SelectItem value="other">Other</SelectItem>
+                                            <SelectItem value="prefer_not_to_say">Prefer not to say</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div>
+                                    <Label>Age Group</Label>
+                                    <Select value={String(formData.age_group)} onValueChange={(value) => setFormData({...formData, age_group: value})}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select..." />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="child">Child (0-12)</SelectItem>
+                                            <SelectItem value="teen">Teen (13-17)</SelectItem>
+                                            <SelectItem value="young_adult">Young Adult (18-35)</SelectItem>
+                                            <SelectItem value="adult">Adult (36-59)</SelectItem>
+                                            <SelectItem value="senior">Senior (60+)</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="md:col-span-2">
+                                    <Label>Interests (comma-separated)</Label>
+                                    <Input
+                                        value={formData.interests}
+                                        onChange={(e) => setFormData({...formData, interests: e.target.value})}
+                                        placeholder="e.g., Music, Youth Ministry, Teaching"
+                                    />
+                                </div>
+                                <div className="md:col-span-2">
+                                    <Label>Skills & Talents (comma-separated)</Label>
+                                    <Input
+                                        value={formData.skills}
+                                        onChange={(e) => setFormData({...formData, skills: e.target.value})}
+                                        placeholder="e.g., Graphic Design, IT, Carpentry"
+                                    />
+                                </div>
+                                <div className="md:col-span-2">
+                                    <Label>Additional Notes</Label>
+                                    <Textarea
+                                        value={formData.notes}
+                                        onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                                        placeholder="Anything else you'd like us to know..."
+                                        rows={3}
                                     />
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="address">
-                                    Home Address
-                                </Label>
-                                <Input
-                                    id="address"
-                                    name="address"
-                                    value={formData.address}
-                                    onChange={handleChange}
-                                    placeholder="123 Main St, City, State, ZIP"
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="birth_date">
-                                    Date of Birth
-                                </Label>
-                                <Input
-                                    id="birth_date"
-                                    name="birth_date"
-                                    type="date"
-                                    value={formData.birth_date}
-                                    onChange={handleChange}
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="notes">
-                                    Tell Us About Yourself
-                                </Label>
-                                <Textarea
-                                    id="notes"
-                                    name="notes"
-                                    value={formData.notes}
-                                    onChange={handleChange}
-                                    placeholder="How did you hear about us? What brings you to our church? Any questions or prayer requests?"
-                                    rows={4}
-                                />
-                            </div>
-
-                            <div className="pt-4">
-                                <Button
-                                    type="submit"
-                                    disabled={isSubmitting}
-                                    className="w-full bg-blue-600 hover:bg-blue-700 text-lg py-6"
-                                >
-                                    {isSubmitting ? (
-                                        <>
-                                            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                                            Submitting Registration...
-                                        </>
-                                    ) : (
-                                        "Submit Membership Registration"
-                                    )}
-                                </Button>
-                            </div>
-
-                            <p className="text-sm text-slate-500 text-center">
-                                By submitting this form, you agree to be contacted by our church for membership follow-up.
-                            </p>
+                            <Button
+                                type="submit"
+                                disabled={isSubmitting}
+                                className="w-full mt-6 bg-blue-600 hover:bg-blue-700"
+                            >
+                                {isSubmitting ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                        Registering...
+                                    </>
+                                ) : (
+                                    <>
+                                        <UserPlus className="w-4 h-4 mr-2" />
+                                        Register as Member
+                                    </>
+                                )}
+                            </Button>
                         </form>
                     </CardContent>
                 </Card>
