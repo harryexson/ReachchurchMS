@@ -6,11 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { PlusCircle, Search, User, Mail, Phone, Download, Trash2, Filter, MapPin, Users } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { PlusCircle, Search, User, Mail, Phone, Download, Trash2, Filter, MapPin, Users, Zap } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import MemberForm from "../components/members/MemberForm";
 import MemberFilters from "../components/members/MemberFilters";
 import ReportExportModal from "../components/reports/ReportExportModal";
+import BulkActionsModal from "../components/members/BulkActionsModal";
 
 export default function MembersPage() {
     const [members, setMembers] = useState([]);
@@ -33,6 +35,8 @@ export default function MembersPage() {
     });
     const [memberGroups, setMemberGroups] = useState([]);
     const [groupAssignments, setGroupAssignments] = useState([]);
+    const [selectedMemberIds, setSelectedMemberIds] = useState([]);
+    const [isBulkActionsOpen, setIsBulkActionsOpen] = useState(false);
 
     useEffect(() => {
         loadMembers();
@@ -108,6 +112,26 @@ export default function MembersPage() {
             region: "all",
             group: "all"
         });
+    };
+
+    const toggleMemberSelection = (memberId) => {
+        setSelectedMemberIds(prev => 
+            prev.includes(memberId) 
+                ? prev.filter(id => id !== memberId)
+                : [...prev, memberId]
+        );
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedMemberIds.length === filteredMembers.length) {
+            setSelectedMemberIds([]);
+        } else {
+            setSelectedMemberIds(filteredMembers.map(m => m.id));
+        }
+    };
+
+    const getSelectedMembers = () => {
+        return members.filter(m => selectedMemberIds.includes(m.id));
     };
 
     const filteredMembers = useMemo(() => {
@@ -191,6 +215,15 @@ export default function MembersPage() {
                         <p className="text-slate-600 mt-1">Manage and engage with your congregation.</p>
                     </div>
                     <div className="flex gap-2">
+                        {selectedMemberIds.length > 0 && (
+                            <Button
+                                onClick={() => setIsBulkActionsOpen(true)}
+                                className="bg-purple-600 hover:bg-purple-700"
+                            >
+                                <Zap className="w-4 h-4 mr-2" />
+                                Bulk Actions ({selectedMemberIds.length})
+                            </Button>
+                        )}
                         <Button 
                             variant="outline"
                             onClick={() => setShowFilters(!showFilters)}
@@ -266,10 +299,17 @@ export default function MembersPage() {
                             <Table>
                                 <TableHeader>
                                     <TableRow>
+                                        <TableHead className="w-12">
+                                            <Checkbox
+                                                checked={selectedMemberIds.length === filteredMembers.length && filteredMembers.length > 0}
+                                                onCheckedChange={toggleSelectAll}
+                                            />
+                                        </TableHead>
                                         <TableHead>Name</TableHead>
                                         <TableHead>Contact</TableHead>
                                         <TableHead>Location</TableHead>
                                         <TableHead>Status</TableHead>
+                                        <TableHead>Tags</TableHead>
                                         <TableHead>Ministry</TableHead>
                                         <TableHead>Joined</TableHead>
                                         <TableHead className="text-right">Actions</TableHead>
@@ -291,6 +331,12 @@ export default function MembersPage() {
                                     ) : (
                                         filteredMembers.map(member => (
                                             <TableRow key={member.id}>
+                                                <TableCell>
+                                                    <Checkbox
+                                                        checked={selectedMemberIds.includes(member.id)}
+                                                        onCheckedChange={() => toggleMemberSelection(member.id)}
+                                                    />
+                                                </TableCell>
                                                 <TableCell>
                                                     <div className="flex items-center gap-3">
                                                         <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center">
@@ -326,6 +372,24 @@ export default function MembersPage() {
                                                     <Badge className={statusColors[member.member_status]}>
                                                         {member.member_status?.replace('_', ' ') || 'Unknown'}
                                                     </Badge>
+                                                </TableCell>
+                                                <TableCell>
+                                                    {member.tags?.length > 0 ? (
+                                                        <div className="flex flex-wrap gap-1">
+                                                            {member.tags.slice(0, 2).map(tag => (
+                                                                <Badge key={tag} variant="outline" className="text-xs bg-purple-50">
+                                                                    {tag}
+                                                                </Badge>
+                                                            ))}
+                                                            {member.tags.length > 2 && (
+                                                                <Badge variant="outline" className="text-xs">
+                                                                    +{member.tags.length - 2}
+                                                                </Badge>
+                                                            )}
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-slate-400 text-sm">—</span>
+                                                    )}
                                                 </TableCell>
                                                 <TableCell>
                                                     {member.ministry_involvement?.length > 0 ? (
@@ -386,6 +450,18 @@ export default function MembersPage() {
                         isOpen={isExportModalOpen}
                         setIsOpen={setIsExportModalOpen}
                         reportType="members"
+                    />
+                )}
+
+                {isBulkActionsOpen && (
+                    <BulkActionsModal
+                        isOpen={isBulkActionsOpen}
+                        setIsOpen={setIsBulkActionsOpen}
+                        selectedMembers={getSelectedMembers()}
+                        onComplete={() => {
+                            loadMembers();
+                            setSelectedMemberIds([]);
+                        }}
                     />
                 )}
             </div>

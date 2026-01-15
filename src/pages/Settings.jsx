@@ -13,6 +13,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 
 import { useSubscription } from "../components/subscription/useSubscription";
 import AddOnsManager from "../components/settings/AddOnsManager";
+import CustomFieldsManager from "../components/settings/CustomFieldsManager";
 import { UploadFile } from "@/integrations/Core";
 import { base44 } from "@/api/base44Client";
 
