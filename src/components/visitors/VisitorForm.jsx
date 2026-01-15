@@ -133,7 +133,7 @@ export default function VisitorForm({ isOpen, setIsOpen, onSubmit, visitor }) {
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="how_did_you_hear">How Did You Hear About Us?</Label>
-                                    <Select name="how_did_you_hear" value={formData.how_did_you_hear || undefined} onValueChange={(value) => handleSelectChange('how_did_you_hear', value)}>
+                                    <Select name="how_did_you_hear" value={String(formData.how_did_you_hear || "")} onValueChange={(value) => handleSelectChange('how_did_you_hear', value)}>
                                        <SelectTrigger>
                                            <SelectValue placeholder="Select..." />
                                        </SelectTrigger>
@@ -194,7 +194,7 @@ export default function VisitorForm({ isOpen, setIsOpen, onSubmit, visitor }) {
                                 <h3 className="text-sm font-semibold text-slate-700 mb-3">Follow-up Status</h3>
                                 <div className="space-y-2">
                                     <Label htmlFor="follow_up_status">Current Follow-up Status</Label>
-                                    <Select name="follow_up_status" value={formData.follow_up_status} onValueChange={(value) => handleSelectChange('follow_up_status', value)}>
+                                    <Select name="follow_up_status" value={String(formData.follow_up_status)} onValueChange={(value) => handleSelectChange('follow_up_status', value)}>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Select status" />
                                         </SelectTrigger>

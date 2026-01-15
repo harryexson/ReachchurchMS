@@ -103,7 +103,7 @@ export default function VolunteerForm({ isOpen, setIsOpen, onSubmit, volunteer }
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="ministry">Ministry</Label>
-                            <Select value={formData.ministry} onValueChange={(value) => handleSelectChange('ministry', value)}>
+                            <Select value={String(formData.ministry)} onValueChange={(value) => handleSelectChange('ministry', value)}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select ministry" />
                                 </SelectTrigger>
@@ -131,7 +131,7 @@ export default function VolunteerForm({ isOpen, setIsOpen, onSubmit, volunteer }
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="status">Status</Label>
-                            <Select value={formData.status} onValueChange={(value) => handleSelectChange('status', value)}>
+                            <Select value={String(formData.status)} onValueChange={(value) => handleSelectChange('status', value)}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select status" />
                                 </SelectTrigger>
