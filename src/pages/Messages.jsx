@@ -35,6 +35,10 @@ export default function MessagesPage() {
 
     useEffect(() => {
         loadData();
+    }, []);
+
+    useEffect(() => {
+        if (!currentUser) return;
         
         // Set up real-time subscription for new messages
         const unsubscribe = base44.entities.InAppMessage.subscribe((event) => {
@@ -47,40 +51,56 @@ export default function MessagesPage() {
         });
 
         return unsubscribe;
-    }, []);
+    }, [currentUser]);
 
     const loadData = async () => {
         try {
             const user = await base44.auth.me();
+            if (!user) {
+                toast.error('Please log in to view messages');
+                setIsLoading(false);
+                return;
+            }
             setCurrentUser(user);
 
             // Load threads where user is a participant
             const allThreads = await base44.entities.MessageThread.filter({});
             const myThreads = allThreads.filter(t => 
-                t.participant_emails?.includes(user.email) && !t.is_archived
+                Array.isArray(t.participant_emails) && 
+                t.participant_emails.includes(user.email) && 
+                !t.is_archived
             );
             
-            setThreads(myThreads.sort((a, b) => 
-                new Date(b.last_message_date) - new Date(a.last_message_date)
-            ));
+            setThreads(myThreads.sort((a, b) => {
+                const dateA = a.last_message_date ? new Date(a.last_message_date) : new Date(0);
+                const dateB = b.last_message_date ? new Date(b.last_message_date) : new Date(0);
+                return dateB - dateA;
+            }));
 
             // Load all church members for creating new conversations
             const members = await base44.entities.Member.filter({});
-            setAllMembers(members);
+            const validMembers = members.filter(m => m.email && (m.first_name || m.last_name));
+            setAllMembers(validMembers);
 
             // Load user's groups
-            const groupAssignments = await base44.entities.MemberGroupAssignment.filter({
-                member_email: user.email
-            });
-            const groupIds = groupAssignments.map(g => g.group_id);
-            const groups = await base44.entities.MemberGroup.filter({});
-            setMyGroups(groups.filter(g => groupIds.includes(g.id)));
+            try {
+                const groupAssignments = await base44.entities.MemberGroupAssignment.filter({
+                    member_email: user.email
+                });
+                const groupIds = groupAssignments.map(g => g.group_id);
+                const groups = await base44.entities.MemberGroup.filter({});
+                setMyGroups(groups.filter(g => groupIds.includes(g.id)));
+            } catch (groupError) {
+                console.log('Groups not available:', groupError);
+                setMyGroups([]);
+            }
 
         } catch (error) {
             console.error('Error loading messages:', error);
-            toast.error('Failed to load messages');
+            toast.error(`Failed to load messages: ${error.message}`);
+        } finally {
+            setIsLoading(false);
         }
-        setIsLoading(false);
     };
 
     const loadThreadMessages = async (threadId) => {
@@ -89,23 +109,33 @@ export default function MessagesPage() {
                 thread_id: threadId
             });
             
-            setMessages(threadMessages.sort((a, b) => 
-                new Date(a.sent_date) - new Date(b.sent_date)
-            ));
+            const sortedMessages = threadMessages.sort((a, b) => {
+                const dateA = a.sent_date ? new Date(a.sent_date) : new Date(0);
+                const dateB = b.sent_date ? new Date(b.sent_date) : new Date(0);
+                return dateA - dateB;
+            });
+            
+            setMessages(sortedMessages);
 
-            // Mark messages as read
-            for (const msg of threadMessages) {
-                if (!msg.read_by?.includes(currentUser.email)) {
-                    await base44.entities.InAppMessage.update(msg.id, {
-                        read_by: [...(msg.read_by || []), currentUser.email]
-                    });
+            // Mark messages as read (in background)
+            threadMessages.forEach(async (msg) => {
+                if (msg.id && !msg.read_by?.includes(currentUser.email)) {
+                    try {
+                        await base44.entities.InAppMessage.update(msg.id, {
+                            read_by: [...(msg.read_by || []), currentUser.email]
+                        });
+                    } catch (readError) {
+                        console.log('Could not mark message as read:', readError);
+                    }
                 }
-            }
+            });
 
-            loadData(); // Refresh threads to update unread counts
+            // Refresh threads to update unread counts
+            setTimeout(() => loadData(), 500);
 
         } catch (error) {
             console.error('Error loading thread messages:', error);
+            toast.error('Failed to load messages');
         }
     };
 
@@ -120,11 +150,22 @@ export default function MessagesPage() {
             return;
         }
 
+        if (!selectedThread || !selectedThread.id) {
+            toast.error('No conversation selected');
+            return;
+        }
+
         setIsSending(true);
         try {
-            const otherParticipants = selectedThread.participant_emails.filter(
+            const otherParticipants = (selectedThread.participant_emails || []).filter(
                 email => email !== currentUser.email
             );
+
+            if (otherParticipants.length === 0) {
+                toast.error('No recipients found');
+                setIsSending(false);
+                return;
+            }
 
             await base44.functions.invoke('sendInAppMessage', {
                 message_body: newMessageBody,
@@ -135,14 +176,15 @@ export default function MessagesPage() {
             });
 
             setNewMessageBody('');
-            loadThreadMessages(selectedThread.id);
+            await loadThreadMessages(selectedThread.id);
             toast.success('Message sent!');
 
         } catch (error) {
             console.error('Error sending message:', error);
-            toast.error('Failed to send message');
+            toast.error(`Failed to send message: ${error.message}`);
+        } finally {
+            setIsSending(false);
         }
-        setIsSending(false);
     };
 
     const getThreadTitle = (thread) => {
@@ -226,10 +268,10 @@ export default function MessagesPage() {
     };
 
     const memberOptions = allMembers
-        .filter(m => m.email !== currentUser?.email)
+        .filter(m => m.email && m.email !== currentUser?.email)
         .map(m => ({
             value: m.email,
-            label: `${m.first_name} ${m.last_name} (${m.email})`
+            label: `${m.first_name || ''} ${m.last_name || ''} (${m.email})`.trim()
         }));
 
     if (isLoading) {
