@@ -209,7 +209,7 @@ export default function DonationFilters({ filters, onChange }) {
                     <div className="space-y-2">
                         <Label>Member Status</Label>
                         <Select
-                            value={filters.memberStatus}
+                            value={String(filters.memberStatus)}
                             onValueChange={(value) => onChange({ ...filters, memberStatus: value })}
                         >
                             <SelectTrigger>
@@ -254,7 +254,7 @@ export default function DonationFilters({ filters, onChange }) {
                             <div className="space-y-2">
                                 <Label>Gender</Label>
                                 <Select
-                                    value={filters.gender || 'all'}
+                                    value={String(filters.gender || 'all')}
                                     onValueChange={(value) => onChange({ ...filters, gender: value })}
                                 >
                                     <SelectTrigger>
@@ -272,7 +272,7 @@ export default function DonationFilters({ filters, onChange }) {
                             <div className="space-y-2">
                                 <Label>Age Group</Label>
                                 <Select
-                                    value={filters.ageGroup || 'all'}
+                                    value={String(filters.ageGroup || 'all')}
                                     onValueChange={(value) => onChange({ ...filters, ageGroup: value })}
                                 >
                                     <SelectTrigger>
@@ -290,7 +290,7 @@ export default function DonationFilters({ filters, onChange }) {
                             <div className="space-y-2">
                                 <Label>Ministry Involvement</Label>
                                 <Select
-                                    value={filters.ministry || 'all'}
+                                    value={String(filters.ministry || 'all')}
                                     onValueChange={(value) => onChange({ ...filters, ministry: value })}
                                 >
                                     <SelectTrigger>
@@ -312,7 +312,7 @@ export default function DonationFilters({ filters, onChange }) {
                                     <MapPin className="w-3 h-3" /> City
                                 </Label>
                                 <Select
-                                    value={filters.city || 'all'}
+                                    value={String(filters.city || 'all')}
                                     onValueChange={(value) => onChange({ ...filters, city: value })}
                                 >
                                     <SelectTrigger>
@@ -332,7 +332,7 @@ export default function DonationFilters({ filters, onChange }) {
                                     <MapPin className="w-3 h-3" /> State/Region
                                 </Label>
                                 <Select
-                                    value={filters.state || 'all'}
+                                    value={String(filters.state || 'all')}
                                     onValueChange={(value) => onChange({ ...filters, state: value })}
                                 >
                                     <SelectTrigger>
