@@ -226,7 +226,7 @@ export default function MemberGroups() {
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <Label>Group Type</Label>
-                                <Select value={groupForm.group_type} onValueChange={(val) => setGroupForm({...groupForm, group_type: val})}>
+                                <Select value={String(groupForm.group_type)} onValueChange={(val) => setGroupForm({...groupForm, group_type: val})}>
                                     <SelectTrigger>
                                         <SelectValue />
                                     </SelectTrigger>
