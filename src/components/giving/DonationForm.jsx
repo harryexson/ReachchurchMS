@@ -87,7 +87,7 @@ export default function DonationForm({ isOpen, setIsOpen, onSubmit, donation, me
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="donation_type">Donation Type</Label>
-                            <Select value={formData.donation_type} onValueChange={(value) => handleSelectChange('donation_type', value)}>
+                            <Select value={String(formData.donation_type)} onValueChange={(value) => handleSelectChange('donation_type', value)}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select type" />
                                 </SelectTrigger>
@@ -103,7 +103,7 @@ export default function DonationForm({ isOpen, setIsOpen, onSubmit, donation, me
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="payment_method">Payment Method</Label>
-                            <Select value={formData.payment_method} onValueChange={(value) => handleSelectChange('payment_method', value)}>
+                            <Select value={String(formData.payment_method)} onValueChange={(value) => handleSelectChange('payment_method', value)}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select method" />
                                 </SelectTrigger>
@@ -134,7 +134,7 @@ export default function DonationForm({ isOpen, setIsOpen, onSubmit, donation, me
                             {formData.recurring && (
                                 <div className="space-y-2">
                                     <Label htmlFor="recurring_frequency">Frequency</Label>
-                                    <Select value={formData.recurring_frequency} onValueChange={(value) => handleSelectChange('recurring_frequency', value)}>
+                                    <Select value={String(formData.recurring_frequency)} onValueChange={(value) => handleSelectChange('recurring_frequency', value)}>
                                         <SelectTrigger className="w-48">
                                             <SelectValue placeholder="Select frequency" />
                                         </SelectTrigger>

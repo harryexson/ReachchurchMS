@@ -172,7 +172,7 @@ export default function EventForm({ isOpen, setIsOpen, onSubmit, event, voluntee
 
                         <div className="space-y-2">
                             <Label htmlFor="event_type">Event Type</Label>
-                            <Select value={formData.event_type} onValueChange={(value) => handleSelectChange('event_type', value)}>
+                            <Select value={String(formData.event_type)} onValueChange={(value) => handleSelectChange('event_type', value)}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select type" />
                                 </SelectTrigger>
@@ -197,7 +197,7 @@ export default function EventForm({ isOpen, setIsOpen, onSubmit, event, voluntee
 
                         <div className="space-y-2">
                             <Label htmlFor="status">Status</Label>
-                            <Select value={formData.status} onValueChange={(value) => handleSelectChange('status', value)}>
+                            <Select value={String(formData.status)} onValueChange={(value) => handleSelectChange('status', value)}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select status" />
                                 </SelectTrigger>
@@ -257,7 +257,7 @@ export default function EventForm({ isOpen, setIsOpen, onSubmit, event, voluntee
                         <div className="col-span-1 md:col-span-2 space-y-2 p-4 bg-blue-50/20 rounded-lg border border-blue-100">
                             <Label htmlFor="linked_sermon_id">Link to Sermon (Optional)</Label>
                             <Select 
-                                value={formData.linked_sermon_id || "none"} 
+                                value={String(formData.linked_sermon_id || "none")} 
                                 onValueChange={(value) => handleSelectChange('linked_sermon_id', value)}
                             >
                                 <SelectTrigger>
@@ -450,7 +450,7 @@ export default function EventForm({ isOpen, setIsOpen, onSubmit, event, voluntee
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                                     <div className="space-y-2">
                                         <Label htmlFor="recurrence_pattern">Recurrence Pattern</Label>
-                                        <Select value={formData.recurrence_pattern} onValueChange={(value) => handleSelectChange('recurrence_pattern', value)}>
+                                        <Select value={String(formData.recurrence_pattern)} onValueChange={(value) => handleSelectChange('recurrence_pattern', value)}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Select pattern" />
                                             </SelectTrigger>
