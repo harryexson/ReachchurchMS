@@ -604,7 +604,7 @@ export default function SettingsPage() {
                                 <div className="space-y-2">
                                     <Label htmlFor="primary_streaming_platform">Primary Streaming Platform</Label>
                                     <Select
-                                        value={settings.primary_streaming_platform || 'youtube'}
+                                        value={String(settings.primary_streaming_platform || 'youtube')}
                                         onValueChange={(value) => handleChange('primary_streaming_platform', value)}
                                     >
                                         <SelectTrigger>

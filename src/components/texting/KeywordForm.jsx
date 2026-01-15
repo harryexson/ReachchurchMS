@@ -183,7 +183,7 @@ export default function KeywordForm({ isOpen, setIsOpen, onSubmit, keyword }) {
                         <div className="space-y-2">
                             <Label htmlFor="response_type">Response Type</Label>
                             <Select 
-                                value={formData.response_type} 
+                                value={String(formData.response_type)} 
                                 onValueChange={(value) => handleSelectChange('response_type', value)}
                             >
                                 <SelectTrigger>
