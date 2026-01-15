@@ -37,11 +37,13 @@ export default function MembersPage() {
     const [groupAssignments, setGroupAssignments] = useState([]);
     const [selectedMemberIds, setSelectedMemberIds] = useState([]);
     const [isBulkActionsOpen, setIsBulkActionsOpen] = useState(false);
+    const [customFields, setCustomFields] = useState([]);
 
     useEffect(() => {
         loadMembers();
         loadMemberGroups();
         loadGroupAssignments();
+        loadCustomFields();
     }, []);
 
     const loadMembers = async () => {
@@ -66,6 +68,18 @@ export default function MembersPage() {
             setGroupAssignments(assignments);
         } catch (error) {
             console.error('Error loading group assignments:', error);
+        }
+    };
+
+    const loadCustomFields = async () => {
+        try {
+            const fields = await base44.entities.CustomFieldDefinition.filter({ 
+                is_active: true,
+                entity_type: "member"
+            });
+            setCustomFields(fields);
+        } catch (error) {
+            console.error('Error loading custom fields:', error);
         }
     };
 
@@ -442,6 +456,7 @@ export default function MembersPage() {
                         setIsOpen={setIsFormOpen}
                         onSubmit={handleFormSubmit}
                         member={selectedMember}
+                        customFields={customFields}
                     />
                 )}
 

@@ -16,6 +16,7 @@ import AddOnsManager from "../components/settings/AddOnsManager";
 import CustomFieldsManager from "../components/settings/CustomFieldsManager";
 import { UploadFile } from "@/integrations/Core";
 import { base44 } from "@/api/base44Client";
+import { createPageUrl } from "@/utils";
 
 export default function SettingsPage() {
     const [settings, setSettings] = useState({
@@ -350,15 +351,7 @@ export default function SettingsPage() {
         }
     };
 
-    const createPageUrl = (pageName) => {
-        const routes = {
-            'SubscriptionPlans': '/subscription-plans',
-            'KioskGivingSetup': '/kiosksetupinstructions',
-            'SinchSetupGuide': '/sinch-setup-guide',
-            'Sermons': '/sermons'
-        };
-        return routes[pageName] || `/${pageName.toLowerCase()}`;
-    };
+
 
     return (
         <div className="p-6 bg-gradient-to-br from-slate-50 to-blue-50/30 min-h-screen">
@@ -372,7 +365,7 @@ export default function SettingsPage() {
                 </div>
 
                 <Tabs defaultValue="general" className="space-y-6 mt-8">
-                    <TabsList className="grid w-full grid-cols-3 md:grid-cols-9">
+                    <TabsList className="grid w-full grid-cols-3 md:grid-cols-11">
                         <TabsTrigger value="general">General</TabsTrigger>
                         <TabsTrigger value="branding">Branding</TabsTrigger>
                         <TabsTrigger value="streaming">Streaming</TabsTrigger>
@@ -382,6 +375,8 @@ export default function SettingsPage() {
                         <TabsTrigger value="social">Social Media</TabsTrigger>
                         <TabsTrigger value="kiosk">Kiosk Setup</TabsTrigger>
                         <TabsTrigger value="subscription">Subscription</TabsTrigger>
+                        <TabsTrigger value="custom-fields">Custom Fields</TabsTrigger>
+                        <TabsTrigger value="member-groups">Member Groups</TabsTrigger>
                     </TabsList>
 
                     {/* Content for General (formerly Church Info) */}
@@ -1729,6 +1724,29 @@ export default function SettingsPage() {
                                         </Button>
                                     </div>
                                 </div>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+
+                    {/* Custom Fields Tab */}
+                    <TabsContent value="custom-fields">
+                        <CustomFieldsManager />
+                    </TabsContent>
+
+                    {/* Member Groups Tab */}
+                    <TabsContent value="member-groups">
+                        <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                            <CardHeader>
+                                <CardTitle>Member Groups Management</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <p className="text-slate-600">
+                                    Manage your member groups, create small groups, ministries, and committees.
+                                </p>
+                                <Button onClick={() => window.location.href = createPageUrl("MemberGroups")} className="w-full">
+                                    <Users className="w-4 h-4 mr-2" />
+                                    Go to Member Groups Management
+                                </Button>
                             </CardContent>
                         </Card>
                     </TabsContent>
