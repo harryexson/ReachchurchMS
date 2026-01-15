@@ -342,7 +342,7 @@ export default function Layout({ children, currentPageName }) {
       icon: Church,
     },
     {
-      title: "Messages",
+      title: "ReachMessager",
       url: createPageUrl("AdminMessaging"),
       icon: MessageSquare,
     },
