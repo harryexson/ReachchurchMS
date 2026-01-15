@@ -193,7 +193,7 @@ export default function AdminMessagingPage() {
                             <div className="grid sm:grid-cols-2 gap-4">
                                 <div>
                                     <Label>Message Type</Label>
-                                    <Select value={messageType} onValueChange={setMessageType}>
+                                    <Select value={String(messageType)} onValueChange={setMessageType}>
                                         <SelectTrigger>
                                             <SelectValue />
                                         </SelectTrigger>
@@ -209,7 +209,7 @@ export default function AdminMessagingPage() {
 
                                 <div>
                                     <Label>Priority</Label>
-                                    <Select value={priority} onValueChange={setPriority}>
+                                    <Select value={String(priority)} onValueChange={setPriority}>
                                         <SelectTrigger>
                                             <SelectValue />
                                         </SelectTrigger>

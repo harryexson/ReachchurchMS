@@ -112,7 +112,7 @@ export default function ReportExportModal({ isOpen, setIsOpen, reportType }) {
                     <div className="space-y-4 py-4">
                         <div>
                             <Label>Format</Label>
-                            <Select value={format} onValueChange={setFormat}>
+                            <Select value={String(format)} onValueChange={setFormat}>
                                 <SelectTrigger>
                                     <SelectValue />
                                 </SelectTrigger>
@@ -177,7 +177,7 @@ export default function ReportExportModal({ isOpen, setIsOpen, reportType }) {
                         {reportType === 'giving' && (
                             <div>
                                 <Label>Group By</Label>
-                                <Select value={groupBy} onValueChange={setGroupBy}>
+                                <Select value={String(groupBy)} onValueChange={setGroupBy}>
                                     <SelectTrigger>
                                         <SelectValue />
                                     </SelectTrigger>

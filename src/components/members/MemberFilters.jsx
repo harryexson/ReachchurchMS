@@ -90,7 +90,7 @@ export default function MemberFilters({ filters, onFilterChange, members, member
                     <div>
                         <Label className="text-xs text-slate-500">Status</Label>
                         <Select
-                            value={filters.status || "all"}
+                            value={String(filters.status || "all")}
                             onValueChange={(value) => onFilterChange("status", value)}
                         >
                             <SelectTrigger className="h-9">
@@ -109,7 +109,7 @@ export default function MemberFilters({ filters, onFilterChange, members, member
                     <div>
                         <Label className="text-xs text-slate-500">Gender</Label>
                         <Select
-                            value={filters.gender || "all"}
+                            value={String(filters.gender || "all")}
                             onValueChange={(value) => onFilterChange("gender", value)}
                         >
                             <SelectTrigger className="h-9">
@@ -128,7 +128,7 @@ export default function MemberFilters({ filters, onFilterChange, members, member
                     <div>
                         <Label className="text-xs text-slate-500">Age Group</Label>
                         <Select
-                            value={filters.ageGroup || "all"}
+                            value={String(filters.ageGroup || "all")}
                             onValueChange={(value) => onFilterChange("ageGroup", value)}
                         >
                             <SelectTrigger className="h-9">
@@ -147,7 +147,7 @@ export default function MemberFilters({ filters, onFilterChange, members, member
                     <div>
                         <Label className="text-xs text-slate-500">City</Label>
                         <Select
-                            value={filters.city || "all"}
+                            value={String(filters.city || "all")}
                             onValueChange={(value) => onFilterChange("city", value)}
                         >
                             <SelectTrigger className="h-9">
@@ -166,7 +166,7 @@ export default function MemberFilters({ filters, onFilterChange, members, member
                     <div>
                         <Label className="text-xs text-slate-500">State/Region</Label>
                         <Select
-                            value={filters.state || "all"}
+                            value={String(filters.state || "all")}
                             onValueChange={(value) => onFilterChange("state", value)}
                         >
                             <SelectTrigger className="h-9">
@@ -185,7 +185,7 @@ export default function MemberFilters({ filters, onFilterChange, members, member
                     <div>
                         <Label className="text-xs text-slate-500">Ministry Involvement</Label>
                         <Select
-                            value={filters.ministry || "all"}
+                            value={String(filters.ministry || "all")}
                             onValueChange={(value) => onFilterChange("ministry", value)}
                         >
                             <SelectTrigger className="h-9">
@@ -204,7 +204,7 @@ export default function MemberFilters({ filters, onFilterChange, members, member
                     <div>
                         <Label className="text-xs text-slate-500">Region</Label>
                         <Select
-                            value={filters.region || "all"}
+                            value={String(filters.region || "all")}
                             onValueChange={(value) => onFilterChange("region", value)}
                         >
                             <SelectTrigger className="h-9">
@@ -223,7 +223,7 @@ export default function MemberFilters({ filters, onFilterChange, members, member
                     <div>
                         <Label className="text-xs text-slate-500">Member Group</Label>
                         <Select
-                            value={filters.group || "all"}
+                            value={String(filters.group || "all")}
                             onValueChange={(value) => onFilterChange("group", value)}
                         >
                             <SelectTrigger className="h-9">
