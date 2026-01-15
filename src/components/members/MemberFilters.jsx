@@ -232,7 +232,7 @@ export default function MemberFilters({ filters, onFilterChange, members, member
                             <SelectContent>
                                 <SelectItem value="all">All Groups</SelectItem>
                                 {memberGroups.map(group => (
-                                    <SelectItem key={group.id} value={group.id}>{group.group_name}</SelectItem>
+                                    <SelectItem key={group.id} value={String(group.id)}>{group.group_name}</SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
