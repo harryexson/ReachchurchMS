@@ -242,7 +242,7 @@ export default function MemberForm({ isOpen, setIsOpen, onSubmit, member, custom
                                                         </SelectTrigger>
                                                         <SelectContent>
                                                             {field.field_options?.map(option => (
-                                                                <SelectItem key={option} value={option}>
+                                                                <SelectItem key={option} value={String(option)}>
                                                                     {option}
                                                                 </SelectItem>
                                                             ))}
