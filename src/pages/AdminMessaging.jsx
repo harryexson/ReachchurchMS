@@ -227,7 +227,7 @@ export default function AdminMessagingPage() {
                                 <Label>Select Groups</Label>
                                 <MultiSelect
                                     options={groupOptions}
-                                    value={selectedGroups}
+                                    selected={selectedGroups}
                                     onChange={setSelectedGroups}
                                     placeholder="Select member groups..."
                                 />
@@ -237,7 +237,7 @@ export default function AdminMessagingPage() {
                                 <Label>Select Individual Members</Label>
                                 <MultiSelect
                                     options={memberOptions}
-                                    value={selectedMembers}
+                                    selected={selectedMembers}
                                     onChange={setSelectedMembers}
                                     placeholder="Select members..."
                                 />
@@ -314,7 +314,7 @@ export default function AdminMessagingPage() {
                                 <Label>Select Groups</Label>
                                 <MultiSelect
                                     options={groupOptions}
-                                    value={selectedGroups}
+                                    selected={selectedGroups}
                                     onChange={setSelectedGroups}
                                     placeholder="Select member groups..."
                                 />
@@ -324,7 +324,7 @@ export default function AdminMessagingPage() {
                                 <Label>Select Individual Members</Label>
                                 <MultiSelect
                                     options={memberOptions}
-                                    value={selectedMembers}
+                                    selected={selectedMembers}
                                     onChange={setSelectedMembers}
                                     placeholder="Select members..."
                                 />
