@@ -54,6 +54,7 @@ import MemberAnnouncements from './pages/MemberAnnouncements';
 import MemberContacts from './pages/MemberContacts';
 import MemberDashboard from './pages/MemberDashboard';
 import MemberGroups from './pages/MemberGroups';
+import MemberRegistrationQR from './pages/MemberRegistrationQR';
 import MemberSermons from './pages/MemberSermons';
 import Members from './pages/Members';
 import Messages from './pages/Messages';
@@ -119,7 +120,6 @@ import VolunteerPortal from './pages/VolunteerPortal';
 import VolunteerRegistration from './pages/VolunteerRegistration';
 import Volunteers from './pages/Volunteers';
 import backoffice from './pages/backoffice';
-import MemberRegistrationQR from './pages/MemberRegistrationQR';
 import __Layout from './Layout.jsx';
 
 
@@ -180,6 +180,7 @@ export const PAGES = {
     "MemberContacts": MemberContacts,
     "MemberDashboard": MemberDashboard,
     "MemberGroups": MemberGroups,
+    "MemberRegistrationQR": MemberRegistrationQR,
     "MemberSermons": MemberSermons,
     "Members": Members,
     "Messages": Messages,
@@ -245,7 +246,6 @@ export const PAGES = {
     "VolunteerRegistration": VolunteerRegistration,
     "Volunteers": Volunteers,
     "backoffice": backoffice,
-    "MemberRegistrationQR": MemberRegistrationQR,
 }
 
 export const pagesConfig = {

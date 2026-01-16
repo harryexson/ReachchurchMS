@@ -500,7 +500,7 @@ export default function MessagesPage() {
                                 <Label>Select Members</Label>
                                 <MultiSelect
                                     options={memberOptions}
-                                    selected={selectedParticipants}
+                                    value={selectedParticipants}
                                     onChange={setSelectedParticipants}
                                     placeholder="Select church members..."
                                 />
