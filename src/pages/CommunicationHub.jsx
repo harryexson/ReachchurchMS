@@ -2,26 +2,36 @@ import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { MultiSelect } from "@/components/ui/multi-select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
     Mail, MessageSquare, Monitor, Users, Calendar, Send,
     Plus, Clock, CheckCircle, AlertCircle, Loader2, Target,
-    Megaphone, Heart, UserCheck, Filter, Trash2, Edit, Eye
+    Megaphone, Heart, UserCheck, Filter, Trash2, Edit, Eye,
+    DollarSign, FileText
 } from "lucide-react";
 import TargetedMessageForm from "../components/communications/TargetedMessageForm";
 import ScheduledAnnouncementForm from "../components/communications/ScheduledAnnouncementForm";
 import MessagePreview from "../components/communications/MessagePreview";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 export default function CommunicationHub() {
     const [messages, setMessages] = useState([]);
     const [announcements, setAnnouncements] = useState([]);
     const [members, setMembers] = useState([]);
+    const [memberGroups, setMemberGroups] = useState([]);
     const [volunteers, setVolunteers] = useState([]);
     const [displays, setDisplays] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isSending, setIsSending] = useState(false);
     const [currentUser, setCurrentUser] = useState(null);
     const [showMessageForm, setShowMessageForm] = useState(false);
     const [showAnnouncementForm, setShowAnnouncementForm] = useState(false);
@@ -32,6 +42,16 @@ export default function CommunicationHub() {
     const [pushingId, setPushingId] = useState(null);
     const [successAlert, setSuccessAlert] = useState(null);
 
+    // Quick message form
+    const [subject, setSubject] = useState('');
+    const [messageBody, setMessageBody] = useState('');
+    const [messageType, setMessageType] = useState('general');
+    const [priority, setPriority] = useState('normal');
+    const [selectedGroups, setSelectedGroups] = useState([]);
+    const [selectedMembers, setSelectedMembers] = useState([]);
+    const [sendEmail, setSendEmail] = useState(true);
+    const [sendInApp, setSendInApp] = useState(true);
+
     useEffect(() => {
         loadData();
     }, []);
@@ -39,24 +59,107 @@ export default function CommunicationHub() {
     const loadData = async () => {
         setIsLoading(true);
         try {
-            const [user, msgList, annList, memberList, volList, displayList] = await Promise.all([
-                base44.auth.me(),
+            const user = await base44.auth.me();
+            if (user.role !== 'admin') {
+                window.location.href = '/messages';
+                return;
+            }
+            setCurrentUser(user);
+
+            const [msgList, annList, memberList, groupList, volList, displayList] = await Promise.all([
                 base44.entities.TargetedMessage.list("-created_date"),
                 base44.entities.ScheduledAnnouncement.list("-created_date"),
                 base44.entities.Member.list(),
+                base44.entities.MemberGroup.list(),
                 base44.entities.Volunteer.filter({ status: "active" }),
                 base44.entities.ConnectedDevice.filter({ device_type: "display" })
             ]);
-            setCurrentUser(user);
+            
             setMessages(msgList);
             setAnnouncements(annList);
             setMembers(memberList);
+            setMemberGroups(groupList);
             setVolunteers(volList);
             setDisplays(displayList);
         } catch (err) {
             console.error("Error loading data:", err);
         }
         setIsLoading(false);
+    };
+
+    const handleQuickSendMessage = async () => {
+        if (!messageBody.trim()) {
+            toast.error('Please enter a message');
+            return;
+        }
+
+        if (selectedGroups.length === 0 && selectedMembers.length === 0) {
+            toast.error('Please select at least one recipient or group');
+            return;
+        }
+
+        setIsSending(true);
+        try {
+            await base44.functions.invoke('sendInAppMessage', {
+                subject,
+                message_body: messageBody,
+                recipient_emails: selectedMembers,
+                recipient_groups: selectedGroups,
+                message_type: messageType,
+                priority,
+                send_email_notification: sendEmail
+            });
+
+            toast.success('Message sent successfully!');
+            
+            // Reset form
+            setSubject('');
+            setMessageBody('');
+            setSelectedGroups([]);
+            setSelectedMembers([]);
+            setMessageType('general');
+            setPriority('normal');
+
+        } catch (error) {
+            console.error('Error sending message:', error);
+            toast.error('Failed to send message');
+        }
+        setIsSending(false);
+    };
+
+    const handleSendFinancialStatements = async () => {
+        if (selectedGroups.length === 0 && selectedMembers.length === 0) {
+            toast.error('Please select recipients');
+            return;
+        }
+
+        const confirmed = confirm('Send giving statements to selected recipients?');
+        if (!confirmed) return;
+
+        setIsSending(true);
+        try {
+            const result = await base44.functions.invoke('sendFinancialStatementsToGroup', {
+                recipient_emails: selectedMembers,
+                recipient_groups: selectedGroups,
+                statement_period: { year: new Date().getFullYear() },
+                statement_type: 'year_end',
+                custom_message: messageBody || 'Your year-end giving statement is attached.',
+                send_in_app: sendInApp,
+                send_email: sendEmail
+            });
+
+            toast.success(`Statements sent to ${result.data.statements_sent} recipients!`);
+            
+            // Reset
+            setSelectedGroups([]);
+            setSelectedMembers([]);
+            setMessageBody('');
+
+        } catch (error) {
+            console.error('Error sending statements:', error);
+            toast.error('Failed to send statements');
+        }
+        setIsSending(false);
     };
 
     const handleSaveMessage = async (data) => {
@@ -100,10 +203,8 @@ export default function CommunicationHub() {
     const handleSendMessage = async (message) => {
         setSendingId(message.id);
         try {
-            // Get recipients based on criteria
             const recipients = await getRecipients(message);
             
-            // Update message status
             await base44.entities.TargetedMessage.update(message.id, {
                 status: "sending",
                 recipient_count: recipients.length
@@ -200,7 +301,6 @@ export default function CommunicationHub() {
     const handlePushAnnouncement = async (announcement) => {
         setPushingId(announcement.id);
         try {
-            // Create display content from announcement
             const contentData = {
                 title: announcement.title,
                 content_type: "announcement",
@@ -215,7 +315,6 @@ export default function CommunicationHub() {
 
             await base44.entities.DisplayContent.create(contentData);
 
-            // Update announcement
             await base44.entities.ScheduledAnnouncement.update(announcement.id, {
                 pushed_to_displays: true,
                 last_pushed: new Date().toISOString()
@@ -263,6 +362,16 @@ export default function CommunicationHub() {
         );
     };
 
+    const groupOptions = memberGroups.map(g => ({
+        value: String(g.id),
+        label: g.group_name
+    }));
+
+    const memberOptions = members.map(m => ({
+        value: String(m.email || ''),
+        label: `${m.first_name} ${m.last_name} (${m.email})`
+    }));
+
     const stats = {
         totalMessages: messages.length,
         sentMessages: messages.filter(m => m.status === "sent").length,
@@ -281,7 +390,6 @@ export default function CommunicationHub() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30 p-6">
             <div className="max-w-7xl mx-auto space-y-6">
-                {/* Header */}
                 <div className="flex justify-between items-start">
                     <div>
                         <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
@@ -289,7 +397,7 @@ export default function CommunicationHub() {
                             Communication Hub
                         </h1>
                         <p className="text-slate-600 mt-1">
-                            Send targeted messages and manage display announcements
+                            Send messages, manage announcements, and distribute statements
                         </p>
                     </div>
                 </div>
@@ -302,64 +410,298 @@ export default function CommunicationHub() {
                 )}
 
                 {/* Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <Card>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    <Card className="shadow-lg">
                         <CardContent className="p-4">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm text-slate-600">Total Messages</p>
+                                    <p className="text-sm text-slate-600">Messages</p>
                                     <p className="text-2xl font-bold">{stats.totalMessages}</p>
                                 </div>
-                                <Mail className="w-8 h-8 text-blue-500" />
+                                <Mail className="w-8 h-8 text-blue-500 opacity-50" />
                             </div>
                         </CardContent>
                     </Card>
-                    <Card>
+                    <Card className="shadow-lg">
                         <CardContent className="p-4">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm text-slate-600">Sent Successfully</p>
+                                    <p className="text-sm text-slate-600">Sent</p>
                                     <p className="text-2xl font-bold text-green-600">{stats.sentMessages}</p>
                                 </div>
-                                <CheckCircle className="w-8 h-8 text-green-500" />
+                                <CheckCircle className="w-8 h-8 text-green-500 opacity-50" />
                             </div>
                         </CardContent>
                     </Card>
-                    <Card>
+                    <Card className="shadow-lg">
                         <CardContent className="p-4">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm text-slate-600">Active Announcements</p>
+                                    <p className="text-sm text-slate-600">Announcements</p>
                                     <p className="text-2xl font-bold text-purple-600">{stats.scheduledAnnouncements}</p>
                                 </div>
-                                <Monitor className="w-8 h-8 text-purple-500" />
+                                <Monitor className="w-8 h-8 text-purple-500 opacity-50" />
                             </div>
                         </CardContent>
                     </Card>
-                    <Card>
+                    <Card className="shadow-lg">
                         <CardContent className="p-4">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm text-slate-600">Total Reached</p>
-                                    <p className="text-2xl font-bold text-orange-600">{stats.totalRecipients}</p>
+                                    <p className="text-sm text-slate-600">Total Members</p>
+                                    <p className="text-2xl font-bold">{members.length}</p>
                                 </div>
-                                <Users className="w-8 h-8 text-orange-500" />
+                                <Users className="w-8 h-8 text-blue-600 opacity-50" />
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <Card className="shadow-lg">
+                        <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm text-slate-600">Selected</p>
+                                    <p className="text-2xl font-bold">{selectedMembers.length + selectedGroups.length}</p>
+                                </div>
+                                <CheckCircle className="w-8 h-8 text-purple-600 opacity-50" />
                             </div>
                         </CardContent>
                     </Card>
                 </div>
 
-                <Tabs defaultValue="messages">
-                    <TabsList className="grid w-full max-w-md grid-cols-2">
+                <Tabs defaultValue="quick-send">
+                    <TabsList className="grid w-full max-w-2xl grid-cols-4">
+                        <TabsTrigger value="quick-send">
+                            <Send className="w-4 h-4 mr-2" />
+                            Quick Send
+                        </TabsTrigger>
+                        <TabsTrigger value="statements">
+                            <FileText className="w-4 h-4 mr-2" />
+                            Statements
+                        </TabsTrigger>
                         <TabsTrigger value="messages">
                             <Mail className="w-4 h-4 mr-2" />
-                            Targeted Messages
+                            Targeted
                         </TabsTrigger>
                         <TabsTrigger value="announcements">
                             <Monitor className="w-4 h-4 mr-2" />
-                            Display Announcements
+                            Displays
                         </TabsTrigger>
                     </TabsList>
+
+                    {/* Quick Send Tab */}
+                    <TabsContent value="quick-send" className="mt-6">
+                        <Card className="shadow-lg">
+                            <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50">
+                                <CardTitle className="flex items-center gap-2">
+                                    <Send className="w-5 h-5" />
+                                    Send Message / Announcement
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="pt-6 space-y-4">
+                                <div>
+                                    <Label>Subject</Label>
+                                    <Input
+                                        placeholder="Message subject"
+                                        value={subject}
+                                        onChange={(e) => setSubject(e.target.value)}
+                                    />
+                                </div>
+
+                                <div>
+                                    <Label>Message</Label>
+                                    <Textarea
+                                        placeholder="Type your message here..."
+                                        value={messageBody}
+                                        onChange={(e) => setMessageBody(e.target.value)}
+                                        rows={6}
+                                    />
+                                </div>
+
+                                <div className="grid sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <Label>Message Type</Label>
+                                        <Select value={messageType} onValueChange={setMessageType}>
+                                            <SelectTrigger>
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="general">General</SelectItem>
+                                                <SelectItem value="announcement">Announcement</SelectItem>
+                                                <SelectItem value="event_reminder">Event Reminder</SelectItem>
+                                                <SelectItem value="prayer_request">Prayer Request</SelectItem>
+                                                <SelectItem value="urgent">Urgent</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    <div>
+                                        <Label>Priority</Label>
+                                        <Select value={priority} onValueChange={setPriority}>
+                                            <SelectTrigger>
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="low">Low</SelectItem>
+                                                <SelectItem value="normal">Normal</SelectItem>
+                                                <SelectItem value="high">High</SelectItem>
+                                                <SelectItem value="urgent">Urgent</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <Label>Select Groups</Label>
+                                    <MultiSelect
+                                        options={groupOptions}
+                                        selected={selectedGroups}
+                                        onChange={setSelectedGroups}
+                                        placeholder="Select member groups..."
+                                    />
+                                </div>
+
+                                <div>
+                                    <Label>Select Individual Members</Label>
+                                    <MultiSelect
+                                        options={memberOptions}
+                                        selected={selectedMembers}
+                                        onChange={setSelectedMembers}
+                                        placeholder="Select members..."
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                        <Checkbox
+                                            checked={sendInApp}
+                                            onCheckedChange={setSendInApp}
+                                            id="send-in-app"
+                                        />
+                                        <Label htmlFor="send-in-app" className="cursor-pointer">
+                                            Send in-app notification
+                                        </Label>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Checkbox
+                                            checked={sendEmail}
+                                            onCheckedChange={setSendEmail}
+                                            id="send-email"
+                                        />
+                                        <Label htmlFor="send-email" className="cursor-pointer">
+                                            Send email notification
+                                        </Label>
+                                    </div>
+                                </div>
+
+                                <Button
+                                    onClick={handleQuickSendMessage}
+                                    disabled={isSending}
+                                    className="w-full bg-blue-600 hover:bg-blue-700"
+                                >
+                                    {isSending ? (
+                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    ) : (
+                                        <Send className="w-4 h-4 mr-2" />
+                                    )}
+                                    Send Message
+                                </Button>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+
+                    {/* Financial Statements Tab */}
+                    <TabsContent value="statements" className="mt-6">
+                        <Card className="shadow-lg">
+                            <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50">
+                                <CardTitle className="flex items-center gap-2">
+                                    <DollarSign className="w-5 h-5" />
+                                    Send Financial Statements
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="pt-6 space-y-4">
+                                <Alert className="bg-blue-50 border-blue-200">
+                                    <AlertCircle className="w-4 h-4 text-blue-600" />
+                                    <AlertDescription className="text-sm text-blue-900">
+                                        <p className="font-semibold mb-1">One-Click Statement Distribution</p>
+                                        <p>Automatically generate and send personalized giving statements to selected members or groups.</p>
+                                    </AlertDescription>
+                                </Alert>
+
+                                <div>
+                                    <Label>Custom Message (Optional)</Label>
+                                    <Textarea
+                                        placeholder="Add a personal message to include with the statement..."
+                                        value={messageBody}
+                                        onChange={(e) => setMessageBody(e.target.value)}
+                                        rows={4}
+                                    />
+                                </div>
+
+                                <div>
+                                    <Label>Select Groups</Label>
+                                    <MultiSelect
+                                        options={groupOptions}
+                                        selected={selectedGroups}
+                                        onChange={setSelectedGroups}
+                                        placeholder="Select member groups..."
+                                    />
+                                </div>
+
+                                <div>
+                                    <Label>Select Individual Members</Label>
+                                    <MultiSelect
+                                        options={memberOptions}
+                                        selected={selectedMembers}
+                                        onChange={setSelectedMembers}
+                                        placeholder="Select members..."
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                        <Checkbox
+                                            checked={sendInApp}
+                                            onCheckedChange={setSendInApp}
+                                            id="statements-in-app"
+                                        />
+                                        <Label htmlFor="statements-in-app" className="cursor-pointer">
+                                            Send to in-app messenger
+                                        </Label>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Checkbox
+                                            checked={sendEmail}
+                                            onCheckedChange={setSendEmail}
+                                            id="statements-email"
+                                        />
+                                        <Label htmlFor="statements-email" className="cursor-pointer">
+                                            Send via email
+                                        </Label>
+                                    </div>
+                                </div>
+
+                                <Alert className="bg-amber-50 border-amber-200">
+                                    <AlertCircle className="w-4 h-4 text-amber-600" />
+                                    <AlertDescription className="text-xs text-amber-900">
+                                        <strong>Note:</strong> Each recipient will receive their personalized statement with their individual donation totals and details.
+                                    </AlertDescription>
+                                </Alert>
+
+                                <Button
+                                    onClick={handleSendFinancialStatements}
+                                    disabled={isSending}
+                                    className="w-full bg-green-600 hover:bg-green-700"
+                                >
+                                    {isSending ? (
+                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    ) : (
+                                        <FileText className="w-4 h-4 mr-2" />
+                                    )}
+                                    Generate & Send Statements
+                                </Button>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
 
                     {/* Targeted Messages Tab */}
                     <TabsContent value="messages" className="mt-6">
@@ -369,7 +711,7 @@ export default function CommunicationHub() {
                                 className="bg-blue-600 hover:bg-blue-700"
                             >
                                 <Plus className="w-4 h-4 mr-2" />
-                                Create Message
+                                Create Targeted Message
                             </Button>
                         </div>
 
@@ -377,7 +719,7 @@ export default function CommunicationHub() {
                             <Card>
                                 <CardContent className="p-12 text-center">
                                     <Mail className="w-16 h-16 mx-auto mb-4 text-slate-300" />
-                                    <p className="text-slate-600 mb-4">No messages yet</p>
+                                    <p className="text-slate-600 mb-4">No targeted messages yet</p>
                                     <Button onClick={() => setShowMessageForm(true)}>
                                         Create Your First Message
                                     </Button>
@@ -508,7 +850,6 @@ export default function CommunicationHub() {
                                                 </Badge>
                                             </div>
                                             
-                                            {/* Preview */}
                                             <div 
                                                 className="p-3 rounded-lg mb-3 text-center"
                                                 style={{ 
@@ -551,7 +892,7 @@ export default function CommunicationHub() {
                                                     ) : (
                                                         <>
                                                             <Send className="w-4 h-4 mr-1" />
-                                                            Push to Displays
+                                                            Push
                                                         </>
                                                     )}
                                                 </Button>

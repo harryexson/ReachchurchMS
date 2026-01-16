@@ -1,5 +1,4 @@
 import AccountManagement from './pages/AccountManagement';
-import AdminMessaging from './pages/AdminMessaging';
 import AnalyticsDashboard from './pages/AnalyticsDashboard';
 import AutoDeviceSetup from './pages/AutoDeviceSetup';
 import BackOffice from './pages/BackOffice';
@@ -129,7 +128,6 @@ import __Layout from './Layout.jsx';
 
 export const PAGES = {
     "AccountManagement": AccountManagement,
-    "AdminMessaging": AdminMessaging,
     "AnalyticsDashboard": AnalyticsDashboard,
     "AutoDeviceSetup": AutoDeviceSetup,
     "BackOffice": BackOffice,

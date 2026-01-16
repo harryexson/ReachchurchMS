@@ -343,11 +343,7 @@ export default function Layout({ children, currentPageName }) {
       url: createPageUrl("Dashboard"),
       icon: Church,
     },
-    {
-      title: "Reach Messaging",
-      url: createPageUrl("AdminMessaging"),
-      icon: MessageSquare,
-    },
+
     {
       title: "Role Management",
       url: createPageUrl("RoleManagement"),
