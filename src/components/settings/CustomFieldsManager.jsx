@@ -171,7 +171,7 @@ export default function CustomFieldsManager() {
                                 <div>
                                     <Label>Field Type</Label>
                                     <Select
-                                        value={formData.field_type}
+                                        value={String(formData.field_type)}
                                         onValueChange={(value) => setFormData({...formData, field_type: value})}
                                     >
                                         <SelectTrigger>

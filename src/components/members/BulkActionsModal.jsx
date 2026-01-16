@@ -190,7 +190,7 @@ export default function BulkActionsModal({ isOpen, setIsOpen, selectedMembers, o
 
                     <div>
                         <Label>Action</Label>
-                        <Select value={action} onValueChange={setAction}>
+                        <Select value={String(action)} onValueChange={setAction}>
                             <SelectTrigger>
                                 <SelectValue />
                             </SelectTrigger>
@@ -285,13 +285,13 @@ export default function BulkActionsModal({ isOpen, setIsOpen, selectedMembers, o
                     {action === "addToGroup" && (
                         <div>
                             <Label>Select Group</Label>
-                            <Select value={groupToAdd} onValueChange={setGroupToAdd}>
+                            <Select value={String(groupToAdd)} onValueChange={setGroupToAdd}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Choose a group..." />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {memberGroups.map(group => (
-                                        <SelectItem key={group.id} value={group.id}>
+                                        <SelectItem key={group.id} value={String(group.id)}>
                                             {group.group_name}
                                         </SelectItem>
                                     ))}
