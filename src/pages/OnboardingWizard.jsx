@@ -23,7 +23,20 @@ export default function OnboardingWizardPage() {
         setIsLoading(false);
     };
 
-    const handleComplete = () => {
+    const handleComplete = async () => {
+        // Mark onboarding as complete for this user
+        try {
+            const progress = await base44.entities.OnboardingProgress.filter({ user_email: currentUser.email });
+            if (progress.length > 0) {
+                await base44.entities.OnboardingProgress.update(progress[0].id, {
+                    onboarding_completed: true,
+                    completion_date: new Date().toISOString()
+                });
+            }
+        } catch (error) {
+            console.error("Error updating onboarding progress:", error);
+        }
+
         if (currentUser?.role === 'admin') {
             window.location.href = createPageUrl('Dashboard');
         } else {
@@ -55,7 +68,7 @@ export default function OnboardingWizardPage() {
                     <OnboardingWizard
                         userEmail={currentUser.email}
                         userName={currentUser.full_name}
-                        userType="member"
+                        userType={currentUser.role === 'admin' ? 'admin' : 'member'}
                         onComplete={handleComplete}
                     />
                 </div>

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { User as UserIcon, Mail, Phone, MapPin, Calendar, Users, Upload, Plus, X, Loader2, Heart, Briefcase } from "lucide-react";
+import { User as UserIcon, Mail, Phone, MapPin, Calendar, Users, Upload, Plus, X, Loader2, Heart, Briefcase, Church } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from 'sonner';
 
@@ -16,6 +16,8 @@ export default function MyProfilePage() {
     const [formData, setFormData] = useState({});
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
+    const [churchSettings, setChurchSettings] = useState(null);
+    const [onboardingProgress, setOnboardingProgress] = useState(null);
     const [uploadingPhoto, setUploadingPhoto] = useState(false);
     const [newFamilyMember, setNewFamilyMember] = useState({ name: '', relationship: '', age: '', phone: '' });
     const [newEmergencyContact, setNewEmergencyContact] = useState({ name: '', relationship: '', phone: '', email: '' });
@@ -31,6 +33,18 @@ export default function MyProfilePage() {
         try {
             const user = await base44.auth.me();
             setCurrentUser(user);
+
+            // Load church settings
+            const settings = await base44.entities.ChurchSettings.list();
+            if (settings.length > 0) {
+                setChurchSettings(settings[0]);
+            }
+
+            // Load onboarding progress
+            const progress = await base44.entities.OnboardingProgress.filter({ user_email: user.email });
+            if (progress.length > 0) {
+                setOnboardingProgress(progress[0]);
+            }
 
             // Try to find linked member record
             const members = await base44.entities.Member.filter({ email: user.email });
@@ -207,6 +221,73 @@ export default function MyProfilePage() {
                                 )}
                             </div>
                         </div>
+                    </CardContent>
+                </Card>
+
+                {/* Church Information */}
+                <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-50 to-indigo-50">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Church className="w-5 h-5 text-blue-600" />
+                            My Church
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        {churchSettings ? (
+                            <>
+                                <div className="flex items-center gap-4">
+                                    {churchSettings.logo_url && (
+                                        <img 
+                                            src={churchSettings.logo_url} 
+                                            alt="Church Logo" 
+                                            className="w-16 h-16 object-contain rounded-lg bg-white p-2"
+                                        />
+                                    )}
+                                    <div>
+                                        <h3 className="text-xl font-bold text-slate-900">{churchSettings.church_name}</h3>
+                                        {churchSettings.tagline && (
+                                            <p className="text-sm text-slate-600">{churchSettings.tagline}</p>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {onboardingProgress && (
+                                    <div className="grid md:grid-cols-2 gap-4 mt-4">
+                                        {onboardingProgress.point_of_contact && (
+                                            <div className="bg-white p-3 rounded-lg">
+                                                <Label className="text-xs text-slate-600">Lead Pastor / Contact</Label>
+                                                <p className="font-medium text-slate-900">{onboardingProgress.point_of_contact}</p>
+                                            </div>
+                                        )}
+                                        {onboardingProgress.church_phone && (
+                                            <div className="bg-white p-3 rounded-lg">
+                                                <Label className="text-xs text-slate-600">Church Phone</Label>
+                                                <p className="font-medium text-slate-900">{onboardingProgress.church_phone}</p>
+                                            </div>
+                                        )}
+                                        {onboardingProgress.church_address && (
+                                            <div className="bg-white p-3 rounded-lg md:col-span-2">
+                                                <Label className="text-xs text-slate-600">Church Address</Label>
+                                                <p className="font-medium text-slate-900">{onboardingProgress.church_address}</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {!onboardingProgress?.church_phone && !onboardingProgress?.point_of_contact && (
+                                    <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                                        <p className="text-sm text-yellow-800">
+                                            Church contact information will appear here once your church administrators complete the onboarding process.
+                                        </p>
+                                    </div>
+                                )}
+                            </>
+                        ) : (
+                            <div className="text-center py-6">
+                                <Church className="w-12 h-12 text-slate-300 mx-auto mb-2" />
+                                <p className="text-slate-600 text-sm">Church information not available</p>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
 

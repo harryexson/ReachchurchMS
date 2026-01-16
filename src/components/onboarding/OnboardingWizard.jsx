@@ -20,7 +20,7 @@ const ONBOARDING_STEPS = [
     { id: 6, title: "Complete", icon: CheckCircle }
 ];
 
-export default function OnboardingWizard({ userEmail, userName, userType = "visitor", onComplete }) {
+export default function OnboardingWizard({ userEmail, userName, userType = "member", onComplete }) {
     const [currentStep, setCurrentStep] = useState(1);
     const [progress, setProgress] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -256,8 +256,10 @@ export default function OnboardingWizard({ userEmail, userName, userType = "visi
                                 Welcome to REACH Church Connect!
                             </h2>
                             <p className="text-slate-600 max-w-xl mx-auto">
-                                Let's get your church set up in just a few minutes. We'll help you configure your organization profile, 
-                                connect payment processing, and get everything ready for your ministry.
+                                {userType === 'admin' 
+                                    ? "Let's get your church set up in just a few minutes. We'll help you configure your organization profile, connect payment processing, and get everything ready for your ministry."
+                                    : "Welcome! Let's get to know your church better. This quick setup will help you get the most out of your church community experience."
+                                }
                             </p>
                             <div className="bg-blue-50 p-4 rounded-lg">
                                 <p className="text-sm text-blue-900">
@@ -270,7 +272,10 @@ export default function OnboardingWizard({ userEmail, userName, userType = "visi
                     {currentStep === 2 && (
                         <div className="space-y-4">
                             <p className="text-slate-600 mb-4">
-                                Tell us about your church or ministry organization.
+                                {userType === 'admin' 
+                                    ? "Tell us about your church or ministry organization."
+                                    : "Help us understand your church better. This information will be visible to all members."
+                                }
                             </p>
                             
                             <div>
@@ -353,9 +358,11 @@ export default function OnboardingWizard({ userEmail, userName, userType = "visi
 
                     {currentStep === 4 && (
                         <div className="space-y-6">
-                            <p className="text-slate-600 mb-4">
-                                Connect Stripe to accept online donations and process payments.
-                            </p>
+                            {userType === 'admin' ? (
+                                <>
+                                    <p className="text-slate-600 mb-4">
+                                        Connect Stripe to accept online donations and process payments.
+                                    </p>
 
                             <div className="bg-gradient-to-br from-purple-50 to-blue-50 p-6 rounded-lg border-2 border-purple-200">
                                 <div className="flex items-start gap-4 mb-4">
@@ -415,6 +422,22 @@ export default function OnboardingWizard({ userEmail, userName, userType = "visi
                                     I've added my bank account in Stripe
                                 </Label>
                             </div>
+                                </>
+                            ) : (
+                                <div className="text-center py-6">
+                                    <CreditCard className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                                    <h3 className="text-lg font-semibold text-slate-900 mb-2">Payment Processing</h3>
+                                    <p className="text-slate-600">
+                                        Your church administrators handle payment processing setup. Once configured, 
+                                        you'll be able to make donations online securely through the giving portal.
+                                    </p>
+                                    <div className="mt-4 bg-blue-50 p-4 rounded-lg">
+                                        <p className="text-sm text-blue-800">
+                                            ✓ All donations are processed securely through Stripe
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
 
