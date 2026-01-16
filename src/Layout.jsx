@@ -39,6 +39,7 @@ import {
                     Loader2
                   } from "lucide-react";
 import NotificationBell from "@/components/notifications/NotificationBell";
+import FloatingChat from "@/components/messaging/FloatingChat";
 import { Button } from "@/components/ui/button";
 
 const publicPages = [
@@ -949,6 +950,9 @@ export default function Layout({ children, currentPageName }) {
           onClick={() => setIsMobileMenuOpen(false)}
           />
           )}
+
+          {/* Floating Chat - Available on all authenticated pages */}
+          {currentUser && <FloatingChat />}
           </div>
           </>
           );
