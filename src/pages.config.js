@@ -1,4 +1,5 @@
 import AccountManagement from './pages/AccountManagement';
+import AdminMessaging from './pages/AdminMessaging';
 import AnalyticsDashboard from './pages/AnalyticsDashboard';
 import AutoDeviceSetup from './pages/AutoDeviceSetup';
 import BackOffice from './pages/BackOffice';
@@ -124,12 +125,12 @@ import VolunteerPortal from './pages/VolunteerPortal';
 import VolunteerRegistration from './pages/VolunteerRegistration';
 import Volunteers from './pages/Volunteers';
 import backoffice from './pages/backoffice';
-import AdminMessaging from './pages/AdminMessaging';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "AccountManagement": AccountManagement,
+    "AdminMessaging": AdminMessaging,
     "AnalyticsDashboard": AnalyticsDashboard,
     "AutoDeviceSetup": AutoDeviceSetup,
     "BackOffice": BackOffice,
@@ -255,7 +256,6 @@ export const PAGES = {
     "VolunteerRegistration": VolunteerRegistration,
     "Volunteers": Volunteers,
     "backoffice": backoffice,
-    "AdminMessaging": AdminMessaging,
 }
 
 export const pagesConfig = {

@@ -294,7 +294,7 @@ export default function LandingPage() {
                     </div>
 
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-                        {givingMethods.map((method, index) =>
+                        {givingMethods.map((method, index) => (
             <Card key={index} className="text-center hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-0 bg-white">
                                 <CardContent className="pt-8 pb-6">
                                     <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
@@ -467,7 +467,7 @@ export default function LandingPage() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {features.map((feature, index) =>
+                        {features.map((feature, index) => (
             <Card key={index} className={`group border-0 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 ${feature.unique ? 'ring-2 ring-amber-300' : ''}`}>
                                 <CardContent className="p-6">
                                     <div className="flex items-start justify-between mb-4">
@@ -492,7 +492,7 @@ export default function LandingPage() {
                                     )}
                                 </CardContent>
                             </Card>
-            )}
+            ))}
                     </div>
                 </div>
             </section>
@@ -706,7 +706,7 @@ export default function LandingPage() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        {testimonials.map((testimonial, index) =>
+                        {testimonials.map((testimonial, index) => (
             <Card key={index} className="border-0 shadow-xl bg-gradient-to-br from-white to-slate-50 hover:shadow-2xl transition-all duration-300">
                                 <CardContent className="p-8">
                                     <div className="flex mb-4">
@@ -725,7 +725,7 @@ export default function LandingPage() {
                                     </div>
                                 </CardContent>
                             </Card>
-            )}
+            ))}
                     </div>
                 </div>
             </section>
