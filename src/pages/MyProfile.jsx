@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { User as UserIcon, Mail, Phone, MapPin, Calendar, Users, Upload, Plus, X, Loader2, Heart, Briefcase } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { toast } from 'sonner';
 
 export default function MyProfilePage() {

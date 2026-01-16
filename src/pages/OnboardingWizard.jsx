@@ -55,7 +55,7 @@ export default function OnboardingWizardPage() {
                     <OnboardingWizard
                         userEmail={currentUser.email}
                         userName={currentUser.full_name}
-                        userType={currentUser.role === 'admin' ? 'member' : 'visitor'}
+                        userType="member"
                         onComplete={handleComplete}
                     />
                 </div>
