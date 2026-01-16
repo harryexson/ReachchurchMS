@@ -41,6 +41,7 @@ import HardwareRecommendations from './pages/HardwareRecommendations';
 import HardwareSetupWizard from './pages/HardwareSetupWizard';
 import HelpCenter from './pages/HelpCenter';
 import Home from './pages/Home';
+import InventoryManagement from './pages/InventoryManagement';
 import KidsCheckIn from './pages/KidsCheckIn';
 import KidsCheckOut from './pages/KidsCheckOut';
 import KidsPrinterSetup from './pages/KidsPrinterSetup';
@@ -61,6 +62,7 @@ import Messages from './pages/Messages';
 import MultimediaMessaging from './pages/MultimediaMessaging';
 import MyDonations from './pages/MyDonations';
 import MyGroups from './pages/MyGroups';
+import MyOrders from './pages/MyOrders';
 import MyProfile from './pages/MyProfile';
 import NetworkPrinterSetup from './pages/NetworkPrinterSetup';
 import NotificationSettings from './pages/NotificationSettings';
@@ -103,6 +105,7 @@ import SystemDiagnostics from './pages/SystemDiagnostics';
 import TermsOfService from './pages/TermsOfService';
 import TestingTasks from './pages/TestingTasks';
 import TextMessaging from './pages/TextMessaging';
+import ThemeSettings from './pages/ThemeSettings';
 import UserManagement from './pages/UserManagement';
 import UserRoleAssignment from './pages/UserRoleAssignment';
 import VideoMeeting from './pages/VideoMeeting';
@@ -120,10 +123,7 @@ import VolunteerPortal from './pages/VolunteerPortal';
 import VolunteerRegistration from './pages/VolunteerRegistration';
 import Volunteers from './pages/Volunteers';
 import backoffice from './pages/backoffice';
-import InventoryManagement from './pages/InventoryManagement';
-import MyOrders from './pages/MyOrders';
 import PeopleEngagement from './pages/PeopleEngagement';
-import ThemeSettings from './pages/ThemeSettings';
 import __Layout from './Layout.jsx';
 
 
@@ -171,6 +171,7 @@ export const PAGES = {
     "HardwareSetupWizard": HardwareSetupWizard,
     "HelpCenter": HelpCenter,
     "Home": Home,
+    "InventoryManagement": InventoryManagement,
     "KidsCheckIn": KidsCheckIn,
     "KidsCheckOut": KidsCheckOut,
     "KidsPrinterSetup": KidsPrinterSetup,
@@ -191,6 +192,7 @@ export const PAGES = {
     "MultimediaMessaging": MultimediaMessaging,
     "MyDonations": MyDonations,
     "MyGroups": MyGroups,
+    "MyOrders": MyOrders,
     "MyProfile": MyProfile,
     "NetworkPrinterSetup": NetworkPrinterSetup,
     "NotificationSettings": NotificationSettings,
@@ -233,6 +235,7 @@ export const PAGES = {
     "TermsOfService": TermsOfService,
     "TestingTasks": TestingTasks,
     "TextMessaging": TextMessaging,
+    "ThemeSettings": ThemeSettings,
     "UserManagement": UserManagement,
     "UserRoleAssignment": UserRoleAssignment,
     "VideoMeeting": VideoMeeting,
@@ -250,10 +253,7 @@ export const PAGES = {
     "VolunteerRegistration": VolunteerRegistration,
     "Volunteers": Volunteers,
     "backoffice": backoffice,
-    "InventoryManagement": InventoryManagement,
-    "MyOrders": MyOrders,
     "PeopleEngagement": PeopleEngagement,
-    "ThemeSettings": ThemeSettings,
 }
 
 export const pagesConfig = {
