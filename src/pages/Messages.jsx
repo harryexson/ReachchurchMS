@@ -640,7 +640,6 @@ export default function MessagesPage() {
                         )}
                     </div>
                 </div>
-            </div>
 
                 {/* New Message Dialog */}
                 <Dialog open={showNewMessage} onOpenChange={setShowNewMessage}>
@@ -719,7 +718,6 @@ export default function MessagesPage() {
                         </div>
                     </DialogContent>
                 </Dialog>
-            </div>
         </div>
     );
 }
