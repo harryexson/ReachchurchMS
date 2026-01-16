@@ -98,19 +98,18 @@ Deno.serve(async (req) => {
             last_message_sender: user.full_name
         });
 
-        // Create in-app notifications for each recipient
-        for (const recipientEmail of finalRecipients) {
-            await base44.asServiceRole.entities.Notification.create({
-                user_email: recipientEmail,
-                title: `New message from ${user.full_name}`,
-                message: subject || message_body.substring(0, 100),
+        // Send notifications for new messages
+        try {
+            await base44.asServiceRole.functions.invoke('sendNotifications', {
+                recipient_emails: finalRecipients,
+                title: `💬 New message from ${user.full_name}`,
+                message: subject && subject !== '(No Subject)' ? `${subject}\n\n${message_body.substring(0, 100)}...` : message_body.substring(0, 150) + '...',
                 type: 'message',
                 priority: priority || 'normal',
-                related_entity_type: 'InAppMessage',
-                related_entity_id: message.id,
-                link: '/messages',
-                is_read: false
+                action_url: threadIdToUse ? `/messages?thread=${threadIdToUse}` : '/messages'
             });
+        } catch (notifError) {
+            console.error('Failed to send message notification:', notifError);
         }
 
         // Send email notifications if requested
