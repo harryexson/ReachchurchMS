@@ -38,9 +38,10 @@ export function MultiSelect({
         onChange(selected.filter((item) => item !== value));
     };
 
-    const filteredOptions = options.filter((option) =>
-        option.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredOptions = options.filter((option) => {
+        const optionStr = typeof option === 'object' ? option.label || option.value : option;
+        return String(optionStr).toLowerCase().includes(searchTerm.toLowerCase());
+    });
 
     return (
         <div ref={containerRef} className={cn("relative", className)}>
@@ -53,25 +54,31 @@ export function MultiSelect({
             >
                 {selected.length > 0 ? (
                     <>
-                        {selected.map((value) => (
-                            <Badge
-                                key={value}
-                                variant="secondary"
-                                className="flex items-center gap-1 px-2 py-1"
-                            >
-                                <span>{value}</span>
-                                <button
-                                    type="button"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleRemove(value);
-                                    }}
-                                    className="ml-1 hover:text-red-600"
+                        {selected.map((value) => {
+                            const option = options.find(o => 
+                                typeof o === 'object' ? o.value === value : o === value
+                            );
+                            const displayLabel = typeof option === 'object' ? option.label : (option || value);
+                            return (
+                                <Badge
+                                    key={value}
+                                    variant="secondary"
+                                    className="flex items-center gap-1 px-2 py-1"
                                 >
-                                    <X className="h-3 w-3" />
-                                </button>
-                            </Badge>
-                        ))}
+                                    <span>{displayLabel}</span>
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleRemove(value);
+                                        }}
+                                        className="ml-1 hover:text-red-600"
+                                    >
+                                        <X className="h-3 w-3" />
+                                    </button>
+                                </Badge>
+                            );
+                        })}
                     </>
                 ) : (
                     <span className="text-slate-500">{placeholder}</span>
@@ -100,13 +107,15 @@ export function MultiSelect({
                             </div>
                         ) : (
                             filteredOptions.map((option) => {
-                                const isSelected = selected.includes(option);
+                                const optionValue = typeof option === 'object' ? option.value : option;
+                                const optionLabel = typeof option === 'object' ? option.label : option;
+                                const isSelected = selected.includes(optionValue);
                                 return (
                                     <div
-                                        key={option}
+                                        key={optionValue}
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            handleSelect(option);
+                                            handleSelect(optionValue);
                                         }}
                                         className={cn(
                                             "flex items-center gap-2 px-3 py-2 rounded-sm cursor-pointer transition-colors",
@@ -122,7 +131,7 @@ export function MultiSelect({
                                                 <Check className="h-3 w-3 text-white" />
                                             )}
                                         </div>
-                                        <span className="text-sm">{option}</span>
+                                        <span className="text-sm">{optionLabel}</span>
                                     </div>
                                 );
                             })
