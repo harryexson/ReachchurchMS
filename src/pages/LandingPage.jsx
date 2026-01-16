@@ -609,9 +609,9 @@ export default function LandingPage() {
                         </div>
                         <div className="bg-slate-700 rounded-xl p-6">
                             <div className="h-48 flex items-end justify-between gap-2">
-                                {[65, 72, 58, 85, 92, 78, 88, 95, 102, 110, 98, 115].map((height, i) =>
+                                {[65, 72, 58, 85, 92, 78, 88, 95, 102, 110, 98, 115].map((height, i) => (
                 <div key={i} className="flex-1 bg-gradient-to-t from-blue-600 to-indigo-500 rounded-t" style={{ height: `${height}%` }} />
-                )}
+                ))}
                             </div>
                             <div className="flex justify-between mt-4 text-xs text-slate-400">
                                 <span>Jan</span>
@@ -710,9 +710,9 @@ export default function LandingPage() {
             <Card key={index} className="border-0 shadow-xl bg-gradient-to-br from-white to-slate-50 hover:shadow-2xl transition-all duration-300">
                                 <CardContent className="p-8">
                                     <div className="flex mb-4">
-                                        {[...Array(5)].map((_, i) =>
+                                        {[...Array(5)].map((_, i) => (
                   <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
-                  )}
+                  ))}
                                     </div>
                                     <p className="text-slate-700 mb-6 italic leading-relaxed">"{testimonial.quote}"</p>
                                     <div className="border-t border-slate-200 pt-6">
