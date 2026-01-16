@@ -718,6 +718,7 @@ export default function MessagesPage() {
                         </div>
                     </DialogContent>
                 </Dialog>
+            </div>
         </div>
     );
 }
