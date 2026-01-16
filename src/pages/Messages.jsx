@@ -11,7 +11,9 @@ import { Label } from '@/components/ui/label';
 import { 
     MessageSquare, Send, Users, Search, Loader2, 
     Plus, ArrowLeft, Paperclip, AlertCircle, Bell,
-    Check, CheckCheck, UserPlus, Link as LinkIcon
+    Check, CheckCheck, UserPlus, Link as LinkIcon, Inbox,
+    Star, Archive, Trash2, MailOpen, Mail, Clock,
+    Filter, RefreshCw, MoreVertical, Flag, Reply, Forward
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
@@ -32,6 +34,8 @@ export default function MessagesPage() {
     const [myGroups, setMyGroups] = useState([]);
     const [groupName, setGroupName] = useState('');
     const [selectedParticipants, setSelectedParticipants] = useState([]);
+    const [filter, setFilter] = useState('all'); // all, unread, starred
+    const [starredThreads, setStarredThreads] = useState([]);
 
     useEffect(() => {
         loadData();
@@ -204,8 +208,23 @@ export default function MessagesPage() {
 
     const filteredThreads = threads.filter(thread => {
         const title = getThreadTitle(thread).toLowerCase();
-        return title.includes(searchQuery.toLowerCase());
+        const matchesSearch = title.includes(searchQuery.toLowerCase());
+        
+        if (filter === 'unread') {
+            return matchesSearch && getUnreadCount(thread) > 0;
+        } else if (filter === 'starred') {
+            return matchesSearch && starredThreads.includes(thread.id);
+        }
+        return matchesSearch;
     });
+
+    const toggleStar = (threadId) => {
+        setStarredThreads(prev => 
+            prev.includes(threadId) 
+                ? prev.filter(id => id !== threadId)
+                : [...prev, threadId]
+        );
+    };
 
     const handleCreateThread = async () => {
         if (selectedParticipants.length === 0) {
@@ -283,92 +302,184 @@ export default function MessagesPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30 p-6">
-            <div className="max-w-7xl mx-auto">
-                <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-                    <div className="flex items-center gap-3">
-                        <MessageSquare className="w-8 h-8 text-blue-600" />
-                        <h1 className="text-3xl font-bold text-slate-900">Messages</h1>
-                    </div>
-                    <div className="flex gap-2">
-                        <Button 
-                            onClick={() => setShowNewMessage(true)}
-                            className="bg-blue-600 hover:bg-blue-700"
-                        >
-                            <Plus className="w-4 h-4 mr-2" />
-                            New Message
-                        </Button>
-                        {currentUser?.role === 'admin' && (
+        <div className="min-h-screen bg-white">
+            <div className="h-screen flex flex-col">
+                {/* Email-style Header */}
+                <div className="bg-white border-b px-6 py-4">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <Mail className="w-6 h-6 text-blue-600" />
+                            <h1 className="text-2xl font-bold text-slate-900">Reach Messenger</h1>
+                        </div>
+                        <div className="flex items-center gap-2">
                             <Button 
-                                onClick={() => window.location.href = '/admin-messaging'}
-                                variant="outline"
+                                onClick={() => loadData()}
+                                variant="ghost"
+                                size="icon"
+                                title="Refresh"
                             >
-                                <Users className="w-4 h-4 mr-2" />
-                                Admin
+                                <RefreshCw className="w-4 h-4" />
                             </Button>
-                        )}
+                            <Button 
+                                onClick={() => setShowNewMessage(true)}
+                                className="bg-blue-600 hover:bg-blue-700"
+                            >
+                                <Plus className="w-4 h-4 mr-2" />
+                                Compose
+                            </Button>
+                            {currentUser?.role === 'admin' && (
+                                <Button 
+                                    onClick={() => window.location.href = '/admin-messaging'}
+                                    variant="outline"
+                                >
+                                    <Users className="w-4 h-4 mr-2" />
+                                    Admin
+                                </Button>
+                            )}
+                        </div>
                     </div>
                 </div>
 
-                <div className="grid lg:grid-cols-3 gap-6">
-                    {/* Threads List */}
-                    <Card className="lg:col-span-1 shadow-lg">
-                        <CardHeader>
-                            <CardTitle className="text-lg">Conversations</CardTitle>
-                            <div className="relative mt-4">
+                <div className="flex-1 flex overflow-hidden">
+                    {/* Sidebar */}
+                    <div className="w-64 border-r bg-slate-50 flex flex-col">
+                        {/* Filter Tabs */}
+                        <div className="p-4 space-y-1">
+                            <button
+                                onClick={() => setFilter('all')}
+                                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                                    filter === 'all' 
+                                        ? 'bg-blue-100 text-blue-700 font-medium' 
+                                        : 'text-slate-700 hover:bg-slate-200'
+                                }`}
+                            >
+                                <Inbox className="w-5 h-5" />
+                                <span>All Messages</span>
+                                {threads.length > 0 && (
+                                    <Badge className="ml-auto bg-slate-300 text-slate-700">
+                                        {threads.length}
+                                    </Badge>
+                                )}
+                            </button>
+                            <button
+                                onClick={() => setFilter('unread')}
+                                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                                    filter === 'unread' 
+                                        ? 'bg-blue-100 text-blue-700 font-medium' 
+                                        : 'text-slate-700 hover:bg-slate-200'
+                                }`}
+                            >
+                                <Mail className="w-5 h-5" />
+                                <span>Unread</span>
+                                {threads.filter(t => getUnreadCount(t) > 0).length > 0 && (
+                                    <Badge className="ml-auto bg-blue-600 text-white">
+                                        {threads.filter(t => getUnreadCount(t) > 0).length}
+                                    </Badge>
+                                )}
+                            </button>
+                            <button
+                                onClick={() => setFilter('starred')}
+                                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                                    filter === 'starred' 
+                                        ? 'bg-blue-100 text-blue-700 font-medium' 
+                                        : 'text-slate-700 hover:bg-slate-200'
+                                }`}
+                            >
+                                <Star className="w-5 h-5" />
+                                <span>Starred</span>
+                                {starredThreads.length > 0 && (
+                                    <Badge className="ml-auto bg-yellow-500 text-white">
+                                        {starredThreads.length}
+                                    </Badge>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Messages List */}
+                    <div className="flex-1 flex flex-col border-r bg-white">
+                        <div className="p-4 border-b">
+                            <div className="relative">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                                 <Input
-                                    placeholder="Search conversations..."
+                                    placeholder="Search messages..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     className="pl-10"
                                 />
                             </div>
-                        </CardHeader>
-                        <CardContent className="p-0 max-h-[600px] overflow-y-auto">
+                        </div>
+                        <div className="flex-1 overflow-y-auto">
                             {filteredThreads.length === 0 ? (
-                                <div className="p-8 text-center text-slate-500">
-                                    <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                                    <p>No conversations yet</p>
+                                <div className="p-12 text-center text-slate-500">
+                                    <Mail className="w-16 h-16 mx-auto mb-4 opacity-30" />
+                                    <p className="text-lg font-medium">No messages</p>
+                                    <p className="text-sm mt-1">Start a new conversation</p>
                                 </div>
                             ) : (
                                 filteredThreads.map(thread => (
                                     <button
                                         key={thread.id}
                                         onClick={() => handleSelectThread(thread)}
-                                        className={`w-full p-4 border-b hover:bg-slate-50 transition-colors text-left ${
+                                        className={`w-full p-4 border-b hover:bg-slate-50 transition-colors text-left flex items-center gap-3 ${
                                             selectedThread?.id === thread.id ? 'bg-blue-50 border-l-4 border-l-blue-600' : ''
-                                        }`}
+                                        } ${getUnreadCount(thread) > 0 ? 'bg-blue-50/30' : ''}`}
                                     >
-                                        <div className="flex items-start justify-between mb-1">
-                                            <p className="font-semibold text-slate-900 truncate flex-1">
-                                                {getThreadTitle(thread)}
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                toggleStar(thread.id);
+                                            }}
+                                            className="flex-shrink-0"
+                                        >
+                                            <Star 
+                                                className={`w-5 h-5 transition-colors ${
+                                                    starredThreads.includes(thread.id)
+                                                        ? 'fill-yellow-400 text-yellow-400'
+                                                        : 'text-slate-300 hover:text-yellow-400'
+                                                }`}
+                                            />
+                                        </button>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center justify-between mb-1">
+                                                <p className={`truncate ${
+                                                    getUnreadCount(thread) > 0 
+                                                        ? 'font-bold text-slate-900' 
+                                                        : 'font-medium text-slate-700'
+                                                }`}>
+                                                    {getThreadTitle(thread)}
+                                                </p>
+                                                <span className="text-xs text-slate-500 ml-2 flex-shrink-0">
+                                                    {format(new Date(thread.last_message_date), 'MMM d')}
+                                                </span>
+                                            </div>
+                                            <p className={`text-sm truncate ${
+                                                getUnreadCount(thread) > 0 
+                                                    ? 'text-slate-700 font-medium' 
+                                                    : 'text-slate-500'
+                                            }`}>
+                                                {thread.last_message_preview}
                                             </p>
-                                            {getUnreadCount(thread) > 0 && (
-                                                <Badge className="bg-blue-600 text-white ml-2">
-                                                    {getUnreadCount(thread)}
-                                                </Badge>
-                                            )}
                                         </div>
-                                        <p className="text-sm text-slate-600 truncate mb-1">
-                                            {thread.last_message_preview}
-                                        </p>
-                                        <p className="text-xs text-slate-500">
-                                            {format(new Date(thread.last_message_date), 'MMM d, h:mm a')}
-                                        </p>
+                                        {getUnreadCount(thread) > 0 && (
+                                            <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-semibold">
+                                                {getUnreadCount(thread)}
+                                            </div>
+                                        )}
                                     </button>
                                 ))
                             )}
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </div>
 
-                    {/* Message View */}
-                    <Card className="lg:col-span-2 shadow-lg">
+                    {/* Message View Panel */}
+                    <div className="flex-1 flex flex-col bg-white">
                         {selectedThread ? (
                             <>
-                                <CardHeader className="border-b">
+                                {/* Thread Header */}
+                                <div className="border-b px-6 py-4">
                                     <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
+                                        <div className="flex items-center gap-4">
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
@@ -378,107 +489,158 @@ export default function MessagesPage() {
                                                 <ArrowLeft className="w-5 h-5" />
                                             </Button>
                                             <div>
-                                                <CardTitle className="text-lg">
+                                                <h2 className="text-xl font-semibold text-slate-900">
                                                     {getThreadTitle(selectedThread)}
-                                                </CardTitle>
-                                                <p className="text-sm text-slate-600">
+                                                </h2>
+                                                <p className="text-sm text-slate-500 mt-0.5">
                                                     {selectedThread.participant_emails.length} participants
                                                 </p>
                                             </div>
                                         </div>
-                                    </div>
-                                </CardHeader>
-                                <CardContent className="p-6">
-                                    {/* Messages */}
-                                    <div className="space-y-4 mb-6 max-h-[400px] overflow-y-auto">
-                                        {messages.map(message => (
-                                            <div
-                                                key={message.id}
-                                                className={`flex ${
-                                                    message.sender_email === currentUser.email ? 'justify-end' : 'justify-start'
-                                                }`}
+                                        <div className="flex items-center gap-1">
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => toggleStar(selectedThread.id)}
                                             >
-                                                <div
-                                                    className={`max-w-[70%] rounded-lg p-4 ${
-                                                        message.sender_email === currentUser.email
-                                                            ? 'bg-blue-600 text-white'
-                                                            : 'bg-slate-100 text-slate-900'
+                                                <Star 
+                                                    className={`w-5 h-5 ${
+                                                        starredThreads.includes(selectedThread.id)
+                                                            ? 'fill-yellow-400 text-yellow-400'
+                                                            : 'text-slate-400'
                                                     }`}
-                                                >
-                                                    {message.subject && message.subject !== '(No Subject)' && (
-                                                        <p className="font-semibold mb-2">{message.subject}</p>
-                                                    )}
-                                                    <p className="whitespace-pre-wrap">{message.message_body}</p>
-                                                    {message.attachment_urls?.length > 0 && (
-                                                        <div className="mt-3 pt-3 border-t border-white/20">
-                                                            {message.attachment_urls.map((url, idx) => (
-                                                                <a
-                                                                    key={idx}
-                                                                    href={url}
-                                                                    target="_blank"
-                                                                    rel="noopener noreferrer"
-                                                                    className="flex items-center gap-2 text-sm underline"
-                                                                >
-                                                                    <Paperclip className="w-4 h-4" />
-                                                                    Attachment {idx + 1}
-                                                                </a>
-                                                            ))}
+                                                />
+                                            </Button>
+                                            <Button variant="ghost" size="icon">
+                                                <MoreVertical className="w-5 h-5" />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Messages Container */}
+                                <div className="flex-1 overflow-y-auto px-6 py-4 bg-slate-50">
+                                    <div className="space-y-6">
+                                        {messages.map(message => (
+                                            <div key={message.id} className="bg-white rounded-lg shadow-sm border p-5">
+                                                {/* Message Header */}
+                                                <div className="flex items-start justify-between mb-3">
+                                                    <div className="flex items-start gap-3">
+                                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold">
+                                                            {message.sender_name?.[0] || 'U'}
                                                         </div>
-                                                    )}
-                                                    <div className="flex items-center justify-between mt-2 text-xs opacity-70">
-                                                        <span>{format(new Date(message.sent_date), 'MMM d, h:mm a')}</span>
+                                                        <div>
+                                                            <p className="font-semibold text-slate-900">
+                                                                {message.sender_name || 'Unknown'}
+                                                            </p>
+                                                            <p className="text-xs text-slate-500">
+                                                                {format(new Date(message.sent_date), 'MMM d, yyyy • h:mm a')}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-1">
                                                         {message.sender_email === currentUser.email && (
-                                                            <span className="flex items-center gap-1">
+                                                            <div className="text-xs text-slate-500 flex items-center gap-1">
                                                                 {message.read_by?.length > 1 ? (
-                                                                    <CheckCheck className="w-4 h-4" />
+                                                                    <>
+                                                                        <CheckCheck className="w-4 h-4 text-blue-600" />
+                                                                        <span>Read</span>
+                                                                    </>
                                                                 ) : (
-                                                                    <Check className="w-4 h-4" />
+                                                                    <>
+                                                                        <Check className="w-4 h-4" />
+                                                                        <span>Sent</span>
+                                                                    </>
                                                                 )}
-                                                            </span>
+                                                            </div>
                                                         )}
                                                     </div>
                                                 </div>
+
+                                                {/* Subject */}
+                                                {message.subject && message.subject !== '(No Subject)' && (
+                                                    <h3 className="font-semibold text-slate-900 mb-2">
+                                                        {message.subject}
+                                                    </h3>
+                                                )}
+
+                                                {/* Message Body */}
+                                                <div className="text-slate-700 whitespace-pre-wrap mb-3">
+                                                    {message.message_body}
+                                                </div>
+
+                                                {/* Attachments */}
+                                                {message.attachment_urls?.length > 0 && (
+                                                    <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t">
+                                                        {message.attachment_urls.map((url, idx) => (
+                                                            <a
+                                                                key={idx}
+                                                                href={url}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="flex items-center gap-2 px-3 py-2 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors text-sm"
+                                                            >
+                                                                <Paperclip className="w-4 h-4 text-slate-600" />
+                                                                <span>Attachment {idx + 1}</span>
+                                                            </a>
+                                                        ))}
+                                                    </div>
+                                                )}
                                             </div>
                                         ))}
                                     </div>
 
-                                    {/* Reply Box */}
-                                    <div className="border-t pt-4">
-                                        <Textarea
-                                            placeholder="Type your message..."
-                                            value={newMessageBody}
-                                            onChange={(e) => setNewMessageBody(e.target.value)}
-                                            rows={3}
-                                            className="mb-3"
-                                        />
-                                        <div className="flex justify-end">
-                                            <Button
-                                                onClick={handleSendReply}
-                                                disabled={isSending || !newMessageBody.trim()}
-                                                className="bg-blue-600 hover:bg-blue-700"
-                                            >
-                                                {isSending ? (
-                                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                                ) : (
-                                                    <Send className="w-4 h-4 mr-2" />
-                                                )}
-                                                Send Message
-                                            </Button>
+                                    {/* Compose Reply */}
+                                    <div className="bg-white rounded-lg shadow-sm border p-4">
+                                        <div className="flex items-start gap-3">
+                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold">
+                                                {currentUser.full_name?.[0] || 'U'}
+                                            </div>
+                                            <div className="flex-1">
+                                                <Textarea
+                                                    placeholder="Write a reply..."
+                                                    value={newMessageBody}
+                                                    onChange={(e) => setNewMessageBody(e.target.value)}
+                                                    rows={3}
+                                                    className="border-0 focus-visible:ring-0 resize-none p-0"
+                                                />
+                                                <div className="flex items-center justify-between mt-3 pt-3 border-t">
+                                                    <div className="flex items-center gap-2">
+                                                        <Button variant="ghost" size="sm" className="text-slate-600">
+                                                            <Paperclip className="w-4 h-4 mr-1" />
+                                                            Attach
+                                                        </Button>
+                                                    </div>
+                                                    <Button
+                                                        onClick={handleSendReply}
+                                                        disabled={isSending || !newMessageBody.trim()}
+                                                        className="bg-blue-600 hover:bg-blue-700"
+                                                    >
+                                                        {isSending ? (
+                                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                        ) : (
+                                                            <Send className="w-4 h-4 mr-2" />
+                                                        )}
+                                                        Send
+                                                    </Button>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                </CardContent>
+                                </div>
                             </>
                         ) : (
-                            <CardContent className="flex items-center justify-center h-full min-h-[500px]">
-                                <div className="text-center text-slate-500">
-                                    <MessageSquare className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                                    <p className="text-lg font-medium mb-2">Select a conversation</p>
-                                    <p className="text-sm">Choose a conversation to view messages</p>
+                            <div className="flex-1 flex items-center justify-center">
+                                <div className="text-center text-slate-400">
+                                    <Mail className="w-24 h-24 mx-auto mb-4 opacity-20" />
+                                    <p className="text-xl font-medium mb-2">Select a message</p>
+                                    <p className="text-sm">Choose a conversation from your inbox</p>
                                 </div>
-                            </CardContent>
+                            </div>
                         )}
-                    </Card>
+                    </div>
                 </div>
+            </div>
 
                 {/* New Message Dialog */}
                 <Dialog open={showNewMessage} onOpenChange={setShowNewMessage}>
