@@ -318,9 +318,8 @@ export default function Layout({ children, currentPageName }) {
   };
 
   const handleLogin = async () => {
-    // Redirect to Base44 login page, then return to dashboard after authentication
-    const dashboardUrl = createPageUrl('Dashboard');
-    await base44.auth.redirectToLogin(dashboardUrl);
+    // Redirect to Base44 login page - let Layout redirect to appropriate page after auth
+    await base44.auth.redirectToLogin();
   };
 
   const handleRetry = () => {
@@ -750,11 +749,12 @@ export default function Layout({ children, currentPageName }) {
         }
 
   if (!currentUser && !authError) {
-        // User is not authenticated - redirect to login page
+        // User is not authenticated - redirect to login page with current page as next URL
         React.useEffect(() => {
-          const dashboardUrl = createPageUrl('Dashboard');
-          base44.auth.redirectToLogin(dashboardUrl);
-        }, []);
+          const currentPath = location.pathname;
+          const nextUrl = window.location.origin + currentPath;
+          base44.auth.redirectToLogin(nextUrl);
+        }, [location.pathname]);
 
         // Show loading while redirecting
         return (
