@@ -36,7 +36,8 @@ import {
                           Radio,
                           Wifi,
                           Bell,
-                          Loader2
+                          Loader2,
+                          Palette
                         } from "lucide-react";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import FloatingChat from "@/components/messaging/FloatingChat";
@@ -580,6 +581,16 @@ export default function Layout({ children, currentPageName }) {
       title: "Admin Messaging",
       url: createPageUrl("AdminMessaging"),
       icon: MessageSquare,
+    },
+    {
+      title: "People Engagement",
+      url: createPageUrl("PeopleEngagement"),
+      icon: Users,
+    },
+    {
+      title: "Theme Settings",
+      url: createPageUrl("ThemeSettings"),
+      icon: Palette,
     },
     {
       title: "Settings",

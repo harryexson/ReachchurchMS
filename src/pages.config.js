@@ -122,6 +122,8 @@ import Volunteers from './pages/Volunteers';
 import backoffice from './pages/backoffice';
 import InventoryManagement from './pages/InventoryManagement';
 import MyOrders from './pages/MyOrders';
+import PeopleEngagement from './pages/PeopleEngagement';
+import ThemeSettings from './pages/ThemeSettings';
 import __Layout from './Layout.jsx';
 
 
@@ -250,6 +252,8 @@ export const PAGES = {
     "backoffice": backoffice,
     "InventoryManagement": InventoryManagement,
     "MyOrders": MyOrders,
+    "PeopleEngagement": PeopleEngagement,
+    "ThemeSettings": ThemeSettings,
 }
 
 export const pagesConfig = {
