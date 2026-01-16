@@ -261,9 +261,29 @@ export default function OnboardingWizard({ userEmail, userName, userType = "memb
                                     : "Welcome! Let's get to know your church better. This quick setup will help you get the most out of your church community experience."
                                 }
                             </p>
-                            <div className="bg-blue-50 p-4 rounded-lg">
-                                <p className="text-sm text-blue-900">
-                                    ⏱️ This will take about 5-10 minutes
+                            <div className="bg-gradient-to-br from-blue-50 to-purple-50 p-6 rounded-lg border border-blue-200">
+                                <div className="grid md:grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                        <h4 className="font-semibold text-blue-900 mb-2">✨ What You Get:</h4>
+                                        <ul className="space-y-1 text-blue-800">
+                                            <li>• 6 ways to give (Kiosk, SMS, Online, App, QR, Checks)</li>
+                                            <li>• SMS & MMS campaigns (1,000 texts/mo)</li>
+                                            <li>• Video meetings (25-200 people)</li>
+                                            <li>• Kids check-in system</li>
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <h4 className="font-semibold text-purple-900 mb-2">🎯 Unique Features:</h4>
+                                        <ul className="space-y-1 text-purple-800">
+                                            <li>• Coffee shop POS & inventory</li>
+                                            <li>• PWA mobile app (no App Store!)</li>
+                                            <li>• Engagement scoring & at-risk alerts</li>
+                                            <li>• Automated visitor follow-up</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <p className="text-xs text-slate-600 mt-4 text-center">
+                                    ⏱️ Setup takes 5-10 minutes • Save $110-349/mo vs competitors
                                 </p>
                             </div>
                         </div>
