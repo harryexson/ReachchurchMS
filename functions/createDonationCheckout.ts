@@ -48,10 +48,16 @@ Deno.serve(async (req) => {
             donor_address,
             recurring,
             recurring_frequency,
+            success_url,
             successUrl, 
+            cancel_url,
             cancelUrl, 
             metadata = {} 
         } = body;
+
+        // Support both naming conventions
+        const finalSuccessUrl = success_url || successUrl;
+        const finalCancelUrl = cancel_url || cancelUrl;
 
         // Validation
         if (!amount || amount <= 0) {
@@ -70,7 +76,7 @@ Deno.serve(async (req) => {
             }, { status: 400 });
         }
 
-        if (!successUrl || !cancelUrl) {
+        if (!finalSuccessUrl || !finalCancelUrl) {
             console.error(`[${requestId}] ❌ Missing success/cancel URLs`);
             return Response.json({
                 error: 'Missing required URLs',
@@ -80,12 +86,12 @@ Deno.serve(async (req) => {
 
         console.log(`[${requestId}] Creating checkout for ${amount} ${currency}`);
         console.log(`[${requestId}] Donor: ${donor_name} (${donor_email})`);
-        console.log(`[${requestId}] Success URL: ${successUrl}`);
-        console.log(`[${requestId}] Cancel URL: ${cancelUrl}`);
+        console.log(`[${requestId}] Success URL: ${finalSuccessUrl}`);
+        console.log(`[${requestId}] Cancel URL: ${finalCancelUrl}`);
 
         // CRITICAL FIX: Ensure URLs are absolute and not in iframe context
-        const cleanSuccessUrl = successUrl.replace(/&?success=true/, '').split('?')[0] + '?success=true';
-        const cleanCancelUrl = cancelUrl.replace(/&?cancelled=true/, '').split('?')[0] + '?cancelled=true';
+        const cleanSuccessUrl = finalSuccessUrl.replace(/&?success=true/, '').split('?')[0] + '?success=true';
+        const cleanCancelUrl = finalCancelUrl.replace(/&?cancelled=true/, '').split('?')[0] + '?cancelled=true';
 
         console.log(`[${requestId}] Cleaned Success URL: ${cleanSuccessUrl}`);
         console.log(`[${requestId}] Cleaned Cancel URL: ${cleanCancelUrl}`);
@@ -252,6 +258,7 @@ Deno.serve(async (req) => {
 
         return Response.json({ 
             success: true,
+            url: session.url,
             checkout_url: session.url,
             session_id: session.id
         });

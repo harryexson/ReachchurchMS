@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import FeatureGate from "../components/subscription/FeatureGate";
 import { base44 } from "@/api/base44Client";
@@ -214,14 +213,13 @@ export default function CoffeeShopKioskPage() {
                     donor_email: customerInfo.email || (user ? user.email : "guest@example.com"),
                     donor_name: customerInfo.name || (user ? user.full_name : "Guest"),
                     donation_type: "coffee_shop_purchase",
-                    success_url: window.location.origin + createPageUrl('CoffeeShopKiosk') + '?order_id=' + createdOrder.id + '&success=true',
-                    cancel_url: window.location.origin + createPageUrl('CoffeeShopKiosk')
+                    successUrl: window.location.origin + createPageUrl('CoffeeShopKiosk') + '?order_id=' + createdOrder.id + '&success=true',
+                    cancelUrl: window.location.origin + createPageUrl('CoffeeShopKiosk')
                 });
 
-                if (checkoutResponse.data && checkoutResponse.data.url) {
-                    window.location.href = checkoutResponse.data.url;
-                    // The order status will be updated by a webhook after payment success.
-                    return; // Exit here, as user is redirected
+                if (checkoutResponse.data?.checkout_url) {
+                    window.location.href = checkoutResponse.data.checkout_url;
+                    return;
                 } else {
                     throw new Error("Failed to initiate payment. Please try again.");
                 }
