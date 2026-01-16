@@ -304,7 +304,7 @@ export default function LandingPage() {
                                     <p className="text-xs text-slate-600">{method.desc}</p>
                                 </CardContent>
                             </Card>
-            )}
+            ))}
                     </div>
 
                     <div className="mt-16 text-center">
