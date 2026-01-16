@@ -16,14 +16,7 @@ export default function AccountManagementPage() {
     const [currentUser, setCurrentUser] = useState(null);
     const [isRefreshing, setIsRefreshing] = useState(false);
 
-    useEffect(() => {
-        const loadData = async () => {
-            const user = await base44.auth.me();
-            setCurrentUser(user);
-        };
-        loadData();
-    }, []);
-
+    // CRITICAL: Call all hooks before any conditional returns
     const { 
         subscription, 
         features, 
@@ -34,6 +27,14 @@ export default function AccountManagementPage() {
         refresh,
         lastRefresh
     } = useSubscription();
+
+    useEffect(() => {
+        const loadData = async () => {
+            const user = await base44.auth.me();
+            setCurrentUser(user);
+        };
+        loadData();
+    }, []);
 
     const handleRefreshSubscription = async () => {
         setIsRefreshing(true);
