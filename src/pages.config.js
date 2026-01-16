@@ -124,6 +124,7 @@ import VolunteerPortal from './pages/VolunteerPortal';
 import VolunteerRegistration from './pages/VolunteerRegistration';
 import Volunteers from './pages/Volunteers';
 import backoffice from './pages/backoffice';
+import AdminMessaging from './pages/AdminMessaging';
 import __Layout from './Layout.jsx';
 
 
@@ -254,6 +255,7 @@ export const PAGES = {
     "VolunteerRegistration": VolunteerRegistration,
     "Volunteers": Volunteers,
     "backoffice": backoffice,
+    "AdminMessaging": AdminMessaging,
 }
 
 export const pagesConfig = {
