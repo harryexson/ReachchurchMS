@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -94,8 +93,21 @@ export default function BookstorePage() {
 
         const user = await base44.auth.me();
         
+        // Update product stock
+        for (const item of cart) {
+            const product = await base44.entities.Product.list();
+            const currentProduct = product.find(p => p.id === item.id);
+            if (currentProduct) {
+                await base44.entities.Product.update(item.id, {
+                    stock_quantity: Math.max(0, (currentProduct.stock_quantity || 0) - item.quantity),
+                    total_sold: (currentProduct.total_sold || 0) + item.quantity
+                });
+            }
+        }
+        
         // Create order
         const orderNumber = `ORD-${Date.now()}`;
+        const total = getCartTotal() * 1.08;
         const orderData = {
             order_number: orderNumber,
             order_type: "bookstore",
@@ -106,7 +118,7 @@ export default function BookstorePage() {
             payment_status: "pending",
             subtotal: getCartTotal(),
             tax_amount: getCartTotal() * 0.08,
-            total_amount: getCartTotal() * 1.08,
+            total_amount: total,
             order_items: cart.map(item => ({
                 product_id: item.id,
                 product_name: item.product_name,
@@ -119,9 +131,46 @@ export default function BookstorePage() {
         try {
             await base44.entities.Order.create(orderData);
             
-            // TODO: Integrate payment
-            alert(`Order placed! Total: $${(getCartTotal() * 1.08).toFixed(2)}\n\nYou can pick up your order at the church bookstore.`);
+            // Update loyalty points
+            const loyaltyRecords = await base44.entities.LoyaltyProgram.filter({
+                user_email: user.email
+            });
+
+            const pointsEarned = Math.floor(total);
+            
+            if (loyaltyRecords.length > 0) {
+                const loyalty = loyaltyRecords[0];
+                const newLifetimePoints = (loyalty.lifetime_points || 0) + pointsEarned;
+                let newTier = loyalty.tier;
+                
+                if (newLifetimePoints >= 5000) newTier = "platinum";
+                else if (newLifetimePoints >= 2000) newTier = "gold";
+                else if (newLifetimePoints >= 500) newTier = "silver";
+                
+                await base44.entities.LoyaltyProgram.update(loyalty.id, {
+                    points_balance: (loyalty.points_balance || 0) + pointsEarned,
+                    lifetime_points: newLifetimePoints,
+                    tier: newTier,
+                    total_purchases: (loyalty.total_purchases || 0) + 1,
+                    total_spent: (loyalty.total_spent || 0) + total,
+                    last_purchase_date: new Date().toISOString()
+                });
+            } else {
+                await base44.entities.LoyaltyProgram.create({
+                    user_email: user.email,
+                    user_name: user.full_name,
+                    points_balance: pointsEarned,
+                    lifetime_points: pointsEarned,
+                    tier: "bronze",
+                    total_purchases: 1,
+                    total_spent: total,
+                    last_purchase_date: new Date().toISOString()
+                });
+            }
+            
+            alert(`Order placed! Total: $${total.toFixed(2)}\n\nYou earned ${pointsEarned} loyalty points!\n\nYou can pick up your order at the church bookstore.`);
             setCart([]);
+            loadProducts();
         } catch (error) {
             console.error("Order error:", error);
             alert("Failed to place order. Please try again.");

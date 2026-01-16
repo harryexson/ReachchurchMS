@@ -178,6 +178,18 @@ export default function CoffeeShopKioskPage() {
             const user = await base44.auth.me();
             const orderNumber = `ORD-${Date.now().toString().slice(-6)}`;
 
+            // Update product stock
+            for (const item of cart) {
+                const product = await base44.entities.Product.list();
+                const currentProduct = product.find(p => p.id === item.id);
+                if (currentProduct) {
+                    await base44.entities.Product.update(item.id, {
+                        stock_quantity: Math.max(0, (currentProduct.stock_quantity || 0) - item.quantity),
+                        total_sold: (currentProduct.total_sold || 0) + item.quantity
+                    });
+                }
+            }
+
             const orderData = {
                 order_number: orderNumber,
                 order_type: "coffee_shop",
@@ -191,13 +203,13 @@ export default function CoffeeShopKioskPage() {
                 subtotal: subtotal,
                 tax_amount: tax,
                 total_amount: total,
-                order_items: cart.map(item => ({ // Ensure order_items match schema Product model
+                order_items: cart.map(item => ({
                     product_id: item.id,
                     product_name: item.product_name,
                     quantity: item.quantity,
                     unit_price: item.price,
                     customizations: item.customizations,
-                    subtotal: getItemTotal(item), // Subtotal for this specific item quantity
+                    subtotal: getItemTotal(item),
                 })),
                 special_instructions: specialInstructions,
                 pickup_time: orderType === 'pre-order' ? pickupTime : null,
@@ -206,6 +218,45 @@ export default function CoffeeShopKioskPage() {
             };
 
             const createdOrder = await base44.entities.Order.create(orderData);
+
+            // Update loyalty points if user is authenticated
+            if (user && user.email) {
+                const loyaltyRecords = await base44.entities.LoyaltyProgram.filter({
+                    user_email: user.email
+                });
+
+                const pointsEarned = Math.floor(total);
+                
+                if (loyaltyRecords.length > 0) {
+                    const loyalty = loyaltyRecords[0];
+                    const newLifetimePoints = (loyalty.lifetime_points || 0) + pointsEarned;
+                    let newTier = loyalty.tier;
+                    
+                    if (newLifetimePoints >= 5000) newTier = "platinum";
+                    else if (newLifetimePoints >= 2000) newTier = "gold";
+                    else if (newLifetimePoints >= 500) newTier = "silver";
+                    
+                    await base44.entities.LoyaltyProgram.update(loyalty.id, {
+                        points_balance: (loyalty.points_balance || 0) + pointsEarned,
+                        lifetime_points: newLifetimePoints,
+                        tier: newTier,
+                        total_purchases: (loyalty.total_purchases || 0) + 1,
+                        total_spent: (loyalty.total_spent || 0) + total,
+                        last_purchase_date: new Date().toISOString()
+                    });
+                } else {
+                    await base44.entities.LoyaltyProgram.create({
+                        user_email: user.email,
+                        user_name: user.full_name,
+                        points_balance: pointsEarned,
+                        lifetime_points: pointsEarned,
+                        tier: "bronze",
+                        total_purchases: 1,
+                        total_spent: total,
+                        last_purchase_date: new Date().toISOString()
+                    });
+                }
+            }
 
             if (paymentMethod === 'credit_card') {
                 const checkoutResponse = await base44.functions.invoke('createDonationCheckout', {
