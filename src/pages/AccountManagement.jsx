@@ -16,6 +16,14 @@ export default function AccountManagementPage() {
     const [currentUser, setCurrentUser] = useState(null);
     const [isRefreshing, setIsRefreshing] = useState(false);
 
+    useEffect(() => {
+        const loadData = async () => {
+            const user = await base44.auth.me();
+            setCurrentUser(user);
+        };
+        loadData();
+    }, []);
+
     const { 
         subscription, 
         features, 
@@ -26,15 +34,6 @@ export default function AccountManagementPage() {
         refresh,
         lastRefresh
     } = useSubscription();
-
-    useEffect(() => {
-        loadData();
-    }, []);
-
-    const loadData = async () => {
-        const user = await base44.auth.me();
-        setCurrentUser(user);
-    };
 
     const handleRefreshSubscription = async () => {
         setIsRefreshing(true);
