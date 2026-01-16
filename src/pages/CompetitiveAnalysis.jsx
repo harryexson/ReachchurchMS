@@ -183,13 +183,13 @@ export default function CompetitiveAnalysis() {
         }
     ];
 
-    // REACH Church Connect Pricing & Positioning
+    // REACH Church Connect Pricing & Positioning (Revised Jan 2026)
     const reachPricing = {
         starter: {
             name: "Starter",
-            price: 65,
-            annualPrice: 624,
-            memberLimit: 100,
+            price: 49,
+            annualPrice: 470,
+            memberLimit: 150,
             features: [
                 "Member Management (100 limit)",
                 "Event Planning & Calendar",
@@ -204,9 +204,9 @@ export default function CompetitiveAnalysis() {
         },
         growth: {
             name: "Growth",
-            price: 149,
-            annualPrice: 1430,
-            memberLimit: 500,
+            price: 119,
+            annualPrice: 1140,
+            memberLimit: 750,
             features: [
                 "Everything in Starter",
                 "📱 SMS Messaging (1,000 msgs/month)",
@@ -225,8 +225,8 @@ export default function CompetitiveAnalysis() {
         },
         premium: {
             name: "Premium",
-            price: 299,
-            annualPrice: 2870,
+            price: 249,
+            annualPrice: 2390,
             memberLimit: "Unlimited",
             features: [
                 "Everything in Growth",
@@ -244,11 +244,12 @@ export default function CompetitiveAnalysis() {
         }
     };
 
-    // Pricing Comparison Data
+    // Pricing Comparison Data (Updated for competitiveness)
     const pricingComparisonData = [
-        { name: 'REACH Growth', price: 149, color: '#3b82f6' },
-        { name: 'Tithe.ly All Access', price: 119, color: '#10b981' },
+        { name: 'REACH Starter', price: 49, color: '#10b981' },
+        { name: 'REACH Growth', price: 119, color: '#3b82f6' },
         { name: 'Breeze ChMS', price: 72, color: '#8b5cf6' },
+        { name: 'Tithe.ly All Access', price: 119, color: '#14b8a6' },
         { name: 'Planning Center (typical)', price: 200, color: '#f59e0b' },
         { name: 'Pushpay Core', price: 199, color: '#ef4444' },
         { name: 'Subsplash Standard', price: 199, color: '#ec4899' },
@@ -271,21 +272,21 @@ export default function CompetitiveAnalysis() {
         { feature: "API Access", reach: "✅ Premium", tithelyBreeze: "❌", planningCenter: "✅", pushpay: "✅", subsplash: "✅" },
     ];
 
-    // Annual TCO Comparison
+    // Annual TCO Comparison (Updated with new competitive pricing)
     const annualTCOData = [
         { 
             name: 'REACH Growth', 
-            base: 1788, 
+            base: 1428, 
             addons: 0, 
-            total: 1788,
-            includes: "SMS, MMS, Video, Kids Check-in, Kiosk, Coffee POS, Bookstore"
+            total: 1428,
+            includes: "All-inclusive: SMS, MMS, Video, Kids Check-in, Kiosk, Coffee POS, Bookstore"
         },
         { 
             name: 'Tithe.ly All Access', 
             base: 1428, 
             addons: 600, 
             total: 2028,
-            includes: "Base $119 + Extra SMS $50/mo typical"
+            includes: "Base $119 + Extra SMS ($50/mo) + Limited features"
         },
         { 
             name: 'Planning Center Full', 
@@ -299,7 +300,7 @@ export default function CompetitiveAnalysis() {
             base: 3588, 
             addons: 600, 
             total: 4188,
-            includes: "$299/mo base + typical add-ons"
+            includes: "$299/mo base + typical add-ons + processing fees"
         },
     ];
 
@@ -670,28 +671,32 @@ export default function CompetitiveAnalysis() {
                                         Recommended Pricing Strategy
                                     </h3>
                                     <div className="grid md:grid-cols-3 gap-6">
-                                        <div className="text-center p-4 bg-white rounded-lg">
-                                            <div className="text-sm text-slate-600 mb-1">Starter</div>
-                                            <div className="text-3xl font-bold text-slate-900">$65/mo</div>
-                                            <div className="text-xs text-green-600 mt-1">Undercut Breeze $72</div>
-                                        </div>
-                                        <div className="text-center p-4 bg-blue-100 rounded-lg border-2 border-blue-400">
-                                            <div className="text-sm text-blue-700 font-semibold mb-1">Growth (Best Value)</div>
-                                            <div className="text-3xl font-bold text-blue-900">$149/mo</div>
-                                            <div className="text-xs text-blue-600 mt-1">More value than $200+ competitors</div>
-                                        </div>
-                                        <div className="text-center p-4 bg-white rounded-lg">
-                                            <div className="text-sm text-slate-600 mb-1">Premium</div>
-                                            <div className="text-3xl font-bold text-slate-900">$299/mo</div>
-                                            <div className="text-xs text-green-600 mt-1">40% less than Pushpay Complete</div>
-                                        </div>
+                                       <div className="text-center p-4 bg-white rounded-lg">
+                                           <div className="text-sm text-slate-600 mb-1">Starter</div>
+                                           <div className="text-3xl font-bold text-green-900">$49/mo</div>
+                                           <div className="text-xs text-green-600 mt-1 font-semibold">32% cheaper than Breeze!</div>
+                                           <div className="text-xs text-slate-500">150 members (vs Breeze's unlimited)</div>
+                                       </div>
+                                       <div className="text-center p-4 bg-blue-100 rounded-lg border-2 border-blue-400">
+                                           <div className="text-sm text-blue-700 font-semibold mb-1">Growth (Best Value)</div>
+                                           <div className="text-3xl font-bold text-blue-900">$119/mo</div>
+                                           <div className="text-xs text-blue-600 mt-1 font-semibold">Same as Tithe.ly but MORE features!</div>
+                                           <div className="text-xs text-blue-700">SMS/MMS/Video included (they charge extra)</div>
+                                       </div>
+                                       <div className="text-center p-4 bg-white rounded-lg">
+                                           <div className="text-sm text-slate-600 mb-1">Premium</div>
+                                           <div className="text-3xl font-bold text-slate-900">$249/mo</div>
+                                           <div className="text-xs text-green-600 mt-1 font-semibold">50% less than Pushpay Complete</div>
+                                           <div className="text-xs text-slate-500">Unlimited everything</div>
+                                       </div>
                                     </div>
-                                    <div className="mt-4 p-3 bg-white rounded-lg">
-                                        <div className="text-sm text-slate-700">
-                                            <strong>💡 Strategy:</strong> Position Growth tier as the "sweet spot" - 
-                                            more features than Tithe.ly All Access ($119) at only $30 more, 
-                                            with SMS/MMS/Video that competitors charge $100+/mo extra for.
-                                        </div>
+                                    <div className="mt-4 p-3 bg-white rounded-lg border-2 border-green-300">
+                                       <div className="text-sm text-slate-700">
+                                           <strong>💡 Aggressive Pricing Strategy:</strong> Growth tier now matches Tithe.ly All Access at $119/mo 
+                                           but includes SMS (1,000/mo), MMS (10/mo), Video Meetings (25 seats), Kids Check-in, 
+                                           Coffee Shop POS, and Bookstore - features that would cost $100-200/mo extra with competitors. 
+                                           <span className="text-green-700 font-semibold"> Total savings: $1,200-2,400/year!</span>
+                                       </div>
                                     </div>
                                 </div>
                             </CardContent>

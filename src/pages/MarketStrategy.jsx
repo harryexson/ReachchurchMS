@@ -17,11 +17,11 @@ export default function MarketStrategyPage() {
     const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
     const reportRef = useRef(null);
 
-    // CURRENT REACH PRICING (as of Nov 2024)
+    // REVISED COMPETITIVE REACH PRICING (Jan 2026) - More aggressive to compete
     const reachPricing = {
-        starter: { name: "Starter", monthly: 65, annual: 624, members: 100 },
-        growth: { name: "Growth", monthly: 149, annual: 1430, members: 500 },
-        premium: { name: "Premium", monthly: 299, annual: 2870, members: "Unlimited" }
+        starter: { name: "Starter", monthly: 49, annual: 470, members: 150 },
+        growth: { name: "Growth", monthly: 119, annual: 1140, members: 750 },
+        premium: { name: "Premium", monthly: 249, annual: 2390, members: "Unlimited" }
     };
 
     // COMPETITOR PRICING (Current as of Nov 2024)
@@ -66,9 +66,9 @@ export default function MarketStrategyPage() {
 
     // Pricing comparison chart data
     const pricingComparisonData = [
-        { name: 'REACH Starter', price: 65, color: '#3b82f6' },
-        { name: 'REACH Growth', price: 149, color: '#8b5cf6' },
-        { name: 'REACH Premium', price: 299, color: '#6366f1' },
+        { name: 'REACH Starter', price: 49, color: '#3b82f6' },
+        { name: 'REACH Growth', price: 119, color: '#8b5cf6' },
+        { name: 'REACH Premium', price: 249, color: '#6366f1' },
         { name: 'Tithe.ly All Access', price: 119, color: '#10b981' },
         { name: 'Breeze ChMS', price: 72, color: '#14b8a6' },
         { name: 'Planning Center (avg)', price: 200, color: '#f59e0b' },
@@ -92,12 +92,12 @@ export default function MarketStrategyPage() {
         { feature: "Financial Reports", reach: "✅ Growth tier", competitor: "⚠️ Premium only" },
     ];
 
-    // Annual TCO comparison
+    // Annual TCO comparison (Updated with new competitive pricing)
     const tcoComparisonData = [
-        { name: 'REACH Growth', cost: 1788, savings: 0 },
-        { name: 'Tithe.ly + SMS', cost: 2028, savings: 240 },
-        { name: 'Planning Center Full', cost: 3228, savings: 1440 },
-        { name: 'Pushpay Advanced', cost: 4188, savings: 2400 },
+        { name: 'REACH Growth', cost: 1428, savings: 0 },
+        { name: 'Tithe.ly + SMS', cost: 2028, savings: 600 },
+        { name: 'Planning Center Full', cost: 3228, savings: 1800 },
+        { name: 'Pushpay Advanced', cost: 4188, savings: 2760 },
     ];
 
     // Growth projections
