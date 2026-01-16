@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle, ArrowRight, ArrowLeft, Building, CreditCard, Settings, User, Phone, DollarSign } from "lucide-react";
+import { CheckCircle, ArrowRight, ArrowLeft, Building, CreditCard, Settings, User, Phone, DollarSign, Smartphone } from "lucide-react";
 import confetti from "canvas-confetti";
 
 const ONBOARDING_STEPS = [
@@ -16,7 +16,8 @@ const ONBOARDING_STEPS = [
     { id: 2, title: "Organization", icon: Building },
     { id: 3, title: "Contact Info", icon: Phone },
     { id: 4, title: "Stripe Connect", icon: CreditCard },
-    { id: 5, title: "Complete", icon: CheckCircle }
+    { id: 5, title: "Mobile & PWA", icon: Smartphone },
+    { id: 6, title: "Complete", icon: CheckCircle }
 ];
 
 export default function OnboardingWizard({ userEmail, userName, userType = "visitor", onComplete }) {
@@ -129,7 +130,7 @@ export default function OnboardingWizard({ userEmail, userName, userType = "visi
             updates.bank_account_added = formData.bank_account_added;
         }
 
-        if (nextStep > 5) {
+        if (nextStep > 6) {
             updates.onboarding_completed = true;
             updates.completion_date = new Date().toISOString();
 
@@ -144,7 +145,7 @@ export default function OnboardingWizard({ userEmail, userName, userType = "visi
         }
 
         await updateProgress(updates);
-        if (nextStep <= 5) {
+        if (nextStep <= 6) {
             setCurrentStep(nextStep);
         }
     };
@@ -418,6 +419,49 @@ export default function OnboardingWizard({ userEmail, userName, userType = "visi
                     )}
 
                     {currentStep === 5 && (
+                        <div className="space-y-6">
+                            <p className="text-slate-600 mb-4">
+                                Your app is already mobile-ready with Progressive Web App (PWA) features!
+                            </p>
+
+                            <div className="bg-gradient-to-br from-purple-50 to-blue-50 p-6 rounded-lg border-2 border-purple-200">
+                                <div className="flex items-start gap-4 mb-4">
+                                    <Smartphone className="w-10 h-10 text-purple-600 flex-shrink-0" />
+                                    <div>
+                                        <h3 className="font-bold text-slate-900 mb-2">Mobile Features Enabled</h3>
+                                        <ul className="text-sm text-slate-700 space-y-2">
+                                            <li className="flex items-start gap-2">
+                                                <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                                                <span><strong>Install on Home Screen:</strong> Members can install your app like a native app - no App Store needed!</span>
+                                            </li>
+                                            <li className="flex items-start gap-2">
+                                                <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                                                <span><strong>Push Notifications:</strong> Send instant alerts for announcements and events</span>
+                                            </li>
+                                            <li className="flex items-start gap-2">
+                                                <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                                                <span><strong>Mobile Navigation:</strong> Beautiful bottom nav bar optimized for phones</span>
+                                            </li>
+                                            <li className="flex items-start gap-2">
+                                                <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                                                <span><strong>Offline Support:</strong> Clear indicators when connection is lost</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                                <h4 className="font-semibold text-blue-900 mb-2">💡 Pro Tip</h4>
+                                <p className="text-sm text-blue-800">
+                                    Members will see an automatic prompt to install the app after using it for a few seconds. 
+                                    They can also install it manually from their browser menu: "Add to Home Screen" or "Install App"
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
+                    {currentStep === 6 && (
                         <div className="text-center space-y-4">
                             <CheckCircle className="w-16 h-16 text-green-600 mx-auto" />
                             <h2 className="text-2xl font-bold text-slate-900">
@@ -470,7 +514,7 @@ export default function OnboardingWizard({ userEmail, userName, userType = "visi
                                 (currentStep === 3 && (!formData.point_of_contact || !formData.contact_phone))
                             }
                         >
-                            {currentStep === 5 ? 'Complete Setup & Go to Dashboard' : 'Next'}
+                            {currentStep === 6 ? 'Complete Setup & Go to Dashboard' : 'Next'}
                             <ArrowRight className="w-4 h-4 ml-2" />
                         </Button>
                     </div>
