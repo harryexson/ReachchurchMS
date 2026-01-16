@@ -68,6 +68,7 @@ import NetworkPrinterSetup from './pages/NetworkPrinterSetup';
 import NotificationSettings from './pages/NotificationSettings';
 import OnboardingProgress from './pages/OnboardingProgress';
 import OnboardingWizard from './pages/OnboardingWizard';
+import PeopleEngagement from './pages/PeopleEngagement';
 import PrinterSetup from './pages/PrinterSetup';
 import PrivacyConsent from './pages/PrivacyConsent';
 import PrivacyPolicy from './pages/PrivacyPolicy';
@@ -123,7 +124,6 @@ import VolunteerPortal from './pages/VolunteerPortal';
 import VolunteerRegistration from './pages/VolunteerRegistration';
 import Volunteers from './pages/Volunteers';
 import backoffice from './pages/backoffice';
-import PeopleEngagement from './pages/PeopleEngagement';
 import __Layout from './Layout.jsx';
 
 
@@ -198,6 +198,7 @@ export const PAGES = {
     "NotificationSettings": NotificationSettings,
     "OnboardingProgress": OnboardingProgress,
     "OnboardingWizard": OnboardingWizard,
+    "PeopleEngagement": PeopleEngagement,
     "PrinterSetup": PrinterSetup,
     "PrivacyConsent": PrivacyConsent,
     "PrivacyPolicy": PrivacyPolicy,
@@ -253,7 +254,6 @@ export const PAGES = {
     "VolunteerRegistration": VolunteerRegistration,
     "Volunteers": Volunteers,
     "backoffice": backoffice,
-    "PeopleEngagement": PeopleEngagement,
 }
 
 export const pagesConfig = {
