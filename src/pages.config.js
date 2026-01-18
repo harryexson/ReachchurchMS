@@ -29,6 +29,8 @@ import DonorPortal from './pages/DonorPortal';
 import EditMMSCampaign from './pages/EditMMSCampaign';
 import EventRegistration from './pages/EventRegistration';
 import Events from './pages/Events';
+import FAQ from './pages/FAQ';
+import Features from './pages/Features';
 import FinancialManagement from './pages/FinancialManagement';
 import FinancialReports from './pages/FinancialReports';
 import Forum from './pages/Forum';
@@ -115,19 +117,17 @@ import VideoMeetings from './pages/VideoMeetings';
 import ViewMMS from './pages/ViewMMS';
 import ViewMMSCampaign from './pages/ViewMMSCampaign';
 import VisitorAnalytics from './pages/VisitorAnalytics';
+import Visitors from './pages/Visitors';
 import VisitorFollowUp from './pages/VisitorFollowUp';
 import VisitorQRCode from './pages/VisitorQRCode';
 import VisitorQRDisplay from './pages/VisitorQRDisplay';
 import VisitorSMSWorkflows from './pages/VisitorSMSWorkflows';
-import Visitors from './pages/Visitors';
 import VolunteerConfirm from './pages/VolunteerConfirm';
 import VolunteerPortal from './pages/VolunteerPortal';
 import VolunteerRegistration from './pages/VolunteerRegistration';
 import Volunteers from './pages/Volunteers';
-import backoffice from './pages/backoffice';
-import Features from './pages/Features';
-import FAQ from './pages/FAQ';
 import WhyReach from './pages/WhyReach';
+import backoffice from './pages/backoffice';
 import __Layout from './Layout.jsx';
 
 
@@ -163,6 +163,8 @@ export const PAGES = {
     "EditMMSCampaign": EditMMSCampaign,
     "EventRegistration": EventRegistration,
     "Events": Events,
+    "FAQ": FAQ,
+    "Features": Features,
     "FinancialManagement": FinancialManagement,
     "FinancialReports": FinancialReports,
     "Forum": Forum,
@@ -249,19 +251,17 @@ export const PAGES = {
     "ViewMMS": ViewMMS,
     "ViewMMSCampaign": ViewMMSCampaign,
     "VisitorAnalytics": VisitorAnalytics,
+    "Visitors": Visitors,
     "VisitorFollowUp": VisitorFollowUp,
     "VisitorQRCode": VisitorQRCode,
     "VisitorQRDisplay": VisitorQRDisplay,
     "VisitorSMSWorkflows": VisitorSMSWorkflows,
-    "Visitors": Visitors,
     "VolunteerConfirm": VolunteerConfirm,
     "VolunteerPortal": VolunteerPortal,
     "VolunteerRegistration": VolunteerRegistration,
     "Volunteers": Volunteers,
-    "backoffice": backoffice,
-    "Features": Features,
-    "FAQ": FAQ,
     "WhyReach": WhyReach,
+    "backoffice": backoffice,
 }
 
 export const pagesConfig = {

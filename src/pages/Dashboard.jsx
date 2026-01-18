@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import SEO from "../components/shared/SEO";
-import { Users, Heart, Calendar, UserCheck, TrendingUp, DollarSign, AlertCircle, ExternalLink, ArrowUpRight, ArrowDownRight, Tablet, Settings } from "lucide-react";
+import { Users, Heart, Calendar, UserCheck, TrendingUp, DollarSign, AlertCircle, ExternalLink, ArrowUpRight, ArrowDownRight, Tablet, Settings, Plus, Megaphone, MessageSquare, Activity, CheckCircle, Clock } from "lucide-react";
 import { format, startOfMonth, endOfMonth, subMonths, startOfWeek } from "date-fns";
 import { createPageUrl } from "@/utils";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
@@ -27,6 +27,7 @@ export default function Dashboard() {
   const [recentDonations, setRecentDonations] = useState([]);
   const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [givingTrend, setGivingTrend] = useState([]);
+  const [recentActivity, setRecentActivity] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
   const [showAuthHelp, setShowAuthHelp] = useState(false);
@@ -235,6 +236,55 @@ export default function Dashboard() {
       setRecentDonations(donations.slice(0, 5));
       setUpcomingEvents(upcoming);
       setGivingTrend(trendData);
+
+      // Build recent activity feed
+      const activityFeed = [];
+      
+      // Recent donations (last 5)
+      donations.slice(0, 5).forEach(donation => {
+        activityFeed.push({
+          type: 'donation',
+          icon: DollarSign,
+          title: `${donation.donor_name} gave $${donation.amount?.toFixed(2)}`,
+          time: new Date(donation.donation_date),
+          badge: 'Donation',
+          badgeColor: 'bg-green-600'
+        });
+      });
+
+      // Recent members (last 5)
+      const recentMembers = members
+        .sort((a, b) => new Date(b.created_date) - new Date(a.created_date))
+        .slice(0, 5);
+      recentMembers.forEach(member => {
+        activityFeed.push({
+          type: 'member',
+          icon: Users,
+          title: `${member.first_name} ${member.last_name} joined`,
+          time: new Date(member.created_date),
+          badge: 'New Member',
+          badgeColor: 'bg-blue-600'
+        });
+      });
+
+      // Upcoming events (next 5)
+      upcoming.forEach(event => {
+        const daysUntil = Math.ceil((new Date(event.start_datetime) - new Date()) / (1000 * 60 * 60 * 24));
+        if (daysUntil <= 7) {
+          activityFeed.push({
+            type: 'event',
+            icon: Calendar,
+            title: `${event.title} starts in ${daysUntil} day${daysUntil !== 1 ? 's' : ''}`,
+            time: new Date(event.start_datetime),
+            badge: 'Event',
+            badgeColor: 'bg-purple-600'
+          });
+        }
+      });
+
+      // Sort all activity by time (most recent first)
+      activityFeed.sort((a, b) => b.time - a.time);
+      setRecentActivity(activityFeed.slice(0, 10));
     } catch (error) {
       if (!signal?.aborted) {
         console.error("Error loading dashboard data:", error);
@@ -342,7 +392,161 @@ export default function Dashboard() {
             </h1>
             <p className="text-slate-600 mt-2">Welcome back! Here's your ministry overview.</p>
           </div>
-          <div className="flex gap-3">
+        </div>
+
+        {/* Quick Actions Widget */}
+        {!isLoading && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card 
+              className="hover:shadow-lg transition-all duration-300 cursor-pointer border-2 border-blue-100 hover:border-blue-400"
+              onClick={() => window.location.href = createPageUrl('Events')}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
+                    <Plus className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">Create Event</p>
+                    <p className="text-xs text-slate-500">Schedule new</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card 
+              className="hover:shadow-lg transition-all duration-300 cursor-pointer border-2 border-purple-100 hover:border-purple-400"
+              onClick={() => window.location.href = createPageUrl('CommunicationHub')}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shadow-lg">
+                    <Megaphone className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">Send Announcement</p>
+                    <p className="text-xs text-slate-500">Notify members</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card 
+              className="hover:shadow-lg transition-all duration-300 cursor-pointer border-2 border-green-100 hover:border-green-400"
+              onClick={() => window.location.href = createPageUrl('Members')}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg">
+                    <Users className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">Add Member</p>
+                    <p className="text-xs text-slate-500">Register new</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card 
+              className="hover:shadow-lg transition-all duration-300 cursor-pointer border-2 border-amber-100 hover:border-amber-400"
+              onClick={() => window.location.href = createPageUrl('TextMessaging')}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg">
+                    <MessageSquare className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">Send SMS</p>
+                    <p className="text-xs text-slate-500">Text church</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Ministry Health Widget */}
+        {!isLoading && (
+          <Card className="shadow-xl border-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+            <CardHeader className="border-b border-blue-100">
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="w-5 h-5 text-blue-600" />
+                Ministry Health Overview
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Member Engagement */}
+                <div className="bg-white rounded-xl p-5 shadow-md border border-blue-100">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-sm font-semibold text-slate-600">Member Engagement</p>
+                    <Users className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <p className="text-3xl font-bold text-slate-900 mb-2">
+                    {stats.totalMembers}
+                  </p>
+                  <div className="flex items-center gap-2 mb-1">
+                    <CheckCircle className="w-4 h-4 text-green-600" />
+                    <p className="text-sm text-green-600 font-medium">Active members</p>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-2">
+                    {stats.newVisitorsThisWeek} new visitors this week
+                  </p>
+                </div>
+
+                {/* Giving Trends */}
+                <div className="bg-white rounded-xl p-5 shadow-md border border-green-100">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-sm font-semibold text-slate-600">Giving Trends</p>
+                    <Heart className="w-5 h-5 text-green-600" />
+                  </div>
+                  <p className="text-3xl font-bold text-slate-900 mb-2">
+                    ${stats.monthlyGiving.toLocaleString()}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    {stats.givingGrowth >= 0 ? (
+                      <>
+                        <ArrowUpRight className="w-4 h-4 text-green-600" />
+                        <p className="text-sm text-green-600 font-medium">
+                          +{stats.givingGrowth}% vs last month
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <ArrowDownRight className="w-4 h-4 text-red-600" />
+                        <p className="text-sm text-red-600 font-medium">
+                          {stats.givingGrowth}% vs last month
+                        </p>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* Volunteer Participation */}
+                <div className="bg-white rounded-xl p-5 shadow-md border border-purple-100">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-sm font-semibold text-slate-600">Volunteer Participation</p>
+                    <Heart className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <p className="text-3xl font-bold text-slate-900 mb-2">
+                    {stats.activeVolunteers}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-purple-600" />
+                    <p className="text-sm text-purple-600 font-medium">Active volunteers</p>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-2">
+                    Serving this month
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        <div className="flex gap-3">
             <Button 
               onClick={() => window.location.href = createPageUrl('PublicGiving')}
               className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg shadow-green-500/30"
@@ -556,8 +760,63 @@ export default function Dashboard() {
               </Card>
             </div>
 
-            {/* Giving by Category & Recent Activity */}
+            {/* Giving by Category & Recent Activity Feed */}
             <div className="grid lg:grid-cols-2 gap-6">
+              {/* Recent Activity Feed Widget */}
+              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                <CardHeader className="border-b border-slate-100 pb-4">
+                  <CardTitle className="flex items-center gap-2 text-slate-900">
+                    <Activity className="w-5 h-5 text-slate-600" />
+                    Recent Activity
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  {recentActivity.length > 0 ? (
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      {recentActivity.map((activity, index) => {
+                        const Icon = activity.icon;
+                        const timeAgo = (() => {
+                          const seconds = Math.floor((new Date() - activity.time) / 1000);
+                          if (seconds < 60) return 'just now';
+                          const minutes = Math.floor(seconds / 60);
+                          if (minutes < 60) return `${minutes}m ago`;
+                          const hours = Math.floor(minutes / 60);
+                          if (hours < 24) return `${hours}h ago`;
+                          const days = Math.floor(hours / 24);
+                          if (days < 7) return `${days}d ago`;
+                          return activity.time.toLocaleDateString();
+                        })();
+
+                        return (
+                          <div key={index} className="flex items-start gap-3 pb-3 border-b border-slate-100 last:border-0">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center flex-shrink-0">
+                              <Icon className="w-5 h-5 text-slate-600" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-slate-900 truncate">{activity.title}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className={`text-xs font-semibold text-white px-2 py-0.5 rounded-full ${activity.badgeColor}`}>
+                                  {activity.badge}
+                                </span>
+                                <span className="text-xs text-slate-500 flex items-center gap-1">
+                                  <Clock className="w-3 h-3" />
+                                  {timeAgo}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <Activity className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+                      <p className="text-slate-500">No recent activity</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
               {/* Giving by Category */}
               <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
                 <CardHeader className="border-b border-slate-100 pb-4">
@@ -611,40 +870,6 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
 
-              {/* Upcoming Events */}
-              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-                <CardHeader className="border-b border-slate-100 pb-4">
-                  <CardTitle className="flex items-center gap-2 text-slate-900">
-                    <Calendar className="w-5 h-5 text-blue-600" />
-                    Upcoming Events
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-6">
-                  <div className="space-y-3">
-                    {upcomingEvents.slice(0, 5).map((event, idx) => (
-                      <div key={event.id} className="p-4 rounded-xl bg-gradient-to-br from-slate-50 to-blue-50/30 border border-slate-100 hover:shadow-md transition-all">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="font-semibold text-slate-900">{event.title}</h3>
-                            <p className="text-sm text-slate-600 mt-1">
-                              {format(new Date(event.start_datetime), 'MMM d, yyyy • h:mm a')}
-                            </p>
-                          </div>
-                          <span className="text-xs font-medium text-blue-700 bg-blue-100 px-2 py-1 rounded-full">
-                            {event.event_type.replace('_', ' ')}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                    {upcomingEvents.length === 0 && (
-                      <div className="text-center py-8 text-slate-500">
-                        <Calendar className="w-12 h-12 mx-auto mb-3 text-slate-300" />
-                        <p>No upcoming events</p>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
             </div>
 
             {/* Quick Actions */}
