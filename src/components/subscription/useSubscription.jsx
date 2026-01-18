@@ -213,6 +213,7 @@ export function useSubscription() {
 
     useEffect(() => {
         loadSubscription();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [refreshTrigger]);
 
     // Helper functions
