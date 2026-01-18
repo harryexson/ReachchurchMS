@@ -25,10 +25,9 @@ export default function VisitorQRCodePage() {
                 name = settings[0].church_name || "Church";
             }
             
-            // Generate church-specific URLs
-            const churchSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-            const visitorFormUrl = `https://reachchurchMS.com/${churchSlug}/visitor-connect`;
-            const displayScreenUrl = `https://reachchurchMS.com/${churchSlug}/visitor-qr-display`;
+            // Use actual app URLs
+            const visitorFormUrl = `${window.location.origin}${createPageUrl('PublicVisitorRegistration')}`;
+            const displayScreenUrl = `${window.location.origin}${createPageUrl('VisitorQRDisplay')}`;
             
             setQrUrl(visitorFormUrl);
             setDisplayUrl(displayScreenUrl);
