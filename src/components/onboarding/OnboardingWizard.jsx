@@ -4,23 +4,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle, ArrowRight, ArrowLeft, Building, CreditCard, Settings, User, Phone, DollarSign, Smartphone } from "lucide-react";
+import { CheckCircle, ArrowRight, ArrowLeft, Building, CreditCard, Phone, Smartphone, Users, Heart, Calendar, MessageSquare, Zap, BookOpen, Home } from "lucide-react";
 import confetti from "canvas-confetti";
+import { createPageUrl } from "@/utils";
 
-const ONBOARDING_STEPS = [
-    { id: 1, title: "Welcome", icon: Building },
-    { id: 2, title: "Organization", icon: Building },
-    { id: 3, title: "Contact Info", icon: Phone },
-    { id: 4, title: "Stripe Connect", icon: CreditCard },
-    { id: 5, title: "Mobile & PWA", icon: Smartphone },
-    { id: 6, title: "Complete", icon: CheckCircle }
-];
-
-export default function OnboardingWizard({ userEmail, userName, userType = "member", onComplete }) {
+export default function OnboardingWizard({ userEmail, userName, userType = "admin", onComplete }) {
+    const isMember = userType === "member";
+    
     const [currentStep, setCurrentStep] = useState(1);
     const [progress, setProgress] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -34,16 +26,32 @@ export default function OnboardingWizard({ userEmail, userName, userType = "memb
         stripe_connected: false,
         bank_account_added: false
     });
+    const [memberInfo, setMemberInfo] = useState({
+        interests: [],
+        communication_preferences: []
+    });
+
+    const adminSteps = [
+        { id: 1, title: "Welcome", icon: Building },
+        { id: 2, title: "Church Info", icon: Building },
+        { id: 3, title: "Contact", icon: Phone },
+        { id: 4, title: "Payments", icon: CreditCard },
+        { id: 5, title: "Mobile App", icon: Smartphone },
+        { id: 6, title: "Complete", icon: CheckCircle }
+    ];
+
+    const memberSteps = [
+        { id: 1, title: "Welcome", icon: Home },
+        { id: 2, title: "Interests", icon: Heart },
+        { id: 3, title: "Stay Connected", icon: MessageSquare },
+        { id: 4, title: "Complete", icon: CheckCircle }
+    ];
+
+    const steps = isMember ? memberSteps : adminSteps;
 
     useEffect(() => {
         loadProgress();
     }, []);
-
-    useEffect(() => {
-        if (progress) {
-            setCurrentStep(progress.current_step);
-        }
-    }, [progress]);
 
     const loadProgress = async () => {
         setIsLoading(true);
@@ -88,65 +96,90 @@ export default function OnboardingWizard({ userEmail, userName, userType = "memb
     };
 
     const handleNext = async () => {
-        const stepsCompleted = [...new Set([...progress.steps_completed || [], `step${currentStep}`])];
-        const nextStep = currentStep + 1;
+        if (isMember) {
+            // Member onboarding flow
+            if (currentStep === memberSteps.length) {
+                try {
+                    await base44.auth.updateMe({
+                        interests: memberInfo.interests.join(', '),
+                        communication_preferences: memberInfo.communication_preferences.join(', ')
+                    });
 
-        let updates = {
-            current_step: nextStep,
-            steps_completed: stepsCompleted
-        };
+                    await updateProgress({
+                        onboarding_completed: true,
+                        completion_date: new Date().toISOString()
+                    });
 
-        // Step-specific updates
-        if (currentStep === 2) {
-            updates.church_name = formData.church_name;
-            updates.church_phone = formData.church_phone;
-            updates.church_address = formData.church_address;
-
-            // Update ChurchSettings
-            try {
-                const settings = await base44.entities.ChurchSettings.list();
-                const settingsData = {
-                    church_name: formData.church_name,
-                    tagline: formData.tagline || ''
-                };
-
-                if (settings.length > 0) {
-                    await base44.entities.ChurchSettings.update(settings[0].id, settingsData);
-                } else {
-                    await base44.entities.ChurchSettings.create(settingsData);
+                    confetti({
+                        particleCount: 100,
+                        spread: 70,
+                        origin: { y: 0.6 }
+                    });
+                } catch (error) {
+                    console.error("Failed to complete onboarding:", error);
                 }
-            } catch (err) {
-                console.error("Error updating church settings:", err);
+                onComplete();
+            } else {
+                setCurrentStep(currentStep + 1);
             }
-        }
+        } else {
+            // Admin onboarding flow
+            const stepsCompleted = [...new Set([...progress.steps_completed || [], `step${currentStep}`])];
+            const nextStep = currentStep + 1;
 
-        if (currentStep === 3) {
-            updates.point_of_contact = formData.point_of_contact;
-            updates.church_phone = formData.contact_phone;
-        }
+            let updates = {
+                current_step: nextStep,
+                steps_completed: stepsCompleted
+            };
 
-        if (currentStep === 4) {
-            updates.stripe_connected = formData.stripe_connected;
-            updates.bank_account_added = formData.bank_account_added;
-        }
+            if (currentStep === 2) {
+                updates.church_name = formData.church_name;
+                updates.church_phone = formData.church_phone;
+                updates.church_address = formData.church_address;
 
-        if (nextStep > 6) {
-            updates.onboarding_completed = true;
-            updates.completion_date = new Date().toISOString();
+                // Update ChurchSettings
+                try {
+                    const settings = await base44.entities.ChurchSettings.list();
+                    const settingsData = {
+                        church_name: formData.church_name
+                    };
 
-            // Trigger confetti
-            confetti({
-                particleCount: 100,
-                spread: 70,
-                origin: { y: 0.6 }
-            });
+                    if (settings.length > 0) {
+                        await base44.entities.ChurchSettings.update(settings[0].id, settingsData);
+                    } else {
+                        await base44.entities.ChurchSettings.create(settingsData);
+                    }
+                } catch (err) {
+                    console.error("Error updating church settings:", err);
+                }
+            }
 
-            if (onComplete) onComplete();
-        }
+            if (currentStep === 3) {
+                updates.point_of_contact = formData.point_of_contact;
+            }
 
-        await updateProgress(updates);
-        if (nextStep <= 6) {
-            setCurrentStep(nextStep);
+            if (currentStep === 4) {
+                updates.stripe_connected = formData.stripe_connected;
+                updates.bank_account_added = formData.bank_account_added;
+            }
+
+            if (nextStep > 6) {
+                updates.onboarding_completed = true;
+                updates.completion_date = new Date().toISOString();
+
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+
+                if (onComplete) onComplete();
+            }
+
+            await updateProgress(updates);
+            if (nextStep <= 6) {
+                setCurrentStep(nextStep);
+            }
         }
     };
 
@@ -165,23 +198,20 @@ export default function OnboardingWizard({ userEmail, userName, userType = "memb
                 refresh_url: currentUrl
             });
 
-            console.log('Stripe Connect response:', response);
-
             const onboardingUrl = response.data?.onboarding_url || response?.onboarding_url;
             
             if (onboardingUrl) {
-                console.log('Redirecting to Stripe onboarding:', onboardingUrl);
                 window.location.href = onboardingUrl;
             } else {
-                throw new Error('No onboarding URL received from server');
+                throw new Error('No onboarding URL received');
             }
         } catch (error) {
             console.error('Stripe Connect error:', error);
-            alert('Failed to connect Stripe. Please try again or contact support.');
+            alert('Failed to connect Stripe. Please try again.');
         }
     };
 
-    const progressPercentage = (currentStep / ONBOARDING_STEPS.length) * 100;
+    const progressPercentage = (currentStep / steps.length) * 100;
 
     if (isLoading) {
         return (
@@ -191,14 +221,14 @@ export default function OnboardingWizard({ userEmail, userName, userType = "memb
         );
     }
 
-    if (progress?.onboarding_completed) {
+    if (progress?.onboarding_completed && !isMember) {
         return (
             <Card className="max-w-2xl mx-auto">
                 <CardContent className="p-12 text-center">
                     <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
-                    <h2 className="text-2xl font-bold text-slate-900 mb-2">Welcome to the Family!</h2>
+                    <h2 className="text-2xl font-bold text-slate-900 mb-2">Setup Complete!</h2>
                     <p className="text-slate-600 mb-6">
-                        Your onboarding is complete. We're excited to have you as part of our community.
+                        Your church is ready to go.
                     </p>
                     <Button onClick={onComplete} className="bg-blue-600 hover:bg-blue-700">
                         Go to Dashboard
@@ -208,15 +238,409 @@ export default function OnboardingWizard({ userEmail, userName, userType = "memb
         );
     }
 
+    const renderMemberStepContent = () => {
+        switch (currentStep) {
+            case 1:
+                return (
+                    <div className="space-y-6">
+                        <div className="text-center">
+                            <Home className="w-16 h-16 mx-auto mb-4 text-blue-600" />
+                            <h2 className="text-3xl font-bold text-slate-900 mb-2">Welcome, {userName}!</h2>
+                            <p className="text-lg text-slate-600">
+                                We're excited to have you as part of our church community.
+                            </p>
+                        </div>
+                        <div className="bg-blue-50 p-6 rounded-xl border border-blue-200">
+                            <h3 className="font-semibold text-blue-900 mb-3">What you can do:</h3>
+                            <ul className="space-y-2 text-sm text-blue-800">
+                                <li className="flex items-center gap-2">
+                                    <Calendar className="w-4 h-4" />
+                                    View and register for events
+                                </li>
+                                <li className="flex items-center gap-2">
+                                    <Heart className="w-4 h-4" />
+                                    Give online securely
+                                </li>
+                                <li className="flex items-center gap-2">
+                                    <BookOpen className="w-4 h-4" />
+                                    Watch sermons and resources
+                                </li>
+                                <li className="flex items-center gap-2">
+                                    <MessageSquare className="w-4 h-4" />
+                                    Connect with other members
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                );
+
+            case 2:
+                const interestOptions = ["Worship", "Children's Ministry", "Youth Ministry", "Outreach", "Prayer", "Small Groups", "Volunteering", "Music"];
+                return (
+                    <div className="space-y-6">
+                        <div className="text-center mb-6">
+                            <Heart className="w-16 h-16 mx-auto mb-4 text-pink-600" />
+                            <h2 className="text-2xl font-bold text-slate-900 mb-2">What are you interested in?</h2>
+                            <p className="text-slate-600">
+                                Help us connect you with the right groups and opportunities
+                            </p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                            {interestOptions.map(interest => (
+                                <button
+                                    key={interest}
+                                    onClick={() => {
+                                        const interests = memberInfo.interests.includes(interest)
+                                            ? memberInfo.interests.filter(i => i !== interest)
+                                            : [...memberInfo.interests, interest];
+                                        setMemberInfo({ ...memberInfo, interests });
+                                    }}
+                                    className={`p-4 rounded-lg border-2 transition-all ${
+                                        memberInfo.interests.includes(interest)
+                                            ? 'border-blue-500 bg-blue-50'
+                                            : 'border-slate-200 hover:border-slate-300'
+                                    }`}
+                                >
+                                    <p className="font-medium text-slate-900">{interest}</p>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                );
+
+            case 3:
+                const commPrefs = ["Email", "SMS", "Push Notifications", "In-App Messages"];
+                return (
+                    <div className="space-y-6">
+                        <div className="text-center mb-6">
+                            <Users className="w-16 h-16 mx-auto mb-4 text-purple-600" />
+                            <h2 className="text-2xl font-bold text-slate-900 mb-2">Stay Connected</h2>
+                            <p className="text-slate-600">
+                                How would you like to receive updates from the church?
+                            </p>
+                        </div>
+                        <div className="space-y-3">
+                            {commPrefs.map(pref => (
+                                <label
+                                    key={pref}
+                                    className="flex items-center gap-3 p-4 rounded-lg border-2 border-slate-200 hover:border-slate-300 cursor-pointer transition-all"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        checked={memberInfo.communication_preferences.includes(pref)}
+                                        onChange={(e) => {
+                                            const prefs = e.target.checked
+                                                ? [...memberInfo.communication_preferences, pref]
+                                                : memberInfo.communication_preferences.filter(p => p !== pref);
+                                            setMemberInfo({ ...memberInfo, communication_preferences: prefs });
+                                        }}
+                                        className="w-5 h-5 rounded"
+                                    />
+                                    <span className="font-medium text-slate-900">{pref}</span>
+                                </label>
+                            ))}
+                        </div>
+                    </div>
+                );
+
+            case 4:
+                return (
+                    <div className="space-y-6 text-center">
+                        <CheckCircle className="w-20 h-20 mx-auto text-green-600" />
+                        <h2 className="text-3xl font-bold text-slate-900">You're all set!</h2>
+                        <p className="text-lg text-slate-600">
+                            Welcome to the community. Let's get started!
+                        </p>
+                        <div className="grid gap-4 max-w-md mx-auto mt-8">
+                            <Button className="w-full bg-blue-600 hover:bg-blue-700" onClick={() => window.location.href = createPageUrl('Community')}>
+                                <BookOpen className="w-4 h-4 mr-2" />
+                                Explore Sermons
+                            </Button>
+                            <Button className="w-full" variant="outline" onClick={() => window.location.href = createPageUrl('PublicEventsCalendar')}>
+                                <Calendar className="w-4 h-4 mr-2" />
+                                View Events
+                            </Button>
+                            <Button className="w-full" variant="outline" onClick={() => window.location.href = createPageUrl('MyGroups')}>
+                                <Users className="w-4 h-4 mr-2" />
+                                Join a Group
+                            </Button>
+                        </div>
+                    </div>
+                );
+
+            default:
+                return null;
+        }
+    };
+
+    const renderAdminStepContent = () => {
+        switch (currentStep) {
+            case 1:
+                return (
+                    <div className="text-center space-y-4">
+                        <Building className="w-16 h-16 text-blue-600 mx-auto" />
+                        <h2 className="text-2xl font-bold text-slate-900">
+                            Welcome to REACH Church Connect!
+                        </h2>
+                        <p className="text-slate-600 max-w-xl mx-auto">
+                            Let's get your church set up in just a few minutes. We'll help you configure everything.
+                        </p>
+                        
+                        <div className="bg-gradient-to-br from-blue-50 to-purple-50 p-6 rounded-lg border border-blue-200 mt-6">
+                            <h3 className="font-bold text-lg text-slate-900 mb-4">Your Complete Church Platform</h3>
+                            <div className="grid md:grid-cols-3 gap-4 text-sm text-left">
+                                <div>
+                                    <h4 className="font-semibold text-green-900 mb-2">💰 Giving & Finance</h4>
+                                    <ul className="space-y-1 text-green-800">
+                                        <li>• Online giving portal</li>
+                                        <li>• Kiosk stations</li>
+                                        <li>• Text-to-give</li>
+                                        <li>• QR code donations</li>
+                                        <li>• Auto receipts</li>
+                                        <li>• Financial reports</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h4 className="font-semibold text-blue-900 mb-2">📱 Communication</h4>
+                                    <ul className="space-y-1 text-blue-800">
+                                        <li>• Bulk SMS/MMS</li>
+                                        <li>• Email campaigns</li>
+                                        <li>• Push notifications</li>
+                                        <li>• In-app messaging</li>
+                                        <li>• Automated workflows</li>
+                                        <li>• Visitor follow-up</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h4 className="font-semibold text-purple-900 mb-2">👥 People</h4>
+                                    <ul className="space-y-1 text-purple-800">
+                                        <li>• Member directory</li>
+                                        <li>• Visitor tracking</li>
+                                        <li>• Volunteer management</li>
+                                        <li>• Event registration</li>
+                                        <li>• Kids check-in</li>
+                                        <li>• Group management</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+
+            case 2:
+                return (
+                    <div className="space-y-4">
+                        <p className="text-slate-600 mb-4">Tell us about your church</p>
+                        
+                        <div>
+                            <Label>Church Name *</Label>
+                            <Input
+                                placeholder="First Community Church"
+                                value={formData.church_name}
+                                onChange={(e) => setFormData({...formData, church_name: e.target.value})}
+                                required
+                            />
+                        </div>
+
+                        <div>
+                            <Label>Church Phone</Label>
+                            <Input
+                                placeholder="+1 (555) 123-4567"
+                                value={formData.church_phone}
+                                onChange={(e) => setFormData({...formData, church_phone: e.target.value})}
+                            />
+                        </div>
+
+                        <div>
+                            <Label>Church Address</Label>
+                            <Textarea
+                                placeholder="123 Main Street, City, State, ZIP"
+                                value={formData.church_address}
+                                onChange={(e) => setFormData({...formData, church_address: e.target.value})}
+                                rows={3}
+                            />
+                        </div>
+                    </div>
+                );
+
+            case 3:
+                return (
+                    <div className="space-y-4">
+                        <p className="text-slate-600 mb-4">
+                            Who should we contact for important updates?
+                        </p>
+                        
+                        <div>
+                            <Label>Primary Contact Name *</Label>
+                            <Input
+                                placeholder="Pastor John Smith"
+                                value={formData.point_of_contact}
+                                onChange={(e) => setFormData({...formData, point_of_contact: e.target.value})}
+                                required
+                            />
+                        </div>
+
+                        <div>
+                            <Label>Contact Phone *</Label>
+                            <Input
+                                placeholder="+1 (555) 123-4567"
+                                value={formData.contact_phone}
+                                onChange={(e) => setFormData({...formData, contact_phone: e.target.value})}
+                                required
+                            />
+                        </div>
+
+                        <div>
+                            <Label>Contact Email</Label>
+                            <Input
+                                type="email"
+                                value={formData.contact_email}
+                                disabled
+                            />
+                            <p className="text-xs text-slate-500 mt-1">Using your login email</p>
+                        </div>
+                    </div>
+                );
+
+            case 4:
+                return (
+                    <div className="space-y-6">
+                        <p className="text-slate-600 mb-4">
+                            Connect Stripe to accept donations
+                        </p>
+
+                        <div className="bg-gradient-to-br from-purple-50 to-blue-50 p-6 rounded-lg border-2 border-purple-200">
+                            <CreditCard className="w-10 h-10 text-purple-600 mb-4" />
+                            <h3 className="font-bold text-slate-900 mb-2">Stripe Connect</h3>
+                            <p className="text-sm text-slate-600 mb-3">
+                                Secure payment processing with direct deposits to your bank
+                            </p>
+                            <ul className="text-sm text-slate-700 space-y-1 mb-4">
+                                <li>✓ Accept credit/debit cards</li>
+                                <li>✓ Automatic receipts</li>
+                                <li>✓ 2-3 day deposits</li>
+                            </ul>
+
+                            {!formData.stripe_connected ? (
+                                <Button 
+                                    onClick={handleConnectStripe}
+                                    className="w-full bg-purple-600 hover:bg-purple-700"
+                                >
+                                    Connect Stripe
+                                </Button>
+                            ) : (
+                                <div className="bg-green-50 p-4 rounded-lg border border-green-200 flex items-center gap-3">
+                                    <CheckCircle className="w-6 h-6 text-green-600" />
+                                    <div>
+                                        <p className="font-semibold text-green-900">Connected!</p>
+                                        <p className="text-sm text-green-700">Ready to accept donations</p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <input 
+                                type="checkbox" 
+                                id="bank_added"
+                                checked={formData.bank_account_added}
+                                onChange={(e) => setFormData({...formData, bank_account_added: e.target.checked})}
+                                className="w-4 h-4"
+                            />
+                            <Label htmlFor="bank_added" className="cursor-pointer">
+                                I've added my bank account in Stripe
+                            </Label>
+                        </div>
+                    </div>
+                );
+
+            case 5:
+                return (
+                    <div className="space-y-6">
+                        <div className="text-center mb-6">
+                            <Smartphone className="w-16 h-16 mx-auto mb-4 text-purple-600" />
+                            <h2 className="text-2xl font-bold text-slate-900 mb-2">Mobile App Ready!</h2>
+                            <p className="text-slate-600">
+                                Your app works as a Progressive Web App (PWA)
+                            </p>
+                        </div>
+
+                        <div className="bg-purple-50 p-6 rounded-lg border-2 border-purple-200">
+                            <h3 className="font-bold text-slate-900 mb-4">Mobile Features Included:</h3>
+                            <ul className="text-sm text-slate-700 space-y-2">
+                                <li className="flex items-start gap-2">
+                                    <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                                    <span>Install on home screen (no App Store)</span>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                    <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                                    <span>Push notifications for announcements</span>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                    <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                                    <span>Mobile-optimized interface</span>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                    <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                                    <span>Offline indicators</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                );
+
+            case 6:
+                return (
+                    <div className="text-center space-y-4">
+                        <CheckCircle className="w-16 h-16 text-green-600 mx-auto" />
+                        <h2 className="text-2xl font-bold text-slate-900">
+                            Setup Complete! 🎉
+                        </h2>
+                        <p className="text-slate-600 max-w-xl mx-auto">
+                            Your church is ready to use REACH Church Connect.
+                        </p>
+                        <div className="grid md:grid-cols-3 gap-4 mt-6 text-left">
+                            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                                <h4 className="font-semibold text-green-900 mb-2">✓ Quick Start</h4>
+                                <ul className="text-sm text-green-700 space-y-1">
+                                    <li>• Add members</li>
+                                    <li>• Create events</li>
+                                    <li>• Set up workflows</li>
+                                </ul>
+                            </div>
+                            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                                <h4 className="font-semibold text-blue-900 mb-2">✓ Resources</h4>
+                                <ul className="text-sm text-blue-700 space-y-1">
+                                    <li>• Video tutorials</li>
+                                    <li>• Help center</li>
+                                    <li>• 24/7 support</li>
+                                </ul>
+                            </div>
+                            <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                                <h4 className="font-semibold text-purple-900 mb-2">✓ Automation</h4>
+                                <ul className="text-sm text-purple-700 space-y-1">
+                                    <li>• Visitor follow-up</li>
+                                    <li>• Event reminders</li>
+                                    <li>• Welcome workflows</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                );
+
+            default:
+                return null;
+        }
+    };
+
     return (
         <div className="max-w-4xl mx-auto space-y-6">
-            {/* Progress Bar */}
             <Card>
                 <CardContent className="p-6">
                     <div className="flex justify-between items-center mb-4">
-                        {ONBOARDING_STEPS.map((step) => {
+                        {steps.map((step) => {
                             const Icon = step.icon;
-                            const isCompleted = progress.steps_completed?.includes(`step${step.id}`);
+                            const isCompleted = progress?.steps_completed?.includes(`step${step.id}`);
                             const isCurrent = currentStep === step.id;
                             
                             return (
@@ -241,357 +665,15 @@ export default function OnboardingWizard({ userEmail, userName, userType = "memb
                 </CardContent>
             </Card>
 
-            {/* Step Content */}
             <Card>
                 <CardHeader>
                     <CardTitle>
-                        {ONBOARDING_STEPS.find(s => s.id === currentStep)?.title}
+                        {steps.find(s => s.id === currentStep)?.title}
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6 space-y-6">
-                    {currentStep === 1 && (
-                        <div className="text-center space-y-4">
-                            <Building className="w-16 h-16 text-blue-600 mx-auto" />
-                            <h2 className="text-2xl font-bold text-slate-900">
-                                Welcome to REACH Church Connect!
-                            </h2>
-                            <p className="text-slate-600 max-w-xl mx-auto">
-                                {userType === 'admin' 
-                                    ? "Let's get your church set up in just a few minutes. We'll help you configure your organization profile, connect payment processing, and get everything ready for your ministry."
-                                    : "Welcome! Let's get to know your church better. This quick setup will help you get the most out of your church community experience."
-                                }
-                            </p>
-                            
-                            <div className="bg-gradient-to-br from-blue-50 to-purple-50 p-6 rounded-lg border border-blue-200">
-                                <h3 className="font-bold text-lg text-slate-900 mb-4">🎉 Your All-in-One Church Platform</h3>
-                                <div className="grid md:grid-cols-3 gap-4 text-sm text-left">
-                                    <div>
-                                        <h4 className="font-semibold text-green-900 mb-2">💰 Digital Giving (6 Ways)</h4>
-                                        <ul className="space-y-1 text-green-800">
-                                            <li>• Kiosk giving stations</li>
-                                            <li>• Text-to-give (SMS)</li>
-                                            <li>• Online portal</li>
-                                            <li>• Mobile app (PWA)</li>
-                                            <li>• QR code donations</li>
-                                            <li>• Check scanning</li>
-                                        </ul>
-                                    </div>
-                                    <div>
-                                        <h4 className="font-semibold text-blue-900 mb-2">📱 Communications</h4>
-                                        <ul className="space-y-1 text-blue-800">
-                                            <li>• 1,000 SMS + 10 MMS/mo</li>
-                                            <li>• Bulk email campaigns</li>
-                                            <li>• Push notifications</li>
-                                            <li>• In-app messaging</li>
-                                            <li>• Automated workflows</li>
-                                            <li>• Visitor follow-up (7 steps)</li>
-                                        </ul>
-                                    </div>
-                                    <div>
-                                        <h4 className="font-semibold text-purple-900 mb-2">👥 Member Management</h4>
-                                        <ul className="space-y-1 text-purple-800">
-                                            <li>• Complete directory</li>
-                                            <li>• Engagement scoring</li>
-                                            <li>• Lifecycle tracking</li>
-                                            <li>• At-risk alerts</li>
-                                            <li>• Custom fields</li>
-                                            <li>• Member groups</li>
-                                        </ul>
-                                    </div>
-                                    <div>
-                                        <h4 className="font-semibold text-indigo-900 mb-2">🎥 Video & Events</h4>
-                                        <ul className="space-y-1 text-indigo-800">
-                                            <li>• Video meetings (25-200)</li>
-                                            <li>• Breakout rooms</li>
-                                            <li>• Event registration</li>
-                                            <li>• QR check-in/tickets</li>
-                                            <li>• Volunteer sign-ups</li>
-                                            <li>• Live stream scheduler</li>
-                                        </ul>
-                                    </div>
-                                    <div>
-                                        <h4 className="font-semibold text-amber-900 mb-2">🎯 Unique to REACH</h4>
-                                        <ul className="space-y-1 text-amber-800">
-                                            <li>• Coffee Shop POS</li>
-                                            <li>• Bookstore management</li>
-                                            <li>• Inventory tracking</li>
-                                            <li>• Loyalty programs</li>
-                                            <li>• PWA mobile app</li>
-                                            <li>• Display management</li>
-                                        </ul>
-                                    </div>
-                                    <div>
-                                        <h4 className="font-semibold text-pink-900 mb-2">👶 Kids & Analytics</h4>
-                                        <ul className="space-y-1 text-pink-800">
-                                            <li>• Kids check-in/out</li>
-                                            <li>• Label printing</li>
-                                            <li>• Parent SMS alerts</li>
-                                            <li>• Financial reports</li>
-                                            <li>• Donor analytics</li>
-                                            <li>• Budget tracking</li>
-                                        </ul>
-                                    </div>
-                                </div>
-                                <div className="mt-4 pt-4 border-t border-blue-200">
-                                    <p className="text-xs text-slate-700 font-semibold">
-                                        ⏱️ Setup takes 5-10 minutes • 💰 Save $110-349/mo vs Planning Center, Tithe.ly, Subsplash
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+                    {isMember ? renderMemberStepContent() : renderAdminStepContent()}
 
-                    {currentStep === 2 && (
-                        <div className="space-y-4">
-                            <p className="text-slate-600 mb-4">
-                                {userType === 'admin' 
-                                    ? "Tell us about your church or ministry organization."
-                                    : "Help us understand your church better. This information will be visible to all members."
-                                }
-                            </p>
-                            
-                            <div>
-                                <Label>Church/Organization Name *</Label>
-                                <Input
-                                    placeholder="First Community Church"
-                                    value={formData.church_name}
-                                    onChange={(e) => setFormData({...formData, church_name: e.target.value})}
-                                    required
-                                />
-                            </div>
-
-                            <div>
-                                <Label>Church Phone Number</Label>
-                                <div className="relative">
-                                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                                    <Input
-                                        placeholder="+1 (555) 123-4567"
-                                        value={formData.church_phone}
-                                        onChange={(e) => setFormData({...formData, church_phone: e.target.value})}
-                                        className="pl-10"
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <Label>Church Address</Label>
-                                <Textarea
-                                    placeholder="123 Main Street, City, State, ZIP"
-                                    value={formData.church_address}
-                                    onChange={(e) => setFormData({...formData, church_address: e.target.value})}
-                                    rows={3}
-                                />
-                            </div>
-                        </div>
-                    )}
-
-                    {currentStep === 3 && (
-                        <div className="space-y-4">
-                            <p className="text-slate-600 mb-4">
-                                Who should we contact for important updates and support?
-                            </p>
-                            
-                            <div>
-                                <Label>Primary Point of Contact *</Label>
-                                <Input
-                                    placeholder="Pastor John Smith"
-                                    value={formData.point_of_contact}
-                                    onChange={(e) => setFormData({...formData, point_of_contact: e.target.value})}
-                                    required
-                                />
-                            </div>
-
-                            <div>
-                                <Label>Contact Phone Number *</Label>
-                                <div className="relative">
-                                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                                    <Input
-                                        placeholder="+1 (555) 123-4567"
-                                        value={formData.contact_phone}
-                                        onChange={(e) => setFormData({...formData, contact_phone: e.target.value})}
-                                        className="pl-10"
-                                        required
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <Label>Contact Email</Label>
-                                <Input
-                                    type="email"
-                                    value={formData.contact_email}
-                                    onChange={(e) => setFormData({...formData, contact_email: e.target.value})}
-                                    disabled
-                                />
-                                <p className="text-xs text-slate-500 mt-1">Using your login email</p>
-                            </div>
-                        </div>
-                    )}
-
-                    {currentStep === 4 && (
-                        <div className="space-y-6">
-                            {userType === 'admin' ? (
-                                <>
-                                    <p className="text-slate-600 mb-4">
-                                        Connect Stripe to accept online donations and process payments.
-                                    </p>
-
-                            <div className="bg-gradient-to-br from-purple-50 to-blue-50 p-6 rounded-lg border-2 border-purple-200">
-                                <div className="flex items-start gap-4 mb-4">
-                                    <CreditCard className="w-10 h-10 text-purple-600 flex-shrink-0" />
-                                    <div>
-                                        <h3 className="font-bold text-slate-900 mb-2">Stripe Connect Setup</h3>
-                                        <p className="text-sm text-slate-600 mb-3">
-                                            Stripe is the payment processor used by churches worldwide. It's secure, reliable, 
-                                            and deposits donations directly to your bank account.
-                                        </p>
-                                        <ul className="text-sm text-slate-700 space-y-1">
-                                            <li>✓ Secure payment processing</li>
-                                            <li>✓ Direct bank deposits (2-3 business days)</li>
-                                            <li>✓ Automatic donation receipts</li>
-                                            <li>✓ Credit card, debit card, and bank transfers</li>
-                                        </ul>
-                                    </div>
-                                </div>
-
-                                {!formData.stripe_connected ? (
-                                    <Button 
-                                        onClick={handleConnectStripe}
-                                        className="w-full bg-purple-600 hover:bg-purple-700"
-                                    >
-                                        <CreditCard className="w-4 h-4 mr-2" />
-                                        Connect Stripe Account
-                                    </Button>
-                                ) : (
-                                    <div className="bg-green-50 p-4 rounded-lg border border-green-200 flex items-center gap-3">
-                                        <CheckCircle className="w-6 h-6 text-green-600" />
-                                        <div>
-                                            <p className="font-semibold text-green-900">Stripe Connected!</p>
-                                            <p className="text-sm text-green-700">Your payment processing is ready</p>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                                <h4 className="font-semibold text-blue-900 mb-2">💡 You'll Need</h4>
-                                <ul className="text-sm text-blue-800 space-y-1">
-                                    <li>• Your church's EIN/Tax ID number</li>
-                                    <li>• Bank account and routing numbers</li>
-                                    <li>• Business representative's information</li>
-                                </ul>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                                <input 
-                                    type="checkbox" 
-                                    id="bank_added"
-                                    checked={formData.bank_account_added}
-                                    onChange={(e) => setFormData({...formData, bank_account_added: e.target.checked})}
-                                    className="w-4 h-4"
-                                />
-                                <Label htmlFor="bank_added" className="cursor-pointer">
-                                    I've added my bank account in Stripe
-                                </Label>
-                            </div>
-                                </>
-                            ) : (
-                                <div className="text-center py-6">
-                                    <CreditCard className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                                    <h3 className="text-lg font-semibold text-slate-900 mb-2">Payment Processing</h3>
-                                    <p className="text-slate-600">
-                                        Your church administrators handle payment processing setup. Once configured, 
-                                        you'll be able to make donations online securely through the giving portal.
-                                    </p>
-                                    <div className="mt-4 bg-blue-50 p-4 rounded-lg">
-                                        <p className="text-sm text-blue-800">
-                                            ✓ All donations are processed securely through Stripe
-                                        </p>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {currentStep === 5 && (
-                        <div className="space-y-6">
-                            <p className="text-slate-600 mb-4">
-                                Your app is already mobile-ready with Progressive Web App (PWA) features!
-                            </p>
-
-                            <div className="bg-gradient-to-br from-purple-50 to-blue-50 p-6 rounded-lg border-2 border-purple-200">
-                                <div className="flex items-start gap-4 mb-4">
-                                    <Smartphone className="w-10 h-10 text-purple-600 flex-shrink-0" />
-                                    <div>
-                                        <h3 className="font-bold text-slate-900 mb-2">Mobile Features Enabled</h3>
-                                        <ul className="text-sm text-slate-700 space-y-2">
-                                            <li className="flex items-start gap-2">
-                                                <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
-                                                <span><strong>Install on Home Screen:</strong> Members can install your app like a native app - no App Store needed!</span>
-                                            </li>
-                                            <li className="flex items-start gap-2">
-                                                <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
-                                                <span><strong>Push Notifications:</strong> Send instant alerts for announcements and events</span>
-                                            </li>
-                                            <li className="flex items-start gap-2">
-                                                <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
-                                                <span><strong>Mobile Navigation:</strong> Beautiful bottom nav bar optimized for phones</span>
-                                            </li>
-                                            <li className="flex items-start gap-2">
-                                                <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
-                                                <span><strong>Offline Support:</strong> Clear indicators when connection is lost</span>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                                <h4 className="font-semibold text-blue-900 mb-2">💡 Pro Tip</h4>
-                                <p className="text-sm text-blue-800">
-                                    Members will see an automatic prompt to install the app after using it for a few seconds. 
-                                    They can also install it manually from their browser menu: "Add to Home Screen" or "Install App"
-                                </p>
-                            </div>
-                        </div>
-                    )}
-
-                    {currentStep === 6 && (
-                        <div className="text-center space-y-4">
-                            <CheckCircle className="w-16 h-16 text-green-600 mx-auto" />
-                            <h2 className="text-2xl font-bold text-slate-900">
-                                Setup Complete! 🎉
-                            </h2>
-                            <p className="text-slate-600 max-w-xl mx-auto">
-                                Your church is now ready to use REACH Church Connect. You can start managing members, 
-                                accepting donations, scheduling events, and engaging your congregation.
-                            </p>
-                            <div className="grid md:grid-cols-2 gap-4 mt-6 text-left">
-                                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                                    <h4 className="font-semibold text-green-900 mb-2">✓ Organization Profile</h4>
-                                    <p className="text-sm text-green-700">{formData.church_name}</p>
-                                </div>
-                                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                                    <h4 className="font-semibold text-blue-900 mb-2">✓ Contact Information</h4>
-                                    <p className="text-sm text-blue-700">{formData.point_of_contact}</p>
-                                </div>
-                                <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                                    <h4 className="font-semibold text-purple-900 mb-2">✓ Payment Processing</h4>
-                                    <p className="text-sm text-purple-700">
-                                        {formData.stripe_connected ? 'Stripe Connected' : 'Ready to connect'}
-                                    </p>
-                                </div>
-                                <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
-                                    <h4 className="font-semibold text-amber-900 mb-2">✓ Bank Account</h4>
-                                    <p className="text-sm text-amber-700">
-                                        {formData.bank_account_added ? 'Connected' : 'Pending setup'}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Navigation Buttons */}
                     <div className="flex justify-between pt-6 border-t">
                         <Button
                             variant="outline"
@@ -605,11 +687,11 @@ export default function OnboardingWizard({ userEmail, userName, userType = "memb
                             onClick={handleNext}
                             className="bg-blue-600 hover:bg-blue-700"
                             disabled={
-                                (currentStep === 2 && !formData.church_name) ||
-                                (currentStep === 3 && (!formData.point_of_contact || !formData.contact_phone))
+                                (!isMember && currentStep === 2 && !formData.church_name) ||
+                                (!isMember && currentStep === 3 && (!formData.point_of_contact || !formData.contact_phone))
                             }
                         >
-                            {currentStep === 6 ? 'Complete Setup & Go to Dashboard' : 'Next'}
+                            {currentStep === steps.length ? 'Complete & Start' : 'Next'}
                             <ArrowRight className="w-4 h-4 ml-2" />
                         </Button>
                     </div>
