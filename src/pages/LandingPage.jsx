@@ -237,15 +237,29 @@ export default function LandingPage() {
                             </Badge>
                         </div>
                         <h1 className="text-5xl lg:text-7xl font-bold text-slate-900 mb-8 leading-tight">
-                            Church Management System (ChMS)
+                            All-in-One Church Management Software
                             <span className="block mt-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                                Made Simple
+                                Built for Growing Churches
                             </span>
                         </h1>
-                        <p className="text-xl lg:text-2xl text-slate-600 mb-12 leading-relaxed">
-                            The ONLY platform with Coffee Shop POS, PWA mobile app, engagement scoring, 
-                            video meetings, and SMS—all included. Save $1,320-4,188/year vs competitors.
+                        <p className="text-xl lg:text-2xl text-slate-600 mb-6 leading-relaxed">
+                            Manage members, giving, volunteers, events, and communication—all in one powerful platform. 
+                            No more juggling multiple tools or subscriptions.
                         </p>
+                        <ul className="text-lg text-slate-700 mb-12 space-y-3 max-w-2xl mx-auto text-left">
+                            <li className="flex items-center gap-3">
+                                <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0" />
+                                <span><strong>Text-to-Give & Mobile Giving</strong> — Accept donations anywhere</span>
+                            </li>
+                            <li className="flex items-center gap-3">
+                                <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0" />
+                                <span><strong>Member & Volunteer Management</strong> — Track engagement effortlessly</span>
+                            </li>
+                            <li className="flex items-center gap-3">
+                                <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0" />
+                                <span><strong>Event Management & Communications</strong> — Streamline ministry operations</span>
+                            </li>
+                        </ul>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
                             <Link to={createPageUrl('SubscriptionPlans')}>
                                 <Button size="lg" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 px-10 py-6 text-lg font-semibold shadow-xl shadow-blue-500/30">

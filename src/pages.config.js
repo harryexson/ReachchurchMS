@@ -125,6 +125,9 @@ import VolunteerPortal from './pages/VolunteerPortal';
 import VolunteerRegistration from './pages/VolunteerRegistration';
 import Volunteers from './pages/Volunteers';
 import backoffice from './pages/backoffice';
+import Features from './pages/Features';
+import FAQ from './pages/FAQ';
+import WhyReach from './pages/WhyReach';
 import __Layout from './Layout.jsx';
 
 
@@ -256,6 +259,9 @@ export const PAGES = {
     "VolunteerRegistration": VolunteerRegistration,
     "Volunteers": Volunteers,
     "backoffice": backoffice,
+    "Features": Features,
+    "FAQ": FAQ,
+    "WhyReach": WhyReach,
 }
 
 export const pagesConfig = {
