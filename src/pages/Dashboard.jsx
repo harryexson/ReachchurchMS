@@ -546,17 +546,6 @@ export default function Dashboard() {
           </Card>
         )}
 
-        <div className="flex gap-3">
-            <Button 
-              onClick={() => window.location.href = createPageUrl('PublicGiving')}
-              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg shadow-green-500/30"
-            >
-              <Heart className="w-5 h-5 mr-2" />
-              Give Now
-            </Button>
-          </div>
-        </div>
-
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[1, 2, 3, 4].map(i => (
