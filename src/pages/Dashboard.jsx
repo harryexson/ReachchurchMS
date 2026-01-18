@@ -8,7 +8,7 @@ import { Users, Heart, Calendar, UserCheck, TrendingUp, DollarSign, AlertCircle,
 import { format, startOfMonth, endOfMonth, subMonths, startOfWeek } from "date-fns";
 import { createPageUrl } from "@/utils";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import { useUserOrganization } from "../components/hooks/useUserOrganization";
+import { useUserOrganization } from "@/components/hooks/useUserOrganization";
 
 export default function Dashboard() {
   const { user, isLoading: orgLoading } = useUserOrganization();

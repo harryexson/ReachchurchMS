@@ -13,7 +13,7 @@ import MemberForm from "../components/members/MemberForm";
 import MemberFilters from "../components/members/MemberFilters";
 import ReportExportModal from "../components/reports/ReportExportModal";
 import BulkActionsModal from "../components/members/BulkActionsModal";
-import { useUserOrganization } from "../components/hooks/useUserOrganization";
+import { useUserOrganization } from "@/components/hooks/useUserOrganization";
 
 export default function MembersPage() {
     const { user, subscription, isLoading: orgLoading } = useUserOrganization();
