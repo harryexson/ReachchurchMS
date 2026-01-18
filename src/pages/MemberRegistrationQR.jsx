@@ -205,7 +205,7 @@ export default function MemberRegistrationQRPage() {
                                 </div>
                                 <h3 className="font-bold text-slate-900 mb-2">Complete Form</h3>
                                 <p className="text-sm text-slate-600">
-                                    They fill out a simple connect card with their information
+                                    They fill out a simple membership connect card with their information
                                 </p>
                             </div>
 
