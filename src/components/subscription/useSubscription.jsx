@@ -80,6 +80,7 @@ const PLAN_FEATURES = {
         multi_campus: true,
         white_label: true,
         api_access: true,
+        custom_domain: true,
         custom_branding_enabled: true,
         priority_support: true,
         dedicated_account_manager: true
