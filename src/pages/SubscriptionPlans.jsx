@@ -55,26 +55,6 @@ export default function SubscriptionPlansPage() {
         loadData();
     }, []);
 
-    // Use database pricing if available, otherwise use defaults
-    const getPlansToDisplay = () => {
-        if (pricingPlans.length > 0) {
-            return pricingPlans.map(dbPlan => ({
-                name: dbPlan.display_name || dbPlan.plan_name.charAt(0).toUpperCase() + dbPlan.plan_name.slice(1),
-                tier: dbPlan.plan_name,
-                price: dbPlan.monthly_price,
-                annualPrice: dbPlan.annual_price || (dbPlan.monthly_price * 12),
-                stripePriceIdMonthly: dbPlan.stripe_monthly_price_id || defaultPlans.find(p => p.tier === dbPlan.plan_name)?.stripePriceIdMonthly || "",
-                stripePriceIdAnnual: dbPlan.stripe_annual_price_id || defaultPlans.find(p => p.tier === dbPlan.plan_name)?.stripePriceIdAnnual || "",
-                description: dbPlan.notes || defaultPlans.find(p => p.tier === dbPlan.plan_name)?.description || "",
-                memberLimit: `Up to ${dbPlan.features?.member_limit || 0} members`,
-                popular: dbPlan.recommended || false,
-                features: defaultPlans.find(p => p.tier === dbPlan.plan_name)?.features || [],
-                limitations: defaultPlans.find(p => p.tier === dbPlan.plan_name)?.limitations || []
-            }));
-        }
-        return defaultPlans;
-    };
-
     const defaultPlans = [
         {
             name: "Starter",
@@ -197,6 +177,26 @@ export default function SubscriptionPlansPage() {
             limitations: []
         }
     ];
+
+    // Use database pricing if available, otherwise use defaults
+    const getPlansToDisplay = () => {
+        if (pricingPlans.length > 0) {
+            return pricingPlans.map(dbPlan => ({
+                name: dbPlan.display_name || dbPlan.plan_name.charAt(0).toUpperCase() + dbPlan.plan_name.slice(1),
+                tier: dbPlan.plan_name,
+                price: dbPlan.monthly_price,
+                annualPrice: dbPlan.annual_price || (dbPlan.monthly_price * 12),
+                stripePriceIdMonthly: dbPlan.stripe_monthly_price_id || defaultPlans.find(p => p.tier === dbPlan.plan_name)?.stripePriceIdMonthly || "",
+                stripePriceIdAnnual: dbPlan.stripe_annual_price_id || defaultPlans.find(p => p.tier === dbPlan.plan_name)?.stripePriceIdAnnual || "",
+                description: dbPlan.notes || defaultPlans.find(p => p.tier === dbPlan.plan_name)?.description || "",
+                memberLimit: `Up to ${dbPlan.features?.member_limit || 0} members`,
+                popular: dbPlan.recommended || false,
+                features: defaultPlans.find(p => p.tier === dbPlan.plan_name)?.features || [],
+                limitations: defaultPlans.find(p => p.tier === dbPlan.plan_name)?.limitations || []
+            }));
+        }
+        return defaultPlans;
+    };
 
     const handleAddOnPurchase = async (addonId, price) => {
         setIsLoading(true);
