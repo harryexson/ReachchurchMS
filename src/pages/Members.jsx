@@ -13,8 +13,10 @@ import MemberForm from "../components/members/MemberForm";
 import MemberFilters from "../components/members/MemberFilters";
 import ReportExportModal from "../components/reports/ReportExportModal";
 import BulkActionsModal from "../components/members/BulkActionsModal";
+import { useUserOrganization } from "../hooks/useUserOrganization";
 
 export default function MembersPage() {
+    const { user, subscription, isLoading: orgLoading } = useUserOrganization();
     const [members, setMembers] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isFormOpen, setIsFormOpen] = useState(false);
@@ -40,15 +42,21 @@ export default function MembersPage() {
     const [customFields, setCustomFields] = useState([]);
 
     useEffect(() => {
-        loadMembers();
-        loadMemberGroups();
-        loadGroupAssignments();
-        loadCustomFields();
-    }, []);
+        if (!orgLoading && user) {
+            loadMembers();
+            loadMemberGroups();
+            loadGroupAssignments();
+            loadCustomFields();
+        }
+    }, [orgLoading, user]);
 
     const loadMembers = async () => {
         setIsLoading(true);
-        const memberList = await base44.entities.Member.list("-created_date");
+        // Filter members by current user (created_by)
+        const memberList = await base44.entities.Member.filter(
+            { created_by: user.email },
+            "-created_date"
+        );
         setMembers(memberList);
         setIsLoading(false);
     };
