@@ -9,6 +9,10 @@ import { Progress } from "@/components/ui/progress";
 import { CheckCircle, ArrowRight, ArrowLeft, Building, CreditCard, Phone, Smartphone, Users, Heart, Calendar, MessageSquare, Zap, BookOpen, Home } from "lucide-react";
 import confetti from "canvas-confetti";
 import { createPageUrl } from "@/utils";
+import ChurchSizeSelector from "./ChurchSizeSelector";
+import FeatureRecommendations from "./FeatureRecommendations";
+import SetupChecklist from "./SetupChecklist";
+import GuidedTour from "./GuidedTour";
 
 export default function OnboardingWizard({ userEmail, userName, userType = "admin", onComplete }) {
     const isMember = userType === "member";
@@ -16,6 +20,9 @@ export default function OnboardingWizard({ userEmail, userName, userType = "admi
     const [currentStep, setCurrentStep] = useState(1);
     const [progress, setProgress] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [showTour, setShowTour] = useState(false);
+    const [churchSize, setChurchSize] = useState("");
+    const [setupTasks, setSetupTasks] = useState([]);
     const [formData, setFormData] = useState({
         church_name: "",
         church_phone: "",
@@ -38,11 +45,13 @@ export default function OnboardingWizard({ userEmail, userName, userType = "admi
 
     const adminSteps = [
         { id: 1, title: "Welcome", icon: Building },
-        { id: 2, title: "Church Info", icon: Building },
-        { id: 3, title: "Contact", icon: Phone },
-        { id: 4, title: "Payments", icon: CreditCard },
-        { id: 5, title: "Features", icon: Zap },
-        { id: 6, title: "Complete", icon: CheckCircle }
+        { id: 2, title: "Church Size", icon: Users },
+        { id: 3, title: "Church Info", icon: Building },
+        { id: 4, title: "Contact", icon: Phone },
+        { id: 5, title: "Payments", icon: CreditCard },
+        { id: 6, title: "Features", icon: Zap },
+        { id: 7, title: "Tasks", icon: CheckCircle },
+        { id: 8, title: "Complete", icon: CheckCircle }
     ];
 
     const memberSteps = [
@@ -100,6 +109,34 @@ export default function OnboardingWizard({ userEmail, userName, userType = "admi
         }
     };
 
+    const initializeSetupTasks = () => {
+        const baseTasks = [
+            { id: 'add_members', title: 'Add Church Members', description: 'Import or manually add your members', category: 'people', estimated: '15 min', completed: false },
+            { id: 'create_event', title: 'Create Your First Event', description: 'Schedule a service or event', category: 'setup', estimated: '10 min', completed: false },
+            { id: 'setup_giving', title: 'Enable Online Giving', description: 'Connect your payment processor', category: 'giving', estimated: '10 min', completed: false },
+            { id: 'invite_staff', title: 'Invite Staff Members', description: 'Add team members to your account', category: 'people', estimated: '10 min', completed: false }
+        ];
+
+        if (churchSize === 'medium' || churchSize === 'large') {
+            baseTasks.push({ id: 'setup_sms', title: 'Configure SMS Messaging', description: 'Enable text communications', category: 'comms', estimated: '10 min', completed: false });
+        }
+
+        if (churchSize === 'large') {
+            baseTasks.push({ id: 'setup_video', title: 'Set Up Video Meetings', description: 'Configure live streaming capability', category: 'setup', estimated: '15 min', completed: false });
+            baseTasks.push({ id: 'multi_campus', title: 'Configure Multi-Campus', description: 'Set up additional campus locations', category: 'setup', estimated: '15 min', completed: false });
+        }
+
+        setSetupTasks(baseTasks);
+    };
+
+    const handleTaskComplete = (taskId) => {
+        setSetupTasks(tasks => 
+            tasks.map(task => 
+                task.id === taskId ? { ...task, completed: !task.completed } : task
+            )
+        );
+    };
+
     const handleNext = async () => {
         if (isMember) {
             // Member onboarding flow
@@ -149,10 +186,11 @@ export default function OnboardingWizard({ userEmail, userName, userType = "admi
 
             let updates = {
                 current_step: nextStep,
-                steps_completed: stepsCompleted
+                steps_completed: stepsCompleted,
+                church_size: churchSize
             };
 
-            if (currentStep === 2) {
+            if (currentStep === 3) {
                 updates.church_name = formData.church_name;
                 updates.church_phone = formData.church_phone;
                 updates.church_address = formData.church_address;
@@ -174,16 +212,20 @@ export default function OnboardingWizard({ userEmail, userName, userType = "admi
                 }
             }
 
-            if (currentStep === 3) {
+            if (currentStep === 4) {
                 updates.point_of_contact = formData.point_of_contact;
             }
 
-            if (currentStep === 4) {
+            if (currentStep === 5) {
                 updates.stripe_connected = formData.stripe_connected;
                 updates.bank_account_added = formData.bank_account_added;
             }
 
-            if (nextStep > 6) {
+            if (currentStep === 2) {
+                initializeSetupTasks();
+            }
+
+            if (nextStep > 8) {
                 updates.onboarding_completed = true;
                 updates.completion_date = new Date().toISOString();
 
@@ -193,13 +235,12 @@ export default function OnboardingWizard({ userEmail, userName, userType = "admi
                     origin: { y: 0.6 }
                 });
 
-                if (onComplete) onComplete();
+                setShowTour(true);
+                return;
             }
 
             await updateProgress(updates);
-            if (nextStep <= 6) {
-                setCurrentStep(nextStep);
-            }
+            setCurrentStep(nextStep);
         }
     };
 
@@ -238,6 +279,18 @@ export default function OnboardingWizard({ userEmail, userName, userType = "admi
             <div className="flex items-center justify-center p-12">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
             </div>
+        );
+    }
+
+    if (showTour) {
+        return (
+            <GuidedTour 
+                onComplete={() => {
+                    setShowTour(false);
+                    onComplete();
+                }}
+                churchSize={churchSize}
+            />
         );
     }
 
@@ -467,6 +520,33 @@ export default function OnboardingWizard({ userEmail, userName, userType = "admi
 
     const renderAdminStepContent = () => {
         switch (currentStep) {
+            case 2:
+                return (
+                    <div>
+                        <ChurchSizeSelector 
+                            selected={churchSize}
+                            onChange={setChurchSize}
+                        />
+                    </div>
+                );
+
+            case 6:
+                return (
+                    <div>
+                        <FeatureRecommendations churchSize={churchSize} />
+                    </div>
+                );
+
+            case 7:
+                return (
+                    <div>
+                        <SetupChecklist 
+                            tasks={setupTasks}
+                            onTaskComplete={handleTaskComplete}
+                        />
+                    </div>
+                );
+
             case 1:
                 return (
                     <div className="text-center space-y-4">
@@ -519,7 +599,7 @@ export default function OnboardingWizard({ userEmail, userName, userType = "admi
                     </div>
                 );
 
-            case 2:
+            case 3:
                 return (
                     <div className="space-y-4">
                         <p className="text-slate-600 mb-4">Tell us about your church</p>
@@ -555,7 +635,7 @@ export default function OnboardingWizard({ userEmail, userName, userType = "admi
                     </div>
                 );
 
-            case 3:
+            case 4:
                 return (
                     <div className="space-y-4">
                         <p className="text-slate-600 mb-4">
@@ -594,7 +674,7 @@ export default function OnboardingWizard({ userEmail, userName, userType = "admi
                     </div>
                 );
 
-            case 4:
+            case 5:
                 return (
                     <div className="space-y-6">
                         <p className="text-slate-600 mb-4">
@@ -646,14 +726,14 @@ export default function OnboardingWizard({ userEmail, userName, userType = "admi
                     </div>
                 );
 
-            case 5:
+            case 8:
                 return (
                     <div className="space-y-6">
                         <div className="text-center mb-6">
                             <Zap className="w-16 h-16 mx-auto mb-4 text-yellow-600" />
-                            <h2 className="text-2xl font-bold text-slate-900 mb-2">Essential Features</h2>
+                            <h2 className="text-2xl font-bold text-slate-900 mb-2">All Set!</h2>
                             <p className="text-slate-600">
-                                Key capabilities to get started
+                                You're ready to launch your church platform
                             </p>
                         </div>
 
@@ -711,7 +791,7 @@ export default function OnboardingWizard({ userEmail, userName, userType = "admi
                     </div>
                 );
 
-            case 6:
+            case 8:
                 return (
                     <div className="text-center space-y-4">
                         <CheckCircle className="w-16 h-16 text-green-600 mx-auto" />
@@ -809,8 +889,9 @@ export default function OnboardingWizard({ userEmail, userName, userType = "admi
                             onClick={handleNext}
                             className="bg-blue-600 hover:bg-blue-700"
                             disabled={
-                                (!isMember && currentStep === 2 && !formData.church_name) ||
-                                (!isMember && currentStep === 3 && (!formData.point_of_contact || !formData.contact_phone)) ||
+                                (!isMember && currentStep === 2 && !churchSize) ||
+                                (!isMember && currentStep === 3 && !formData.church_name) ||
+                                (!isMember && currentStep === 4 && (!formData.point_of_contact || !formData.contact_phone)) ||
                                 (isMember && currentStep === 2 && (!memberInfo.first_name || !memberInfo.last_name))
                             }
                         >
