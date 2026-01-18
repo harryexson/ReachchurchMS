@@ -15,8 +15,10 @@ export default function SubscriptionPlansPage() {
     const [error, setError] = useState(null);
     const [isUpgrade, setIsUpgrade] = useState(false);
     const [existingSubscription, setExistingSubscription] = useState(null);
+    const [pricingPlans, setPricingPlans] = useState([]);
+    const [loadingPlans, setLoadingPlans] = useState(true);
 
-    // Check if this is an upgrade from expired trial
+    // Check if this is an upgrade from expired trial and load pricing from database
     React.useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
         const isExpired = urlParams.get('expired') === 'true';
@@ -26,9 +28,15 @@ export default function SubscriptionPlansPage() {
             setIsUpgrade(true);
         }
         
-        // Load existing subscription info
-        const loadExistingSubscription = async () => {
+        // Load pricing plans and subscription info
+        const loadData = async () => {
             try {
+                // Load pricing plans from database
+                const dbPlans = await base44.entities.PricingPlan.filter({ is_active: true });
+                if (dbPlans.length > 0) {
+                    setPricingPlans(dbPlans.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)));
+                }
+                
                 const user = await base44.auth.me();
                 if (user?.email) {
                     const subs = await base44.entities.Subscription.filter({
@@ -39,13 +47,35 @@ export default function SubscriptionPlansPage() {
                     }
                 }
             } catch (e) {
-                console.log('Could not load subscription:', e);
+                console.log('Could not load data:', e);
+            } finally {
+                setLoadingPlans(false);
             }
         };
-        loadExistingSubscription();
+        loadData();
     }, []);
 
-    const plans = [
+    // Use database pricing if available, otherwise use defaults
+    const getPlansToDisplay = () => {
+        if (pricingPlans.length > 0) {
+            return pricingPlans.map(dbPlan => ({
+                name: dbPlan.display_name || dbPlan.plan_name.charAt(0).toUpperCase() + dbPlan.plan_name.slice(1),
+                tier: dbPlan.plan_name,
+                price: dbPlan.monthly_price,
+                annualPrice: dbPlan.annual_price || (dbPlan.monthly_price * 12),
+                stripePriceIdMonthly: dbPlan.stripe_monthly_price_id || defaultPlans.find(p => p.tier === dbPlan.plan_name)?.stripePriceIdMonthly || "",
+                stripePriceIdAnnual: dbPlan.stripe_annual_price_id || defaultPlans.find(p => p.tier === dbPlan.plan_name)?.stripePriceIdAnnual || "",
+                description: dbPlan.notes || defaultPlans.find(p => p.tier === dbPlan.plan_name)?.description || "",
+                memberLimit: `Up to ${dbPlan.features?.member_limit || 0} members`,
+                popular: dbPlan.recommended || false,
+                features: defaultPlans.find(p => p.tier === dbPlan.plan_name)?.features || [],
+                limitations: defaultPlans.find(p => p.tier === dbPlan.plan_name)?.limitations || []
+            }));
+        }
+        return defaultPlans;
+    };
+
+    const defaultPlans = [
         {
             name: "Starter",
             tier: "starter",
@@ -334,6 +364,19 @@ export default function SubscriptionPlansPage() {
         
         setIsLoading(false);
     };
+
+    const plans = getPlansToDisplay();
+
+    if (loadingPlans) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 flex items-center justify-center">
+                <div className="text-center">
+                    <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
+                    <p className="text-slate-600">Loading pricing plans...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
