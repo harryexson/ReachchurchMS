@@ -208,12 +208,13 @@ async function createOrUpdateSubscription(base44, session) {
     if (existingSubscriptions.length === 0) {
         try {
             console.log('👤 Setting user role to admin for:', customerEmail);
-            await base44.auth.updateMe({ role: 'admin' });
+            await base44.asServiceRole.functions.invoke('setAdminRoleOnSubscription', {
+                email: customerEmail
+            });
             console.log('✅ User role updated to admin');
         } catch (error) {
             console.error('⚠️ Warning: Could not update user role:', error.message);
-            // Note: This may fail if the user is not authenticated in webhook context
-            // But we still proceed with subscription creation
+            // Note: Still proceed with subscription creation even if role update fails
         }
     }
 
