@@ -92,6 +92,7 @@ export function useSubscription() {
     const [error, setError] = useState(null);
     const [features, setFeatures] = useState(PLAN_FEATURES.starter); // Default to starter features
     const [refreshTrigger, setRefreshTrigger] = useState(0);
+    const [lastRefresh, setLastRefresh] = useState(Date.now());
 
     const loadSubscription = async () => {
         try {
@@ -304,6 +305,7 @@ export function useSubscription() {
 
     const refresh = () => {
         setRefreshTrigger(prev => prev + 1);
+        setLastRefresh(Date.now());
     };
 
     return {
@@ -329,6 +331,6 @@ export function useSubscription() {
         getVideoMaxParticipants,
         requiresPlanUpgrade,
         refresh,
-        lastRefresh: Date.now()
+        lastRefresh
     };
 }
