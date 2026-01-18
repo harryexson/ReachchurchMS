@@ -183,15 +183,71 @@ export default function MemberRegistrationQRPage() {
                     </Card>
                 </div>
 
-                <Card className="shadow-lg bg-gradient-to-br from-blue-50 to-indigo-50">
-                    <CardContent className="p-6">
-                        <h3 className="font-semibold text-slate-900 mb-3">💡 How to Use</h3>
-                        <ul className="text-sm text-slate-700 space-y-2">
-                            <li>• <strong>Print and Display:</strong> Print this QR code and place it in your church lobby, bulletin, or website</li>
-                            <li>• <strong>New Members:</strong> People scan the code to fill out a member registration form</li>
-                            <li>• <strong>Visitor Conversion:</strong> If they're already a visitor, they can upgrade to member status</li>
-                            <li>• <strong>Instant Updates:</strong> All registrations appear immediately in your Members directory</li>
-                        </ul>
+                <Card className="shadow-lg">
+                    <CardHeader>
+                        <CardTitle>How It Works</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <div className="grid md:grid-cols-3 gap-4">
+                            <div className="text-center p-6 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl">
+                                <div className="w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <span className="text-white font-bold text-2xl">1</span>
+                                </div>
+                                <h3 className="font-bold text-slate-900 mb-2">Visitor Scans</h3>
+                                <p className="text-sm text-slate-600">
+                                    First-time visitors scan the QR code with their smartphone
+                                </p>
+                            </div>
+
+                            <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl">
+                                <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <span className="text-white font-bold text-2xl">2</span>
+                                </div>
+                                <h3 className="font-bold text-slate-900 mb-2">Complete Form</h3>
+                                <p className="text-sm text-slate-600">
+                                    They fill out a simple connect card with their information
+                                </p>
+                            </div>
+
+                            <div className="text-center p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl">
+                                <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <span className="text-white font-bold text-2xl">3</span>
+                                </div>
+                                <h3 className="font-bold text-slate-900 mb-2">Auto Follow-Up</h3>
+                                <p className="text-sm text-slate-600">
+                                    Visitor enters your system for automated follow-up
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                            <p className="text-sm text-yellow-900">
+                                <strong>💡 Pro Tip:</strong> Display the QR code on screens near entrances, in the lobby, 
+                                or during announcements to make it easy for visitors to connect with your church.
+                            </p>
+                        </div>
+
+                        <div className="space-y-3 pt-4 border-t">
+                            <h4 className="font-semibold text-slate-900">How to Use</h4>
+                            <ul className="space-y-2 text-sm text-slate-700">
+                                <li className="flex items-start gap-2">
+                                    <span className="text-blue-600 font-bold">•</span>
+                                    <span><strong>Print and Display:</strong> Print this QR code and place it in your church lobby, bulletin, or website</span>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                    <span className="text-blue-600 font-bold">•</span>
+                                    <span><strong>New Members:</strong> People scan the code to fill out a member registration form</span>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                    <span className="text-blue-600 font-bold">•</span>
+                                    <span><strong>Visitor Conversion:</strong> If they're already a visitor, they can upgrade to member status</span>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                    <span className="text-blue-600 font-bold">•</span>
+                                    <span><strong>Instant Updates:</strong> All registrations appear immediately in your Members directory</span>
+                                </li>
+                            </ul>
+                        </div>
                     </CardContent>
                 </Card>
             </div>

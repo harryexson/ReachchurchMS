@@ -319,33 +319,71 @@ export default function QRCodeDonation() {
                             </CardContent>
                         </Card>
 
-                        <Card className="shadow-lg bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+                        <Card className="shadow-lg">
                             <CardHeader>
-                                <CardTitle className="text-green-900">Usage Ideas</CardTitle>
+                                <CardTitle>How It Works</CardTitle>
                             </CardHeader>
-                            <CardContent>
-                                <ul className="space-y-2 text-sm text-green-800">
-                                    <li className="flex items-start gap-2">
-                                        <span>📋</span>
-                                        <span>Print on weekly bulletins</span>
-                                    </li>
-                                    <li className="flex items-start gap-2">
-                                        <span>🖼️</span>
-                                        <span>Display on lobby screens</span>
-                                    </li>
-                                    <li className="flex items-start gap-2">
-                                        <span>📧</span>
-                                        <span>Include in email newsletters</span>
-                                    </li>
-                                    <li className="flex items-start gap-2">
-                                        <span>📱</span>
-                                        <span>Share on social media</span>
-                                    </li>
-                                    <li className="flex items-start gap-2">
-                                        <span>🎪</span>
-                                        <span>Post at events and gatherings</span>
-                                    </li>
-                                </ul>
+                            <CardContent className="space-y-6">
+                                <div className="grid md:grid-cols-3 gap-4">
+                                    <div className="text-center p-6 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl">
+                                        <div className="w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <span className="text-white font-bold text-2xl">1</span>
+                                        </div>
+                                        <h3 className="font-bold text-slate-900 mb-2">Member Scans</h3>
+                                        <p className="text-sm text-slate-600">
+                                            Members scan the QR code with their smartphone camera
+                                        </p>
+                                    </div>
+
+                                    <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl">
+                                        <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <span className="text-white font-bold text-2xl">2</span>
+                                        </div>
+                                        <h3 className="font-bold text-slate-900 mb-2">Enter Amount</h3>
+                                        <p className="text-sm text-slate-600">
+                                            Choose donation amount and payment method
+                                        </p>
+                                    </div>
+
+                                    <div className="text-center p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl">
+                                        <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <span className="text-white font-bold text-2xl">3</span>
+                                        </div>
+                                        <h3 className="font-bold text-slate-900 mb-2">Instant Receipt</h3>
+                                        <p className="text-sm text-slate-600">
+                                            Receive tax-deductible receipt via email immediately
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                    <p className="text-sm text-yellow-900">
+                                        <strong>💡 Pro Tip:</strong> Display the QR code on screens near entrances, in the lobby, 
+                                        or during announcements to make it easy for members to give.
+                                    </p>
+                                </div>
+
+                                <div className="space-y-3 pt-4 border-t">
+                                    <h4 className="font-semibold text-slate-900">How to Use</h4>
+                                    <ul className="space-y-2 text-sm text-slate-700">
+                                        <li className="flex items-start gap-2">
+                                            <span className="text-green-600 font-bold">•</span>
+                                            <span><strong>Print and Display:</strong> Print this QR code and place it in your church lobby, bulletin, or website</span>
+                                        </li>
+                                        <li className="flex items-start gap-2">
+                                            <span className="text-green-600 font-bold">•</span>
+                                            <span><strong>Easy Giving:</strong> Members can instantly access your secure giving page</span>
+                                        </li>
+                                        <li className="flex items-start gap-2">
+                                            <span className="text-green-600 font-bold">•</span>
+                                            <span><strong>Multiple Options:</strong> Supports one-time and recurring donations</span>
+                                        </li>
+                                        <li className="flex items-start gap-2">
+                                            <span className="text-green-600 font-bold">•</span>
+                                            <span><strong>Instant Tracking:</strong> All donations appear immediately in your giving dashboard</span>
+                                        </li>
+                                    </ul>
+                                </div>
                             </CardContent>
                         </Card>
                     </div>

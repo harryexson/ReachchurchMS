@@ -192,6 +192,41 @@ export default function EventQRCodeGenerator({ event, registrationUrl }) {
                         <ExternalLink className="w-4 h-4 mr-2" />
                         Open Registration Page
                     </Button>
+
+                    <div className="mt-6 pt-6 border-t space-y-4">
+                        <h4 className="font-semibold text-slate-900">How It Works</h4>
+                        <div className="grid grid-cols-3 gap-3">
+                            <div className="text-center p-3 bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg">
+                                <div className="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-2">
+                                    <span className="text-white font-bold text-lg">1</span>
+                                </div>
+                                <p className="text-xs font-semibold text-slate-900 mb-1">Guest Scans</p>
+                                <p className="text-xs text-slate-600">Scan QR code to register</p>
+                            </div>
+
+                            <div className="text-center p-3 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg">
+                                <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-2">
+                                    <span className="text-white font-bold text-lg">2</span>
+                                </div>
+                                <p className="text-xs font-semibold text-slate-900 mb-1">Fill Form</p>
+                                <p className="text-xs text-slate-600">Enter details quickly</p>
+                            </div>
+
+                            <div className="text-center p-3 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg">
+                                <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-2">
+                                    <span className="text-white font-bold text-lg">3</span>
+                                </div>
+                                <p className="text-xs font-semibold text-slate-900 mb-1">Confirmed</p>
+                                <p className="text-xs text-slate-600">Instant confirmation</p>
+                            </div>
+                        </div>
+
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                            <p className="text-xs text-blue-900">
+                                <strong>💡 Pro Tip:</strong> Project this QR code during announcements or display at entrances for easy event registration.
+                            </p>
+                        </div>
+                    </div>
                 </CardContent>
             </Card>
 
