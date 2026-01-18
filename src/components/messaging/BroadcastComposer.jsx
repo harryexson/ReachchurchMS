@@ -176,71 +176,7 @@ export default function BroadcastComposer({ open, onOpenChange, onSuccess }) {
     };
 
     const allInterests = [...new Set(allMembers.flatMap(m => m.interests || []))];
-    const allMinistries = [...new Set(allMembers.flatMap(m => m.ministry_involvement || []))];
-
-    const handleSendBroadcast = async () => {
-        setIsSending(true);
-        try {
-            const user = await base44.auth.me();
-            const recipientEmails = await getRecipientEmails();
-
-            if (recipientEmails.length === 0) {
-                toast.error('No recipients match your criteria');
-                setIsSending(false);
-                return;
-            }
-
-            // Send in-app message
-            if (deliveryMethod === 'in_app' || deliveryMethod === 'both') {
-                await base44.entities.InAppMessage.create({
-                    subject: subject,
-                    message_body: message,
-                    sender_email: user.email,
-                    sender_name: user.full_name,
-                    sender_role: 'admin',
-                    recipient_emails: recipientEmails,
-                    message_type: 'broadcast',
-                    status: 'sent',
-                    sent_date: new Date().toISOString(),
-                    read_by: []
-                });
-            }
-
-            // Send push notification
-            if (deliveryMethod === 'push' || deliveryMethod === 'both') {
-                try {
-                    await base44.functions.invoke('sendPushNotification', {
-                        title: subject,
-                        body: message,
-                        targetUsers: recipientEmails
-                    });
-                } catch (pushError) {
-                    console.warn('Push notification failed (continuing):', pushError);
-                }
-            }
-
-            toast.success(`Broadcast sent to ${recipientEmails.length} members!`);
-            
-            // Reset form
-            setSubject('');
-            setMessage('');
-            setTargetAudience('all');
-            setSelectedGroups([]);
-            setSelectedInterests([]);
-            setSelectedMinistries([]);
-            setSelectedAgeGroups([]);
-            setMemberStatus('all');
-            
-            onOpenChange(false);
-            if (onSuccess) onSuccess();
-
-        } catch (error) {
-            console.error('Error sending broadcast:', error);
-            toast.error('Failed to send broadcast');
-        } finally {
-            setIsSending(false);
-        }
-    };
+    const allMinistries = [...new Set(allMembers.flatMap(m => m.ministry_involvement || []))];;
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
