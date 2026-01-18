@@ -213,7 +213,7 @@ export default function MemberRegistrationQRPage() {
                                 <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
                                     <span className="text-white font-bold text-2xl">3</span>
                                 </div>
-                                <h3 className="font-bold text-slate-900 mb-2">Auto Follow-Up</h3>
+                                <h3 className="font-bold text-slate-900 mb-2">Data Base Records</h3>
                                 <p className="text-sm text-slate-600">
                                     Members enters your system data base records
                                 </p>
