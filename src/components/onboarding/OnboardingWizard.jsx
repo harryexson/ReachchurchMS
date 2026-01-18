@@ -27,8 +27,13 @@ export default function OnboardingWizard({ userEmail, userName, userType = "admi
         bank_account_added: false
     });
     const [memberInfo, setMemberInfo] = useState({
+        first_name: "",
+        last_name: "",
+        phone: "",
+        address: "",
         interests: [],
-        communication_preferences: []
+        ministry_involvement: [],
+        volunteer_roles: []
     });
 
     const adminSteps = [
@@ -36,14 +41,14 @@ export default function OnboardingWizard({ userEmail, userName, userType = "admi
         { id: 2, title: "Church Info", icon: Building },
         { id: 3, title: "Contact", icon: Phone },
         { id: 4, title: "Payments", icon: CreditCard },
-        { id: 5, title: "Mobile App", icon: Smartphone },
+        { id: 5, title: "Features", icon: Zap },
         { id: 6, title: "Complete", icon: CheckCircle }
     ];
 
     const memberSteps = [
         { id: 1, title: "Welcome", icon: Home },
-        { id: 2, title: "Interests", icon: Heart },
-        { id: 3, title: "Stay Connected", icon: MessageSquare },
+        { id: 2, title: "About You", icon: Users },
+        { id: 3, title: "Interests", icon: Heart },
         { id: 4, title: "Complete", icon: CheckCircle }
     ];
 
@@ -100,10 +105,25 @@ export default function OnboardingWizard({ userEmail, userName, userType = "admi
             // Member onboarding flow
             if (currentStep === memberSteps.length) {
                 try {
-                    await base44.auth.updateMe({
-                        interests: memberInfo.interests.join(', '),
-                        communication_preferences: memberInfo.communication_preferences.join(', ')
-                    });
+                    // Create or update member record
+                    const existingMembers = await base44.entities.Member.filter({ email: userEmail });
+                    const memberData = {
+                        first_name: memberInfo.first_name,
+                        last_name: memberInfo.last_name,
+                        email: userEmail,
+                        phone: memberInfo.phone,
+                        address: memberInfo.address,
+                        interests: memberInfo.interests,
+                        ministry_involvement: memberInfo.ministry_involvement,
+                        volunteer_roles: memberInfo.volunteer_roles,
+                        member_status: 'member'
+                    };
+
+                    if (existingMembers.length > 0) {
+                        await base44.entities.Member.update(existingMembers[0].id, memberData);
+                    } else {
+                        await base44.entities.Member.create(memberData);
+                    }
 
                     await updateProgress({
                         onboarding_completed: true,
@@ -275,70 +295,142 @@ export default function OnboardingWizard({ userEmail, userName, userType = "admi
                 );
 
             case 2:
-                const interestOptions = ["Worship", "Children's Ministry", "Youth Ministry", "Outreach", "Prayer", "Small Groups", "Volunteering", "Music"];
                 return (
                     <div className="space-y-6">
                         <div className="text-center mb-6">
-                            <Heart className="w-16 h-16 mx-auto mb-4 text-pink-600" />
-                            <h2 className="text-2xl font-bold text-slate-900 mb-2">What are you interested in?</h2>
+                            <Users className="w-16 h-16 mx-auto mb-4 text-blue-600" />
+                            <h2 className="text-2xl font-bold text-slate-900 mb-2">Tell us about yourself</h2>
                             <p className="text-slate-600">
-                                Help us connect you with the right groups and opportunities
+                                Help us create your member profile
                             </p>
                         </div>
-                        <div className="grid grid-cols-2 gap-3">
-                            {interestOptions.map(interest => (
-                                <button
-                                    key={interest}
-                                    onClick={() => {
-                                        const interests = memberInfo.interests.includes(interest)
-                                            ? memberInfo.interests.filter(i => i !== interest)
-                                            : [...memberInfo.interests, interest];
-                                        setMemberInfo({ ...memberInfo, interests });
-                                    }}
-                                    className={`p-4 rounded-lg border-2 transition-all ${
-                                        memberInfo.interests.includes(interest)
-                                            ? 'border-blue-500 bg-blue-50'
-                                            : 'border-slate-200 hover:border-slate-300'
-                                    }`}
-                                >
-                                    <p className="font-medium text-slate-900">{interest}</p>
-                                </button>
-                            ))}
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <Label>First Name *</Label>
+                                    <Input
+                                        placeholder="John"
+                                        value={memberInfo.first_name}
+                                        onChange={(e) => setMemberInfo({...memberInfo, first_name: e.target.value})}
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <Label>Last Name *</Label>
+                                    <Input
+                                        placeholder="Smith"
+                                        value={memberInfo.last_name}
+                                        onChange={(e) => setMemberInfo({...memberInfo, last_name: e.target.value})}
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <Label>Phone Number</Label>
+                                <Input
+                                    placeholder="+1 (555) 123-4567"
+                                    value={memberInfo.phone}
+                                    onChange={(e) => setMemberInfo({...memberInfo, phone: e.target.value})}
+                                />
+                            </div>
+                            <div>
+                                <Label>Address</Label>
+                                <Textarea
+                                    placeholder="123 Main Street, City, State, ZIP"
+                                    value={memberInfo.address}
+                                    onChange={(e) => setMemberInfo({...memberInfo, address: e.target.value})}
+                                    rows={2}
+                                />
+                            </div>
                         </div>
                     </div>
                 );
 
             case 3:
-                const commPrefs = ["Email", "SMS", "Push Notifications", "In-App Messages"];
+                const interestOptions = ["Worship", "Prayer", "Bible Study", "Small Groups", "Outreach", "Music"];
+                const ministryOptions = ["Children's Ministry", "Youth Ministry", "Hospitality", "Media/Tech", "Administration", "Missions"];
+                const volunteerOptions = ["Usher", "Greeter", "Kids Church Helper", "Worship Team", "Tech Support", "Event Setup"];
+                
                 return (
                     <div className="space-y-6">
                         <div className="text-center mb-6">
-                            <Users className="w-16 h-16 mx-auto mb-4 text-purple-600" />
-                            <h2 className="text-2xl font-bold text-slate-900 mb-2">Stay Connected</h2>
+                            <Heart className="w-16 h-16 mx-auto mb-4 text-pink-600" />
+                            <h2 className="text-2xl font-bold text-slate-900 mb-2">Your Interests</h2>
                             <p className="text-slate-600">
-                                How would you like to receive updates from the church?
+                                Help us connect you with the right groups and opportunities
                             </p>
                         </div>
-                        <div className="space-y-3">
-                            {commPrefs.map(pref => (
-                                <label
-                                    key={pref}
-                                    className="flex items-center gap-3 p-4 rounded-lg border-2 border-slate-200 hover:border-slate-300 cursor-pointer transition-all"
-                                >
-                                    <input
-                                        type="checkbox"
-                                        checked={memberInfo.communication_preferences.includes(pref)}
-                                        onChange={(e) => {
-                                            const prefs = e.target.checked
-                                                ? [...memberInfo.communication_preferences, pref]
-                                                : memberInfo.communication_preferences.filter(p => p !== pref);
-                                            setMemberInfo({ ...memberInfo, communication_preferences: prefs });
+
+                        <div>
+                            <h3 className="font-semibold text-slate-900 mb-3">Areas of Interest</h3>
+                            <div className="grid grid-cols-2 gap-3">
+                                {interestOptions.map(interest => (
+                                    <button
+                                        key={interest}
+                                        onClick={() => {
+                                            const interests = memberInfo.interests.includes(interest)
+                                                ? memberInfo.interests.filter(i => i !== interest)
+                                                : [...memberInfo.interests, interest];
+                                            setMemberInfo({ ...memberInfo, interests });
                                         }}
-                                        className="w-5 h-5 rounded"
-                                    />
-                                    <span className="font-medium text-slate-900">{pref}</span>
-                                </label>
-                            ))}
+                                        className={`p-3 rounded-lg border-2 transition-all text-sm ${
+                                            memberInfo.interests.includes(interest)
+                                                ? 'border-blue-500 bg-blue-50 text-blue-900'
+                                                : 'border-slate-200 hover:border-slate-300 text-slate-700'
+                                        }`}
+                                    >
+                                        {interest}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 className="font-semibold text-slate-900 mb-3">Ministries You'd Like to Join</h3>
+                            <div className="grid grid-cols-2 gap-3">
+                                {ministryOptions.map(ministry => (
+                                    <button
+                                        key={ministry}
+                                        onClick={() => {
+                                            const ministries = memberInfo.ministry_involvement.includes(ministry)
+                                                ? memberInfo.ministry_involvement.filter(m => m !== ministry)
+                                                : [...memberInfo.ministry_involvement, ministry];
+                                            setMemberInfo({ ...memberInfo, ministry_involvement: ministries });
+                                        }}
+                                        className={`p-3 rounded-lg border-2 transition-all text-sm ${
+                                            memberInfo.ministry_involvement.includes(ministry)
+                                                ? 'border-green-500 bg-green-50 text-green-900'
+                                                : 'border-slate-200 hover:border-slate-300 text-slate-700'
+                                        }`}
+                                    >
+                                        {ministry}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 className="font-semibold text-slate-900 mb-3">Volunteer Opportunities</h3>
+                            <div className="grid grid-cols-2 gap-3">
+                                {volunteerOptions.map(role => (
+                                    <button
+                                        key={role}
+                                        onClick={() => {
+                                            const roles = memberInfo.volunteer_roles.includes(role)
+                                                ? memberInfo.volunteer_roles.filter(r => r !== role)
+                                                : [...memberInfo.volunteer_roles, role];
+                                            setMemberInfo({ ...memberInfo, volunteer_roles: roles });
+                                        }}
+                                        className={`p-3 rounded-lg border-2 transition-all text-sm ${
+                                            memberInfo.volunteer_roles.includes(role)
+                                                ? 'border-purple-500 bg-purple-50 text-purple-900'
+                                                : 'border-slate-200 hover:border-slate-300 text-slate-700'
+                                        }`}
+                                    >
+                                        {role}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 );
@@ -558,33 +650,63 @@ export default function OnboardingWizard({ userEmail, userName, userType = "admi
                 return (
                     <div className="space-y-6">
                         <div className="text-center mb-6">
-                            <Smartphone className="w-16 h-16 mx-auto mb-4 text-purple-600" />
-                            <h2 className="text-2xl font-bold text-slate-900 mb-2">Mobile App Ready!</h2>
+                            <Zap className="w-16 h-16 mx-auto mb-4 text-yellow-600" />
+                            <h2 className="text-2xl font-bold text-slate-900 mb-2">Essential Features</h2>
                             <p className="text-slate-600">
-                                Your app works as a Progressive Web App (PWA)
+                                Key capabilities to get started
                             </p>
                         </div>
 
-                        <div className="bg-purple-50 p-6 rounded-lg border-2 border-purple-200">
-                            <h3 className="font-bold text-slate-900 mb-4">Mobile Features Included:</h3>
-                            <ul className="text-sm text-slate-700 space-y-2">
-                                <li className="flex items-start gap-2">
-                                    <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
-                                    <span>Install on home screen (no App Store)</span>
-                                </li>
-                                <li className="flex items-start gap-2">
-                                    <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
-                                    <span>Push notifications for announcements</span>
-                                </li>
-                                <li className="flex items-start gap-2">
-                                    <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
-                                    <span>Mobile-optimized interface</span>
-                                </li>
-                                <li className="flex items-start gap-2">
-                                    <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
-                                    <span>Offline indicators</span>
-                                </li>
-                            </ul>
+                        <div className="space-y-4">
+                            <div className="bg-blue-50 p-5 rounded-lg border border-blue-200">
+                                <div className="flex items-start gap-3">
+                                    <Users className="w-6 h-6 text-blue-600 flex-shrink-0" />
+                                    <div>
+                                        <h3 className="font-bold text-blue-900 mb-1">Member Management</h3>
+                                        <p className="text-sm text-blue-800">Add members, track visitors, and manage your church directory</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="bg-green-50 p-5 rounded-lg border border-green-200">
+                                <div className="flex items-start gap-3">
+                                    <Heart className="w-6 h-6 text-green-600 flex-shrink-0" />
+                                    <div>
+                                        <h3 className="font-bold text-green-900 mb-1">Online Giving</h3>
+                                        <p className="text-sm text-green-800">Accept donations via QR codes, text-to-give, and kiosk stations</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="bg-purple-50 p-5 rounded-lg border border-purple-200">
+                                <div className="flex items-start gap-3">
+                                    <MessageSquare className="w-6 h-6 text-purple-600 flex-shrink-0" />
+                                    <div>
+                                        <h3 className="font-bold text-purple-900 mb-1">Communication Tools</h3>
+                                        <p className="text-sm text-purple-800">Send SMS, email, push notifications, and in-app messages</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="bg-orange-50 p-5 rounded-lg border border-orange-200">
+                                <div className="flex items-start gap-3">
+                                    <Calendar className="w-6 h-6 text-orange-600 flex-shrink-0" />
+                                    <div>
+                                        <h3 className="font-bold text-orange-900 mb-1">Events & Check-In</h3>
+                                        <p className="text-sm text-orange-800">Manage events, registrations, and kids check-in with QR codes</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="bg-indigo-50 p-5 rounded-lg border border-indigo-200">
+                                <div className="flex items-start gap-3">
+                                    <Zap className="w-6 h-6 text-indigo-600 flex-shrink-0" />
+                                    <div>
+                                        <h3 className="font-bold text-indigo-900 mb-1">Workflow Automation</h3>
+                                        <p className="text-sm text-indigo-800">Automate visitor follow-ups, event reminders, and thank-you messages</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 );
@@ -688,7 +810,8 @@ export default function OnboardingWizard({ userEmail, userName, userType = "admi
                             className="bg-blue-600 hover:bg-blue-700"
                             disabled={
                                 (!isMember && currentStep === 2 && !formData.church_name) ||
-                                (!isMember && currentStep === 3 && (!formData.point_of_contact || !formData.contact_phone))
+                                (!isMember && currentStep === 3 && (!formData.point_of_contact || !formData.contact_phone)) ||
+                                (isMember && currentStep === 2 && (!memberInfo.first_name || !memberInfo.last_name))
                             }
                         >
                             {currentStep === steps.length ? 'Complete & Start' : 'Next'}
