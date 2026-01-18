@@ -511,10 +511,6 @@ export default function MemberDashboard() {
                     </Link>
                 </div>
 
-                    {/* Explore More Section */}
-                    <div className="space-y-3">
-                        <h3 className="text-sm font-semibold text-slate-700">Get Involved</h3>
-
                 {/* Recent Announcements */}
                 <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm mx-4">
                     <CardHeader>
