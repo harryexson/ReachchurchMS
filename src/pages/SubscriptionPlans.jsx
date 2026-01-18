@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -55,7 +55,7 @@ export default function SubscriptionPlansPage() {
         loadData();
     }, []);
 
-    const defaultPlans = [
+    const defaultPlans = useMemo(() => [
         {
             name: "Starter",
             tier: "starter",
@@ -176,10 +176,10 @@ export default function SubscriptionPlansPage() {
             ],
             limitations: []
         }
-    ];
+    ], []);
 
     // Use database pricing if available, otherwise use defaults
-    const getPlansToDisplay = () => {
+    const plans = useMemo(() => {
         if (pricingPlans.length > 0) {
             return pricingPlans.map(dbPlan => ({
                 name: dbPlan.display_name || dbPlan.plan_name.charAt(0).toUpperCase() + dbPlan.plan_name.slice(1),
@@ -196,7 +196,7 @@ export default function SubscriptionPlansPage() {
             }));
         }
         return defaultPlans;
-    };
+    }, [pricingPlans, defaultPlans]);
 
     const handleAddOnPurchase = async (addonId, price) => {
         setIsLoading(true);
@@ -364,8 +364,6 @@ export default function SubscriptionPlansPage() {
         
         setIsLoading(false);
     };
-
-    const plans = getPlansToDisplay();
 
     if (loadingPlans) {
         return (
