@@ -29,18 +29,20 @@ export default function QRCodeDonation() {
     const loadSettings = async () => {
         try {
             const settings = await base44.entities.ChurchSettings.list();
+            let name = "Our Church";
             if (settings.length > 0) {
                 const churchSettings = settings[0];
-                setChurchName(churchSettings.church_name || "Our Church");
+                name = churchSettings.church_name || "Our Church";
+                setChurchName(name);
                 setBranding({
                     logo_url: churchSettings.logo_url || "",
                     primary_color: churchSettings.primary_color || "#3b82f6"
                 });
             }
 
-            // Generate public donation URL (no login required)
-            const baseUrl = 'https://reachchurchms.com';
-            const givingUrl = `${baseUrl}/PublicGiving`;
+            // Generate church-specific donation URL
+            const churchSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+            const givingUrl = `https://reachchurchconnect.com/${churchSlug}/give`;
             setDonationUrl(givingUrl);
 
             // Generate QR code using QuickChart API

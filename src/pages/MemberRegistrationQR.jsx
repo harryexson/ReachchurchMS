@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { QrCode, Download, ExternalLink, Printer } from "lucide-react";
@@ -7,13 +8,31 @@ import QRCode from "qrcode";
 export default function MemberRegistrationQRPage() {
     const [qrCodeUrl, setQrCodeUrl] = useState("");
     const [registrationUrl, setRegistrationUrl] = useState("");
+    const [churchName, setChurchName] = useState("");
 
     useEffect(() => {
-        generateQRCode();
+        loadChurchSettings();
     }, []);
 
-    const generateQRCode = async () => {
-        const url = `${window.location.origin}/publicmemberregistration`;
+    const loadChurchSettings = async () => {
+        try {
+            const settings = await base44.entities.ChurchSettings.list();
+            if (settings.length > 0) {
+                const name = settings[0].church_name || "Church";
+                setChurchName(name);
+                generateQRCode(name);
+            } else {
+                generateQRCode("Church");
+            }
+        } catch (error) {
+            console.error("Error loading church settings:", error);
+            generateQRCode("Church");
+        }
+    };
+
+    const generateQRCode = async (name) => {
+        const churchSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        const url = `https://reachchurchconnect.com/${churchSlug}/member-registration`;
         setRegistrationUrl(url);
 
         try {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { QrCode, Copy, Share2, Monitor, Download, ExternalLink } from 'lucide-react';
@@ -10,24 +11,49 @@ export default function EventQRCodeGenerator({ event, registrationUrl }) {
     const [qrCodeUrl, setQrCodeUrl] = useState('');
     const [showFullscreen, setShowFullscreen] = useState(false);
     const [copied, setCopied] = useState(false);
+    const [churchSpecificUrl, setChurchSpecificUrl] = useState('');
 
     useEffect(() => {
-        if (registrationUrl) {
+        loadChurchAndGenerateUrl();
+    }, [event]);
+
+    const loadChurchAndGenerateUrl = async () => {
+        try {
+            const settings = await base44.entities.ChurchSettings.list();
+            let name = "Church";
+            if (settings.length > 0) {
+                name = settings[0].church_name || "Church";
+            }
+            
+            // Generate church-specific event registration URL
+            const churchSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+            const eventSlug = event.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+            const url = `https://reachchurchconnect.com/${churchSlug}/event/${eventSlug}/register`;
+            setChurchSpecificUrl(url);
+            
             // Generate QR code using free API
-            const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(registrationUrl)}`;
+            const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(url)}`;
             setQrCodeUrl(qrApiUrl);
+        } catch (error) {
+            console.error("Error generating church-specific URL:", error);
+            // Fallback to original registrationUrl if provided
+            if (registrationUrl) {
+                setChurchSpecificUrl(registrationUrl);
+                const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(registrationUrl)}`;
+                setQrCodeUrl(qrApiUrl);
+            }
         }
-    }, [registrationUrl]);
+    };
 
     const copyLink = () => {
-        navigator.clipboard.writeText(registrationUrl);
+        navigator.clipboard.writeText(churchSpecificUrl || registrationUrl);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
 
     const shareToSocial = (platform) => {
         const text = `Register for ${event.title}`;
-        const url = registrationUrl;
+        const url = churchSpecificUrl || registrationUrl;
         
         const shareUrls = {
             twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
@@ -84,7 +110,7 @@ export default function EventQRCodeGenerator({ event, registrationUrl }) {
                         <div className="flex gap-2">
                             <input
                                 type="text"
-                                value={registrationUrl}
+                                value={churchSpecificUrl || registrationUrl}
                                 readOnly
                                 className="flex-1 px-3 py-2 border rounded-md bg-slate-50 text-sm"
                             />
@@ -161,7 +187,7 @@ export default function EventQRCodeGenerator({ event, registrationUrl }) {
                     <Button
                         variant="outline"
                         className="w-full"
-                        onClick={() => window.open(registrationUrl, '_blank')}
+                        onClick={() => window.open(churchSpecificUrl || registrationUrl, '_blank')}
                     >
                         <ExternalLink className="w-4 h-4 mr-2" />
                         Open Registration Page

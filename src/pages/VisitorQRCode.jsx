@@ -14,20 +14,24 @@ export default function VisitorQRCodePage() {
 
     useEffect(() => {
         loadSettings();
-        const baseUrl = 'https://reachchurchms.com';
-        const visitorFormUrl = `${baseUrl}${createPageUrl('PublicVisitorRegistration')}`;
-        const displayScreenUrl = `${baseUrl}${createPageUrl('VisitorQRDisplay')}`;
-        
-        setQrUrl(visitorFormUrl);
-        setDisplayUrl(displayScreenUrl);
     }, []);
 
     const loadSettings = async () => {
         try {
             const settings = await base44.entities.ChurchSettings.list();
+            let name = "Church";
             if (settings.length > 0) {
                 setChurchSettings(settings[0]);
+                name = settings[0].church_name || "Church";
             }
+            
+            // Generate church-specific URLs
+            const churchSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+            const visitorFormUrl = `https://reachchurchconnect.com/${churchSlug}/visitor-connect`;
+            const displayScreenUrl = `https://reachchurchconnect.com/${churchSlug}/visitor-qr-display`;
+            
+            setQrUrl(visitorFormUrl);
+            setDisplayUrl(displayScreenUrl);
         } catch (error) {
             console.error("Failed to load settings:", error);
         }
