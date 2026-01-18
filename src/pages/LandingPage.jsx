@@ -226,6 +226,20 @@ export default function LandingPage() {
             url="/"
         />
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/20">
+            {/* Stewardship CTA Banner */}
+            <section className="bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 py-6">
+                <div className="max-w-7xl mx-auto px-6">
+                    <div className="text-center">
+                        <h2 className="text-2xl lg:text-3xl font-bold text-white mb-2">
+                            Be Good Stewards of God's Resources
+                        </h2>
+                        <p className="text-xl text-green-50 font-semibold">
+                            Quit Overpaying for Church Software
+                        </p>
+                    </div>
+                </div>
+            </section>
+
             {/* Hero Section */}
             <section className="relative overflow-hidden py-20 lg:py-32">
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-100 via-transparent to-purple-100 opacity-40"></div>
