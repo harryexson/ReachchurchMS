@@ -168,6 +168,79 @@ export default function SubscriptionPlansPage() {
         }
     ];
 
+    const handleAddOnPurchase = async (addonId, price) => {
+        setIsLoading(true);
+        setError(null);
+        
+        try {
+            const user = await base44.auth.me();
+            if (!user?.email) {
+                base44.auth.redirectToLogin(window.location.href);
+                return;
+            }
+
+            // Check if user has an active subscription
+            const subscriptions = await base44.entities.Subscription.filter({
+                church_admin_email: user.email
+            });
+
+            if (subscriptions.length === 0 || !['active', 'trial'].includes(subscriptions[0].status)) {
+                alert('You need an active subscription to purchase add-ons. Please select a plan first.');
+                setIsLoading(false);
+                return;
+            }
+
+            const subscription = subscriptions[0];
+
+            // Check if addon already purchased
+            if (subscription.active_addons?.some(addon => addon.addon_id === addonId)) {
+                alert('You already have this add-on!');
+                setIsLoading(false);
+                return;
+            }
+
+            // Define addon features
+            const addonFeatures = {
+                extra_sms_mms: {
+                    sms_monthly_limit: (subscription.features?.sms_monthly_limit || 0) + 1000,
+                    mms_monthly_limit: (subscription.features?.mms_monthly_limit || 0) + 50
+                },
+                extra_video_seats: {
+                    video_max_participants: (subscription.features?.video_max_participants || 0) + 50
+                },
+                dedicated_number: {
+                    dedicated_phone_enabled: true
+                }
+            };
+
+            // Update subscription with addon
+            const updatedAddons = [...(subscription.active_addons || []), {
+                addon_id: addonId,
+                addon_name: addonId.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+                addon_price: price,
+                features: addonFeatures[addonId],
+                added_date: new Date().toISOString()
+            }];
+
+            const updatedFeatures = {
+                ...subscription.features,
+                ...addonFeatures[addonId]
+            };
+
+            await base44.entities.Subscription.update(subscription.id, {
+                active_addons: updatedAddons,
+                features: updatedFeatures
+            });
+
+            alert('Add-on successfully added to your plan! Features are now enabled.');
+            setIsLoading(false);
+        } catch (error) {
+            console.error('Add-on purchase error:', error);
+            alert(`Failed to add add-on: ${error.message}`);
+            setIsLoading(false);
+        }
+    };
+
     const handleSelectPlan = async (plan) => {
         setIsLoading(true);
         setError(null);
@@ -568,7 +641,7 @@ export default function SubscriptionPlansPage() {
                     </div>
 
                     <div className="grid md:grid-cols-3 gap-6">
-                        <Card className="border-2 border-slate-200">
+                        <Card className="border-2 border-slate-200 hover:shadow-xl transition-all">
                             <CardContent className="p-6">
                                 <div className="flex items-center gap-3 mb-4">
                                     <div className="p-3 bg-blue-100 rounded-lg">
@@ -579,13 +652,20 @@ export default function SubscriptionPlansPage() {
                                         <p className="text-2xl font-bold text-blue-600">$29<span className="text-sm text-slate-600">/mo</span></p>
                                     </div>
                                 </div>
-                                <p className="text-sm text-slate-600">
+                                <p className="text-sm text-slate-600 mb-4">
                                     Add 1,000 additional SMS or 50 MMS messages per month
                                 </p>
+                                <Button 
+                                    className="w-full bg-blue-600 hover:bg-blue-700"
+                                    onClick={() => handleAddOnPurchase('extra_sms_mms', 29)}
+                                    disabled={isLoading}
+                                >
+                                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Add to Plan'}
+                                </Button>
                             </CardContent>
                         </Card>
 
-                        <Card className="border-2 border-slate-200">
+                        <Card className="border-2 border-slate-200 hover:shadow-xl transition-all">
                             <CardContent className="p-6">
                                 <div className="flex items-center gap-3 mb-4">
                                     <div className="p-3 bg-purple-100 rounded-lg">
@@ -596,13 +676,20 @@ export default function SubscriptionPlansPage() {
                                         <p className="text-2xl font-bold text-purple-600">$49<span className="text-sm text-slate-600">/mo</span></p>
                                     </div>
                                 </div>
-                                <p className="text-sm text-slate-600">
+                                <p className="text-sm text-slate-600 mb-4">
                                     Add 50 more participants to your video meetings
                                 </p>
+                                <Button 
+                                    className="w-full bg-purple-600 hover:bg-purple-700"
+                                    onClick={() => handleAddOnPurchase('extra_video_seats', 49)}
+                                    disabled={isLoading}
+                                >
+                                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Add to Plan'}
+                                </Button>
                             </CardContent>
                         </Card>
 
-                        <Card className="border-2 border-slate-200">
+                        <Card className="border-2 border-slate-200 hover:shadow-xl transition-all">
                             <CardContent className="p-6">
                                 <div className="flex items-center gap-3 mb-4">
                                     <div className="p-3 bg-green-100 rounded-lg">
@@ -613,9 +700,16 @@ export default function SubscriptionPlansPage() {
                                         <p className="text-2xl font-bold text-green-600">$15<span className="text-sm text-slate-600">/mo</span></p>
                                     </div>
                                 </div>
-                                <p className="text-sm text-slate-600">
+                                <p className="text-sm text-slate-600 mb-4">
                                     Get your own dedicated phone number for SMS/MMS
                                 </p>
+                                <Button 
+                                    className="w-full bg-green-600 hover:bg-green-700"
+                                    onClick={() => handleAddOnPurchase('dedicated_number', 15)}
+                                    disabled={isLoading}
+                                >
+                                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Add to Plan'}
+                                </Button>
                             </CardContent>
                         </Card>
                     </div>

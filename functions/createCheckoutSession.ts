@@ -39,7 +39,9 @@ Deno.serve(async (req) => {
             planName, 
             successUrl, 
             cancelUrl, 
-            metadata = {} 
+            metadata = {},
+            isAddon = false,
+            addonId = null
         } = body;
 
         if (!successUrl || !cancelUrl) {
@@ -98,7 +100,15 @@ Deno.serve(async (req) => {
                 user_id: user.id,
                 ...metadata
             },
-            subscription_data: {
+            subscription_data: isAddon ? {
+                metadata: {
+                    user_email: user.email,
+                    user_id: user.id,
+                    addon_id: addonId,
+                    is_addon: 'true',
+                    ...metadata
+                }
+            } : {
                 trial_period_days: 14,
                 metadata: {
                     user_email: user.email,
