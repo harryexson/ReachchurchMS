@@ -59,29 +59,147 @@ export default function MemberDashboard() {
     }).reduce((sum, d) => sum + (d.amount || 0), 0);
 
     return (
-        <div className="p-6 bg-gradient-to-br from-slate-50 to-blue-50/30 min-h-screen">
-            <div className="max-w-6xl mx-auto space-y-8">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <div>
-                        <h1 className="text-3xl font-bold text-slate-900">
-                            Welcome, {currentUser?.full_name}!
-                        </h1>
-                        <p className="text-slate-600 mt-1">Stay connected with your church community</p>
+        <div className="pb-20 md:pb-6 bg-gradient-to-br from-slate-50 to-blue-50/30 min-h-screen">
+            <div className="max-w-6xl mx-auto">
+                {/* Mobile-Optimized Header */}
+                <div className="bg-white border-b border-slate-200 px-4 py-4 md:rounded-t-2xl md:mt-6">
+                    <div className="flex items-center gap-3 mb-3">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg">
+                            {currentUser?.full_name?.charAt(0) || 'U'}
+                        </div>
+                        <div>
+                            <p className="text-xs text-slate-500">REACH Church Connect</p>
+                            <p className="text-sm font-semibold text-slate-900">My Church</p>
+                        </div>
                     </div>
+                    <h1 className="text-2xl font-bold text-slate-900 mb-1">
+                        Hi {currentUser?.full_name?.split(' ')[0] || 'there'}!
+                    </h1>
+                    <p className="text-slate-600 text-sm">What would you like to do today?</p>
+                </div>
+
+                <div className="px-4 py-6 space-y-6">
+                    {/* Quick Give Section - Prominent */}
                     <Button 
                         onClick={() => {
-                            // Open in same tab for authenticated users
                             window.location.href = createPageUrl('PublicGiving');
                         }}
-                        className="bg-green-600 hover:bg-green-700 shadow-lg"
+                        className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg"
                     >
                         <Heart className="w-5 h-5 mr-2" />
                         Give Now
                     </Button>
+
+                    {/* Quick Give Amount - If user has donated before */}
+                    {myDonations.length > 0 && (
+                        <Card className="border-0 shadow-md bg-gradient-to-br from-blue-50 to-purple-50">
+                            <CardContent className="p-4">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-xs text-slate-600 mb-1">Quick Give</p>
+                                        <p className="text-2xl font-bold text-slate-900">
+                                            ${myDonations[0]?.amount?.toFixed(2) || '0.00'}
+                                        </p>
+                                        <p className="text-xs text-slate-500">Based on last gift</p>
+                                    </div>
+                                    <Button 
+                                        onClick={() => {
+                                            window.location.href = createPageUrl('PublicGiving');
+                                        }}
+                                        size="sm"
+                                        className="bg-blue-600 hover:bg-blue-700"
+                                    >
+                                        Give
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    {/* Explore Section - Card-Based Actions */}
+                    <div className="space-y-3">
+                        <h3 className="text-sm font-semibold text-slate-700">Explore</h3>
+                        
+                        <Card className="border-0 shadow-sm hover:shadow-md transition-shadow">
+                            <CardContent className="p-4">
+                                <div className="flex items-start gap-4">
+                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center flex-shrink-0">
+                                        <Heart className="w-6 h-6 text-purple-600" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <h4 className="font-semibold text-slate-900 mb-1">Ready to make a lasting impact?</h4>
+                                        <p className="text-sm text-slate-600 mb-3">Add recurring gifts.</p>
+                                        <Link to={createPageUrl('DonorPortal')}>
+                                            <button className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center">
+                                                Add Recurring Gift →
+                                            </button>
+                                        </Link>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card className="border-0 shadow-sm hover:shadow-md transition-shadow">
+                            <CardContent className="p-4">
+                                <div className="flex items-start gap-4">
+                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center flex-shrink-0">
+                                        <DollarSign className="w-6 h-6 text-amber-600" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <h4 className="font-semibold text-slate-900 mb-1">Adding payment method is easy and convenient.</h4>
+                                        <p className="text-sm text-slate-600 mb-3">Save your card for faster giving.</p>
+                                        <Link to={createPageUrl('PublicGiving')}>
+                                            <button className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center">
+                                                Add payment method →
+                                            </button>
+                                        </Link>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card className="border-0 shadow-sm hover:shadow-md transition-shadow">
+                            <CardContent className="p-4">
+                                <div className="flex items-start gap-4">
+                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center flex-shrink-0">
+                                        <Calendar className="w-6 h-6 text-blue-600" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <h4 className="font-semibold text-slate-900 mb-1">Check out upcoming events</h4>
+                                        <p className="text-sm text-slate-600 mb-3">Register and stay connected.</p>
+                                        <Link to={createPageUrl('PublicEventsCalendar')}>
+                                            <button className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center">
+                                                View Events →
+                                            </button>
+                                        </Link>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card className="border-0 shadow-sm hover:shadow-md transition-shadow">
+                            <CardContent className="p-4">
+                                <div className="flex items-start gap-4">
+                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center flex-shrink-0">
+                                        <Users className="w-6 h-6 text-green-600" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <h4 className="font-semibold text-slate-900 mb-1">Join a group</h4>
+                                        <p className="text-sm text-slate-600 mb-3">Connect with others in the community.</p>
+                                        <Link to={createPageUrl('MyGroups')}>
+                                            <button className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center">
+                                                Browse Groups →
+                                            </button>
+                                        </Link>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
                 </div>
 
-                {/* My Giving Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* My Giving Stats - Hidden on mobile, shown on desktop */}
+                <div className="hidden md:grid grid-cols-1 md:grid-cols-2 gap-6 px-4">
                     <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between">
@@ -113,7 +231,7 @@ export default function MemberDashboard() {
 
                 {/* Year-End Statements */}
                 {yearEndStatements.length > 0 && (
-                    <Card className="shadow-lg border-0 bg-gradient-to-br from-green-50 to-emerald-50">
+                    <Card className="shadow-lg border-0 bg-gradient-to-br from-green-50 to-emerald-50 mx-4">
                         <CardHeader>
                             <CardTitle className="flex items-center justify-between">
                                 <span className="flex items-center gap-2">
@@ -157,7 +275,7 @@ export default function MemberDashboard() {
                 )}
 
                 {/* Recent Messages Preview */}
-                <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm mx-4">
                     <CardHeader>
                         <CardTitle className="flex items-center justify-between">
                             <span className="flex items-center gap-2">
@@ -183,7 +301,7 @@ export default function MemberDashboard() {
                 </Card>
 
                 {/* Quick Links */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mx-4">
                     <Link to={createPageUrl('MemberSermons')}>
                         <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm hover:shadow-xl transition-shadow cursor-pointer">
                             <CardContent className="p-6 text-center">
@@ -216,7 +334,7 @@ export default function MemberDashboard() {
                 </div>
 
                 {/* Recent Announcements */}
-                <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm mx-4">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <MessageSquare className="w-5 h-5 text-blue-600" />
@@ -244,7 +362,7 @@ export default function MemberDashboard() {
 
                 {/* Recent Campaigns */}
                 {recentCampaigns.length > 0 && (
-                    <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                    <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm mx-4">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <Calendar className="w-5 h-5 text-purple-600" />

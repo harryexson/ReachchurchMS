@@ -27,16 +27,37 @@ export default function MobileNavBar({ userRole = "member" }) {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-lg z-40 md:hidden">
-      <div className="flex justify-around items-center h-16">
-        {navItems.map((item) => {
+      <div className="flex justify-around items-center h-20 relative">
+        {navItems.map((item, index) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.url;
+          const isGiveButton = item.label === "Give";
+
+          // Center button (Give) gets special styling
+          if (isGiveButton) {
+            return (
+              <Link
+                key={item.url}
+                to={item.url}
+                className="absolute left-1/2 -translate-x-1/2 -top-5 z-50"
+              >
+                <motion.div
+                  whileTap={{ scale: 0.95 }}
+                  className="w-16 h-16 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-2xl border-4 border-white"
+                >
+                  <Icon className="w-8 h-8 text-white" />
+                </motion.div>
+              </Link>
+            );
+          }
 
           return (
             <Link
               key={item.url}
               to={item.url}
-              className="flex-1 flex flex-col items-center justify-center relative"
+              className={`flex-1 flex flex-col items-center justify-center relative ${
+                index === 2 ? 'invisible' : ''
+              }`}
             >
               {isActive && (
                 <motion.div
