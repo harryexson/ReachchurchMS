@@ -13,8 +13,10 @@ import {
     Plus, ArrowLeft, Paperclip, AlertCircle, Bell,
     Check, CheckCheck, UserPlus, Link as LinkIcon, Inbox,
     Star, Archive, Trash2, MailOpen, Mail, Clock,
-    Filter, RefreshCw, MoreVertical, Flag, Reply, Forward
+    Filter, RefreshCw, MoreVertical, Flag, Reply, Forward,
+    UsersRound, Megaphone
 } from 'lucide-react';
+import GroupChatCreator from '../components/messaging/GroupChatCreator';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
@@ -36,6 +38,7 @@ export default function MessagesPage() {
     const [selectedParticipants, setSelectedParticipants] = useState([]);
     const [filter, setFilter] = useState('all'); // all, unread, starred
     const [starredThreads, setStarredThreads] = useState([]);
+    const [showGroupCreator, setShowGroupCreator] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -325,7 +328,15 @@ export default function MessagesPage() {
                                 className="bg-blue-600 hover:bg-blue-700"
                             >
                                 <Plus className="w-4 h-4 mr-2" />
-                                Compose
+                                New Message
+                            </Button>
+                            <Button 
+                                onClick={() => setShowGroupCreator(true)}
+                                variant="outline"
+                                className="border-blue-600 text-blue-600 hover:bg-blue-50"
+                            >
+                                <UsersRound className="w-4 h-4 mr-2" />
+                                Group Chat
                             </Button>
                             {currentUser?.role === 'admin' && (
                                 <Button 
@@ -718,6 +729,13 @@ export default function MessagesPage() {
                         </div>
                     </DialogContent>
                 </Dialog>
+
+                {/* Group Chat Creator */}
+                <GroupChatCreator
+                    open={showGroupCreator}
+                    onOpenChange={setShowGroupCreator}
+                    onSuccess={loadData}
+                />
             </div>
         </div>
     );

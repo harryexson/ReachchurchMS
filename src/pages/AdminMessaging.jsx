@@ -15,8 +15,12 @@ import {
   Filter,
   Search,
   CheckCircle2,
-  Clock
+  Clock,
+  Megaphone,
+  UsersRound
 } from "lucide-react";
+import BroadcastComposer from '../components/messaging/BroadcastComposer';
+import GroupChatCreator from '../components/messaging/GroupChatCreator';
 
 export default function AdminMessaging() {
   const [messageType, setMessageType] = useState("in_app");
@@ -30,6 +34,8 @@ export default function AdminMessaging() {
   const [members, setMembers] = useState([]);
   const [sentMessages, setSentMessages] = useState([]);
   const [filterStatus, setFilterStatus] = useState("all");
+  const [showBroadcast, setShowBroadcast] = useState(false);
+  const [showGroupChat, setShowGroupChat] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -108,9 +114,28 @@ export default function AdminMessaging() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900">Admin Messaging Center</h1>
-          <p className="text-slate-600 mt-1">Send messages and notifications to your members</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900">Admin Messaging Center</h1>
+            <p className="text-slate-600 mt-1">Send messages and notifications to your members</p>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => setShowBroadcast(true)}
+              className="bg-purple-600 hover:bg-purple-700"
+            >
+              <Megaphone className="w-4 h-4 mr-2" />
+              Broadcast
+            </Button>
+            <Button
+              onClick={() => setShowGroupChat(true)}
+              variant="outline"
+              className="border-blue-600 text-blue-600 hover:bg-blue-50"
+            >
+              <UsersRound className="w-4 h-4 mr-2" />
+              Group Chat
+            </Button>
+          </div>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
@@ -312,6 +337,20 @@ export default function AdminMessaging() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Broadcast Composer */}
+        <BroadcastComposer
+          open={showBroadcast}
+          onOpenChange={setShowBroadcast}
+          onSuccess={loadData}
+        />
+
+        {/* Group Chat Creator */}
+        <GroupChatCreator
+          open={showGroupChat}
+          onOpenChange={setShowGroupChat}
+          onSuccess={loadData}
+        />
       </div>
     </div>
   );
