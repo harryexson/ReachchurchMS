@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // NEW IMPORT
-import { Settings as SettingsIcon, Youtube, Facebook, Loader2, CheckCircle, MessageSquare, AlertCircle, RefreshCw, Video, ExternalLink, Eye } from "lucide-react"; // UPDATED IMPORT
+import { Settings as SettingsIcon, Youtube, Facebook, Loader2, CheckCircle, MessageSquare, AlertCircle, RefreshCw, Video, ExternalLink, Eye, Users } from "lucide-react";
 import { syncSocialVideos } from "@/functions/syncSocialVideos";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
