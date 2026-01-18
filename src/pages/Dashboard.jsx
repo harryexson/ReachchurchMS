@@ -8,8 +8,10 @@ import { Users, Heart, Calendar, UserCheck, TrendingUp, DollarSign, AlertCircle,
 import { format, startOfMonth, endOfMonth, subMonths, startOfWeek } from "date-fns";
 import { createPageUrl } from "@/utils";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { useUserOrganization } from "../components/hooks/useUserOrganization";
 
 export default function Dashboard() {
+  const { user, isLoading: orgLoading } = useUserOrganization();
   const [stats, setStats] = useState({
     totalMembers: 0,
     monthlyGiving: 0,
@@ -36,12 +38,14 @@ export default function Dashboard() {
   useEffect(() => {
     const abortController = new AbortController();
     
-    loadDashboardData(abortController.signal);
+    if (!orgLoading && user) {
+      loadDashboardData(abortController.signal);
+    }
     
     return () => {
       abortController.abort();
     };
-  }, []);
+  }, [orgLoading, user]);
 
   const loadDashboardData = async (signal) => {
     setIsLoading(true);
@@ -86,7 +90,11 @@ export default function Dashboard() {
       let visitors = [];
 
       try {
-        members = await base44.entities.Member.list();
+        // Filter members by current user's organization
+        members = await base44.entities.Member.filter(
+          { created_by: currentUser.email },
+          "-created_date"
+        );
       } catch (error) {
         if (!signal?.aborted) {
           console.error("Error loading members:", error);
@@ -96,7 +104,12 @@ export default function Dashboard() {
       if (signal?.aborted) return;
 
       try {
-        donations = await base44.entities.Donation.list('-donation_date', 200);
+        // Filter donations by current user's organization
+        donations = await base44.entities.Donation.filter(
+          { created_by: currentUser.email },
+          "-donation_date",
+          200
+        );
       } catch (error) {
         if (!signal?.aborted) {
           console.error("Error loading donations:", error);
@@ -108,7 +121,12 @@ export default function Dashboard() {
       if (signal?.aborted) return;
 
       try {
-        events = await base44.entities.Event.list('-start_datetime', 20);
+        // Filter events by current user's organization
+        events = await base44.entities.Event.filter(
+          { created_by: currentUser.email },
+          "-start_datetime",
+          20
+        );
       } catch (error) {
         if (!signal?.aborted) {
           console.error("Error loading events:", error);
@@ -118,7 +136,11 @@ export default function Dashboard() {
       if (signal?.aborted) return;
 
       try {
-        volunteers = await base44.entities.Volunteer.filter({ status: 'active' });
+        // Filter volunteers by current user's organization
+        volunteers = await base44.entities.Volunteer.filter({ 
+          status: 'active',
+          created_by: currentUser.email
+        });
       } catch (error) {
         if (!signal?.aborted) {
           console.error("Error loading volunteers:", error);
@@ -128,7 +150,11 @@ export default function Dashboard() {
       if (signal?.aborted) return;
 
       try {
-        visitors = await base44.entities.Visitor.list();
+        // Filter visitors by current user's organization
+        visitors = await base44.entities.Visitor.filter(
+          { created_by: currentUser.email },
+          "-visit_date"
+        );
       } catch (error) {
         if (!signal?.aborted) {
           console.error("Error loading visitors:", error);
