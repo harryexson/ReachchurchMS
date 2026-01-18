@@ -42,7 +42,7 @@ export default function QRCodeDonation() {
 
             // Generate church-specific donation URL
             const churchSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-            const givingUrl = `https://reachchurchconnect.com/${churchSlug}/give`;
+            const givingUrl = `https://reachchurchMS.com/${churchSlug}/give`;
             setDonationUrl(givingUrl);
 
             // Generate QR code using QuickChart API
