@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
     CreditCard, Calendar, DollarSign, Check, Crown, TrendingUp, 
-    AlertCircle, RefreshCw, Shield, Zap 
+    AlertCircle, RefreshCw, Shield, Zap, Globe, ExternalLink 
 } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { Link } from "react-router-dom";
@@ -15,6 +15,8 @@ import { Link } from "react-router-dom";
 export default function AccountManagementPage() {
     const [currentUser, setCurrentUser] = useState(null);
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [churchSettings, setChurchSettings] = useState(null);
+    const [customDomain, setCustomDomain] = useState("");
 
     // CRITICAL: Call all hooks before any conditional returns
     const { 
@@ -32,6 +34,12 @@ export default function AccountManagementPage() {
         const loadData = async () => {
             const user = await base44.auth.me();
             setCurrentUser(user);
+            
+            const settings = await base44.entities.ChurchSettings.list();
+            if (settings.length > 0) {
+                setChurchSettings(settings[0]);
+                setCustomDomain(settings[0].custom_domain || "");
+            }
         };
         loadData();
     }, []);
@@ -226,6 +234,71 @@ export default function AccountManagementPage() {
                         </CardContent>
                     </Card>
                 )}
+
+                {/* Custom Domain */}
+                <Card className="shadow-xl">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Globe className="w-5 h-5" />
+                            Custom Domain
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        {features?.custom_domain ? (
+                            <>
+                                <p className="text-sm text-slate-600">
+                                    Publish your church app on your own custom domain
+                                </p>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        placeholder="church.example.com"
+                                        value={customDomain}
+                                        onChange={(e) => setCustomDomain(e.target.value)}
+                                        className="flex-1 px-3 py-2 border border-slate-300 rounded-lg"
+                                    />
+                                    <Button 
+                                        onClick={async () => {
+                                            if (churchSettings) {
+                                                await base44.entities.ChurchSettings.update(churchSettings.id, {
+                                                    custom_domain: customDomain
+                                                });
+                                                alert('Custom domain saved! Contact support to complete DNS setup.');
+                                            }
+                                        }}
+                                        className="bg-blue-600 hover:bg-blue-700"
+                                    >
+                                        Save
+                                    </Button>
+                                </div>
+                                {customDomain && (
+                                    <Alert className="bg-blue-50 border-blue-200">
+                                        <AlertCircle className="h-4 w-4 text-blue-600" />
+                                        <AlertDescription className="text-sm text-blue-900">
+                                            <p className="font-semibold mb-2">Next Steps:</p>
+                                            <ol className="list-decimal list-inside space-y-1">
+                                                <li>Add a CNAME record pointing to: <code className="bg-blue-100 px-1 py-0.5 rounded">app.reachconnect.com</code></li>
+                                                <li>Contact support to verify and activate your domain</li>
+                                                <li>Your app will be available at: <code className="bg-blue-100 px-1 py-0.5 rounded">{customDomain}</code></li>
+                                            </ol>
+                                        </AlertDescription>
+                                    </Alert>
+                                )}
+                            </>
+                        ) : (
+                            <div className="text-center py-6 bg-slate-50 rounded-lg border-2 border-dashed border-slate-300">
+                                <Globe className="w-12 h-12 mx-auto mb-3 text-slate-400" />
+                                <p className="text-slate-600 mb-4">Custom domain is available on Premium plans</p>
+                                <Link to={createPageUrl('SubscriptionPlans')}>
+                                    <Button className="bg-purple-600 hover:bg-purple-700">
+                                        <Crown className="w-4 h-4 mr-2" />
+                                        Upgrade to Premium
+                                    </Button>
+                                </Link>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
 
                 {/* Upgrade Prompt */}
                 {subscription && subscription.subscription_tier !== 'premium' && (
