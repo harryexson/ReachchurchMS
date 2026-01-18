@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { QrCode, Download, ExternalLink, Printer } from "lucide-react";
 import QRCode from "qrcode";
+import { createPageUrl } from "@/utils";
 
 export default function MemberRegistrationQRPage() {
     const [qrCodeUrl, setQrCodeUrl] = useState("");
@@ -31,8 +32,8 @@ export default function MemberRegistrationQRPage() {
     };
 
     const generateQRCode = async (name) => {
-        const churchSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-        const url = `https://reachchurchMS.com/${churchSlug}/member-registration`;
+        // Use actual app URL for member registration
+        const url = `${window.location.origin}${createPageUrl('PublicMemberRegistration')}`;
         setRegistrationUrl(url);
 
         try {
