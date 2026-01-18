@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { 
     MessageSquare, X, Send, Minimize2, Maximize2, 
-    Search, User, Clock, Check, CheckCheck 
+    Search, User, Clock, Check, CheckCheck, Users
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
