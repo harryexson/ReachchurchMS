@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Heart, Calendar, MessageSquare, DollarSign, Users, BookOpen, FileText, Download } from "lucide-react";
+import { Heart, Calendar, MessageSquare, DollarSign, Users, BookOpen, FileText, Download, UserCircle, TrendingUp, Award, Bell } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
@@ -14,6 +14,10 @@ export default function MemberDashboard() {
     const [recentAnnouncements, setRecentAnnouncements] = useState([]);
     const [recentCampaigns, setRecentCampaigns] = useState([]);
     const [yearEndStatements, setYearEndStatements] = useState([]);
+    const [myEvents, setMyEvents] = useState([]);
+    const [myGroups, setMyGroups] = useState([]);
+    const [memberProfile, setMemberProfile] = useState(null);
+    const [upcomingSermons, setUpcomingSermons] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -26,26 +30,43 @@ export default function MemberDashboard() {
             const user = await base44.auth.me();
             setCurrentUser(user);
 
-            // Load MY donations, announcements, campaigns, and statements
-            const [donations, announcements, campaigns, statements] = await Promise.all([
-                base44.entities.Donation.filter({ 
-                    donor_email: user.email 
-                }),
-                base44.entities.Announcement.filter({ 
-                    status: 'published' 
-                }, '-publish_date', 5),
-                base44.entities.MMSCampaign.filter({ 
-                    status: 'sent' 
-                }, '-sent_date', 3),
-                base44.entities.DonationStatement.filter({
-                    donor_email: user.email
-                }, '-statement_year', 3)
+            // Load all member data
+            const [donations, announcements, campaigns, statements, events, memberRecord, groupAssignments, sermons] = await Promise.all([
+                base44.entities.Donation.filter({ donor_email: user.email }),
+                base44.entities.Announcement.filter({ status: 'published' }, '-publish_date', 5),
+                base44.entities.MMSCampaign.filter({ status: 'sent' }, '-sent_date', 3),
+                base44.entities.DonationStatement.filter({ donor_email: user.email }, '-statement_year', 3),
+                base44.entities.EventRegistration.filter({ registrant_email: user.email }),
+                base44.entities.Member.filter({ email: user.email }),
+                base44.entities.MemberGroupAssignment.filter({ member_email: user.email }),
+                base44.entities.Sermon.list('-sermon_date', 5)
             ]);
 
             setMyDonations(donations);
             setRecentAnnouncements(announcements);
             setRecentCampaigns(campaigns);
             setYearEndStatements(statements);
+            setMemberProfile(memberRecord[0] || null);
+            setUpcomingSermons(sermons);
+
+            // Get upcoming events
+            const upcomingEventIds = events.map(e => e.event_id);
+            if (upcomingEventIds.length > 0) {
+                const eventDetails = await base44.entities.Event.filter({
+                    id: { $in: upcomingEventIds }
+                });
+                const upcoming = eventDetails.filter(e => new Date(e.start_datetime) > new Date());
+                setMyEvents(upcoming);
+            }
+
+            // Get group details
+            if (groupAssignments.length > 0) {
+                const groupIds = groupAssignments.map(g => g.group_id);
+                const groupDetails = await base44.entities.MemberGroup.filter({
+                    id: { $in: groupIds }
+                });
+                setMyGroups(groupDetails);
+            }
         } catch (error) {
             console.error("Failed to load member data:", error);
         }
@@ -79,7 +100,45 @@ export default function MemberDashboard() {
                 </div>
 
                 <div className="px-4 py-6 space-y-6">
-                    {/* Quick Give Section - Prominent */}
+                    {/* Profile Summary Card */}
+                    {memberProfile && (
+                        <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+                            <CardContent className="p-6">
+                                <div className="flex items-start justify-between">
+                                    <div className="flex items-center gap-4">
+                                        {memberProfile.profile_picture_url ? (
+                                            <img 
+                                                src={memberProfile.profile_picture_url} 
+                                                alt="Profile"
+                                                className="w-16 h-16 rounded-full object-cover border-2 border-white"
+                                            />
+                                        ) : (
+                                            <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center text-2xl font-bold">
+                                                {currentUser?.full_name?.charAt(0) || 'U'}
+                                            </div>
+                                        )}
+                                        <div>
+                                            <h3 className="text-xl font-bold">{memberProfile.first_name} {memberProfile.last_name}</h3>
+                                            <p className="text-sm text-white/80 capitalize">{memberProfile.member_status || 'Member'}</p>
+                                            {memberProfile.join_date && (
+                                                <p className="text-xs text-white/70 mt-1">
+                                                    Member since {format(new Date(memberProfile.join_date), 'MMM yyyy')}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <Link to={createPageUrl('MyProfile')}>
+                                        <Button size="sm" variant="secondary" className="bg-white/20 hover:bg-white/30 text-white border-white/30">
+                                            <UserCircle className="w-4 h-4 mr-2" />
+                                            Edit
+                                        </Button>
+                                    </Link>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    {/* Quick Give Section */}
                     <Button 
                         onClick={() => {
                             window.location.href = createPageUrl('PublicGiving');
@@ -114,6 +173,52 @@ export default function MemberDashboard() {
                                 </div>
                             </CardContent>
                         </Card>
+                    )}
+
+                    {/* My Groups */}
+                    {myGroups.length > 0 && (
+                        <div className="space-y-3">
+                            <h3 className="text-sm font-semibold text-slate-700">My Groups</h3>
+                            <div className="grid grid-cols-2 gap-3">
+                                {myGroups.slice(0, 4).map(group => (
+                                    <Card key={group.id} className="border-0 shadow-sm">
+                                        <CardContent className="p-3">
+                                            <Users className="w-5 h-5 text-blue-600 mb-2" />
+                                            <p className="text-sm font-semibold text-slate-900 truncate">{group.group_name}</p>
+                                            <p className="text-xs text-slate-500">{group.member_count || 0} members</p>
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
+                            <Link to={createPageUrl('MyGroups')}>
+                                <Button variant="outline" size="sm" className="w-full">View All Groups →</Button>
+                            </Link>
+                        </div>
+                    )}
+
+                    {/* Upcoming Events */}
+                    {myEvents.length > 0 && (
+                        <div className="space-y-3">
+                            <h3 className="text-sm font-semibold text-slate-700">My Upcoming Events</h3>
+                            {myEvents.slice(0, 3).map(event => (
+                                <Card key={event.id} className="border-0 shadow-sm">
+                                    <CardContent className="p-4">
+                                        <div className="flex items-start gap-3">
+                                            <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                                                <Calendar className="w-5 h-5 text-blue-600" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <h4 className="font-semibold text-slate-900 truncate">{event.title}</h4>
+                                                <p className="text-sm text-slate-600">
+                                                    {format(new Date(event.start_datetime), 'MMM d, yyyy • h:mm a')}
+                                                </p>
+                                                <p className="text-xs text-slate-500 mt-1">{event.location}</p>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
                     )}
 
                     {/* Explore Section - Card-Based Actions */}
@@ -198,32 +303,47 @@ export default function MemberDashboard() {
                     </div>
                 </div>
 
-                {/* My Giving Stats - Hidden on mobile, shown on desktop */}
-                <div className="hidden md:grid grid-cols-1 md:grid-cols-2 gap-6 px-4">
-                    <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                {/* My Giving Stats */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 px-4">
+                    <Card className="shadow-lg border-0 bg-gradient-to-br from-green-50 to-emerald-50">
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm font-medium text-slate-600 mb-1">My Total Giving</p>
-                                    <p className="text-3xl font-bold text-green-600">
+                                    <p className="text-sm font-medium text-slate-600 mb-1">Total Giving</p>
+                                    <p className="text-2xl md:text-3xl font-bold text-green-600">
                                         ${totalGiving.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                                     </p>
                                 </div>
-                                <Heart className="w-12 h-12 text-green-500" />
+                                <Heart className="w-10 h-10 md:w-12 md:h-12 text-green-500" />
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                    <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-50 to-indigo-50">
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm font-medium text-slate-600 mb-1">This Year's Giving</p>
-                                    <p className="text-3xl font-bold text-blue-600">
+                                    <p className="text-sm font-medium text-slate-600 mb-1">This Year</p>
+                                    <p className="text-2xl md:text-3xl font-bold text-blue-600">
                                         ${thisYearGiving.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                                     </p>
                                 </div>
-                                <DollarSign className="w-12 h-12 text-blue-500" />
+                                <TrendingUp className="w-10 h-10 md:w-12 md:h-12 text-blue-500" />
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="shadow-lg border-0 bg-gradient-to-br from-purple-50 to-pink-50">
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm font-medium text-slate-600 mb-1">My Impact</p>
+                                    <p className="text-2xl md:text-3xl font-bold text-purple-600">
+                                        {myDonations.length}
+                                    </p>
+                                    <p className="text-xs text-slate-500 mt-1">donations</p>
+                                </div>
+                                <Award className="w-10 h-10 md:w-12 md:h-12 text-purple-500" />
                             </div>
                         </CardContent>
                     </Card>
@@ -300,38 +420,100 @@ export default function MemberDashboard() {
                     </CardContent>
                 </Card>
 
+                {/* Latest Sermons */}
+                {upcomingSermons.length > 0 && (
+                    <div className="space-y-3">
+                        <h3 className="text-sm font-semibold text-slate-700">Recent Sermons</h3>
+                        {upcomingSermons.slice(0, 2).map(sermon => (
+                            <Card key={sermon.id} className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                                <CardContent className="p-4">
+                                    <div className="flex items-start gap-3">
+                                        <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0">
+                                            <BookOpen className="w-5 h-5 text-purple-600" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h4 className="font-semibold text-slate-900 truncate">{sermon.title}</h4>
+                                            <p className="text-sm text-slate-600">by {sermon.speaker}</p>
+                                            <p className="text-xs text-slate-500 mt-1">
+                                                {format(new Date(sermon.sermon_date), 'MMM d, yyyy')}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))}
+                        <Link to={createPageUrl('Community')}>
+                            <Button variant="outline" size="sm" className="w-full">Watch All Sermons →</Button>
+                        </Link>
+                    </div>
+                )}
+
                 {/* Quick Links */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mx-4">
-                    <Link to={createPageUrl('MemberSermons')}>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mx-4">
+                    <Link to={createPageUrl('PublicEventsCalendar')}>
                         <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm hover:shadow-xl transition-shadow cursor-pointer">
-                            <CardContent className="p-6 text-center">
-                                <BookOpen className="w-12 h-12 mx-auto mb-3 text-purple-600" />
-                                <h3 className="font-semibold text-slate-900 mb-1">Watch Sermons</h3>
-                                <p className="text-sm text-slate-600">View our sermon library</p>
+                            <CardContent className="p-4 md:p-6 text-center">
+                                <Calendar className="w-8 h-8 md:w-12 md:h-12 mx-auto mb-2 md:mb-3 text-blue-600" />
+                                <h3 className="font-semibold text-slate-900 text-sm md:text-base mb-1">Events</h3>
+                                <p className="text-xs md:text-sm text-slate-600 hidden md:block">Register for events</p>
                             </CardContent>
                         </Card>
                     </Link>
 
-                    <Link to={createPageUrl('MemberAnnouncements')}>
+                    <Link to={createPageUrl('MyGroups')}>
                         <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm hover:shadow-xl transition-shadow cursor-pointer">
-                            <CardContent className="p-6 text-center">
-                                <MessageSquare className="w-12 h-12 mx-auto mb-3 text-blue-600" />
-                                <h3 className="font-semibold text-slate-900 mb-1">Announcements</h3>
-                                <p className="text-sm text-slate-600">Stay updated with church news</p>
+                            <CardContent className="p-4 md:p-6 text-center">
+                                <Users className="w-8 h-8 md:w-12 md:h-12 mx-auto mb-2 md:mb-3 text-green-600" />
+                                <h3 className="font-semibold text-slate-900 text-sm md:text-base mb-1">Groups</h3>
+                                <p className="text-xs md:text-sm text-slate-600 hidden md:block">Join a community</p>
+                            </CardContent>
+                        </Card>
+                    </Link>
+
+                    <Link to={createPageUrl('Messages')}>
+                        <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm hover:shadow-xl transition-shadow cursor-pointer">
+                            <CardContent className="p-4 md:p-6 text-center">
+                                <MessageSquare className="w-8 h-8 md:w-12 md:h-12 mx-auto mb-2 md:mb-3 text-purple-600" />
+                                <h3 className="font-semibold text-slate-900 text-sm md:text-base mb-1">Messages</h3>
+                                <p className="text-xs md:text-sm text-slate-600 hidden md:block">Chat with members</p>
+                            </CardContent>
+                        </Card>
+                    </Link>
+
+                    <Link to={createPageUrl('Community')}>
+                        <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm hover:shadow-xl transition-shadow cursor-pointer">
+                            <CardContent className="p-4 md:p-6 text-center">
+                                <BookOpen className="w-8 h-8 md:w-12 md:h-12 mx-auto mb-2 md:mb-3 text-indigo-600" />
+                                <h3 className="font-semibold text-slate-900 text-sm md:text-base mb-1">Sermons</h3>
+                                <p className="text-xs md:text-sm text-slate-600 hidden md:block">Watch messages</p>
                             </CardContent>
                         </Card>
                     </Link>
 
                     <Link to={createPageUrl('MyDonations')}>
                         <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm hover:shadow-xl transition-shadow cursor-pointer">
-                            <CardContent className="p-6 text-center">
-                                <DollarSign className="w-12 h-12 mx-auto mb-3 text-green-600" />
-                                <h3 className="font-semibold text-slate-900 mb-1">My Donations</h3>
-                                <p className="text-sm text-slate-600">View giving history & statements</p>
+                            <CardContent className="p-4 md:p-6 text-center">
+                                <DollarSign className="w-8 h-8 md:w-12 md:h-12 mx-auto mb-2 md:mb-3 text-green-600" />
+                                <h3 className="font-semibold text-slate-900 text-sm md:text-base mb-1">Giving</h3>
+                                <p className="text-xs md:text-sm text-slate-600 hidden md:block">View history</p>
+                            </CardContent>
+                        </Card>
+                    </Link>
+
+                    <Link to={createPageUrl('MyProfile')}>
+                        <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm hover:shadow-xl transition-shadow cursor-pointer">
+                            <CardContent className="p-4 md:p-6 text-center">
+                                <UserCircle className="w-8 h-8 md:w-12 md:h-12 mx-auto mb-2 md:mb-3 text-orange-600" />
+                                <h3 className="font-semibold text-slate-900 text-sm md:text-base mb-1">Profile</h3>
+                                <p className="text-xs md:text-sm text-slate-600 hidden md:block">Update info</p>
                             </CardContent>
                         </Card>
                     </Link>
                 </div>
+
+                    {/* Explore More Section */}
+                    <div className="space-y-3">
+                        <h3 className="text-sm font-semibold text-slate-700">Get Involved</h3>
 
                 {/* Recent Announcements */}
                 <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm mx-4">

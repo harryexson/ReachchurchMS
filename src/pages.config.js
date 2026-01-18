@@ -127,8 +127,8 @@ import VolunteerPortal from './pages/VolunteerPortal';
 import VolunteerRegistration from './pages/VolunteerRegistration';
 import Volunteers from './pages/Volunteers';
 import WhyReach from './pages/WhyReach';
-import backoffice from './pages/backoffice';
 import WorkflowBuilder from './pages/WorkflowBuilder';
+import backoffice from './pages/backoffice';
 import __Layout from './Layout.jsx';
 
 
@@ -262,8 +262,8 @@ export const PAGES = {
     "VolunteerRegistration": VolunteerRegistration,
     "Volunteers": Volunteers,
     "WhyReach": WhyReach,
-    "backoffice": backoffice,
     "WorkflowBuilder": WorkflowBuilder,
+    "backoffice": backoffice,
 }
 
 export const pagesConfig = {
