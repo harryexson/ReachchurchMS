@@ -204,6 +204,19 @@ async function createOrUpdateSubscription(base44, session) {
 
     console.log(`🔍 Found ${existingSubscriptions.length} existing subscription(s)`);
 
+    // CRITICAL: Ensure user role is set to admin for church subscription signup
+    if (existingSubscriptions.length === 0) {
+        try {
+            console.log('👤 Setting user role to admin for:', customerEmail);
+            await base44.auth.updateMe({ role: 'admin' });
+            console.log('✅ User role updated to admin');
+        } catch (error) {
+            console.error('⚠️ Warning: Could not update user role:', error.message);
+            // Note: This may fail if the user is not authenticated in webhook context
+            // But we still proceed with subscription creation
+        }
+    }
+
     const tierMap = {
         'starter': { member_limit: 100, sms: 0, mms: 0, video: 0 },
         'growth': { member_limit: 500, sms: 1000, mms: 10, video: 25 },
