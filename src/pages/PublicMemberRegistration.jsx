@@ -101,7 +101,31 @@ export default function PublicMemberRegistrationPage() {
                 });
             }
 
+            // Create member record
             await base44.entities.Member.create(memberData);
+            
+            // Send invitation to complete profile and create login credentials
+            // This invites them as a MEMBER (role='user'), not an admin
+            try {
+                const response = await fetch('/api/functions/inviteUser', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: formData.email,
+                        full_name: `${formData.first_name} ${formData.last_name}`,
+                        role: 'user', // CRITICAL: Members get 'user' role, NOT admin
+                        phone: formData.phone
+                    })
+                });
+                
+                if (!response.ok) {
+                    console.warn('Could not send invitation email/SMS, but member was created');
+                }
+            } catch (inviteError) {
+                console.warn('Invitation error:', inviteError);
+                // Don't fail registration if invitation fails
+            }
+            
             setSubmitted(true);
         } catch (error) {
             console.error("Registration failed:", error);
@@ -126,8 +150,20 @@ export default function PublicMemberRegistrationPage() {
                                 : "Thank you for registering as a member! We're excited to have you join our church family."
                             }
                         </p>
+                        <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 text-left">
+                            <p className="text-sm font-semibold text-blue-900 mb-2">📧 Check Your Email!</p>
+                            <p className="text-sm text-blue-800">
+                                We've sent you an invitation email to <strong>{formData.email}</strong> to create your password 
+                                and complete your profile. Check your inbox (and spam folder) to finish setting up your member account.
+                            </p>
+                            {formData.phone && (
+                                <p className="text-xs text-blue-700 mt-2">
+                                    You'll also receive an SMS confirmation at {formData.phone}
+                                </p>
+                            )}
+                        </div>
                         <p className="text-sm text-slate-500">
-                            You'll receive a welcome email shortly with more information about next steps.
+                            Once you create your password, you'll be able to access the member portal, view events, give online, and connect with our community.
                         </p>
                         <Button onClick={() => window.location.reload()} className="w-full bg-blue-600 hover:bg-blue-700">
                             Register Another Person
@@ -145,6 +181,12 @@ export default function PublicMemberRegistrationPage() {
                     <Church className="w-16 h-16 text-blue-600 mx-auto mb-4" />
                     <h1 className="text-4xl font-bold text-slate-900 mb-2">Become a Member</h1>
                     <p className="text-slate-600">Join our church family today</p>
+                    <Alert className="mt-4 bg-green-50 border-green-200 text-left">
+                        <AlertDescription className="text-sm text-green-800">
+                            <strong>Note:</strong> You're registering as a church member. After submitting, you'll receive an email 
+                            to create your login credentials and access the member portal under your church's account.
+                        </AlertDescription>
+                    </Alert>
                 </div>
 
                 {existingVisitor && (

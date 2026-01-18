@@ -15,6 +15,9 @@ Deno.serve(async (req) => {
         const body = await req.json();
         const { email, full_name, role = 'user', phone } = body;
 
+        // CRITICAL: Validate role - prevent escalation to admin unless explicitly set
+        const userRole = role === 'admin' ? 'admin' : 'user';
+
         // Get church name and phone from settings
         let churchName = 'REACH Church Connect';
         let churchPhone = null;
@@ -28,12 +31,10 @@ Deno.serve(async (req) => {
             console.log('Using default church name');
         }
 
-        // Get member phone if provided
-        const { phone } = await req.json();
-
         // Invite user via Base44's built-in invitation system
         // This creates the user account and sends Base44's invitation email with password setup link
-        const invitationResult = await base44.users.inviteUser(email, role);
+        // IMPORTANT: Members get role='user', they join under church's subscription, NOT creating new subscription
+        const invitationResult = await base44.users.inviteUser(email, userRole);
         
         console.log('✅ Base44 invitation sent to:', email);
 
@@ -53,12 +54,20 @@ Deno.serve(async (req) => {
                     
                     <p style="font-size: 16px; color: #334155; line-height: 1.6;">
                         You've been invited by <strong>${currentUser.full_name}</strong> to join <strong>${churchName}</strong> 
-                        on our church management platform!
+                        on our church management platform as a <strong>${userRole === 'admin' ? 'Church Administrator' : 'Member'}</strong>!
                     </p>
                     
                     <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; margin: 20px 0; border-radius: 4px;">
                         <p style="font-size: 16px; color: #92400e; margin: 0; font-weight: 600;">
                             📧 Check your email for your invitation link to create your password and complete signup.
+                        </p>
+                    </div>
+                    
+                    <div style="background: #dbeafe; border-left: 4px solid #3b82f6; padding: 16px; margin: 20px 0; border-radius: 4px;">
+                        <p style="font-size: 14px; color: #1e40af; margin: 0;">
+                            <strong>Important:</strong> You're joining as a member under ${churchName}'s account. 
+                            You will NOT be creating a new church subscription. After setting up your password, 
+                            you'll have access to the ${userRole === 'admin' ? 'admin dashboard to manage the church' : 'member portal to connect with your church community'}.
                         </p>
                     </div>
                     
