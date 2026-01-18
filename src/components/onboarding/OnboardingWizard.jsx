@@ -261,30 +261,82 @@ export default function OnboardingWizard({ userEmail, userName, userType = "memb
                                     : "Welcome! Let's get to know your church better. This quick setup will help you get the most out of your church community experience."
                                 }
                             </p>
+                            
                             <div className="bg-gradient-to-br from-blue-50 to-purple-50 p-6 rounded-lg border border-blue-200">
-                                <div className="grid md:grid-cols-2 gap-4 text-sm">
+                                <h3 className="font-bold text-lg text-slate-900 mb-4">🎉 Your All-in-One Church Platform</h3>
+                                <div className="grid md:grid-cols-3 gap-4 text-sm text-left">
                                     <div>
-                                        <h4 className="font-semibold text-blue-900 mb-2">✨ What You Get:</h4>
-                                        <ul className="space-y-1 text-blue-800">
-                                            <li>• 6 ways to give (Kiosk, SMS, Online, App, QR, Checks)</li>
-                                            <li>• SMS & MMS campaigns (1,000 texts/mo)</li>
-                                            <li>• Video meetings (25-200 people)</li>
-                                            <li>• Kids check-in system</li>
+                                        <h4 className="font-semibold text-green-900 mb-2">💰 Digital Giving (6 Ways)</h4>
+                                        <ul className="space-y-1 text-green-800">
+                                            <li>• Kiosk giving stations</li>
+                                            <li>• Text-to-give (SMS)</li>
+                                            <li>• Online portal</li>
+                                            <li>• Mobile app (PWA)</li>
+                                            <li>• QR code donations</li>
+                                            <li>• Check scanning</li>
                                         </ul>
                                     </div>
                                     <div>
-                                        <h4 className="font-semibold text-purple-900 mb-2">🎯 Unique Features:</h4>
+                                        <h4 className="font-semibold text-blue-900 mb-2">📱 Communications</h4>
+                                        <ul className="space-y-1 text-blue-800">
+                                            <li>• 1,000 SMS + 10 MMS/mo</li>
+                                            <li>• Bulk email campaigns</li>
+                                            <li>• Push notifications</li>
+                                            <li>• In-app messaging</li>
+                                            <li>• Automated workflows</li>
+                                            <li>• Visitor follow-up (7 steps)</li>
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <h4 className="font-semibold text-purple-900 mb-2">👥 Member Management</h4>
                                         <ul className="space-y-1 text-purple-800">
-                                            <li>• Coffee shop POS & inventory</li>
-                                            <li>• PWA mobile app (no App Store!)</li>
-                                            <li>• Engagement scoring & at-risk alerts</li>
-                                            <li>• Automated visitor follow-up</li>
+                                            <li>• Complete directory</li>
+                                            <li>• Engagement scoring</li>
+                                            <li>• Lifecycle tracking</li>
+                                            <li>• At-risk alerts</li>
+                                            <li>• Custom fields</li>
+                                            <li>• Member groups</li>
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <h4 className="font-semibold text-indigo-900 mb-2">🎥 Video & Events</h4>
+                                        <ul className="space-y-1 text-indigo-800">
+                                            <li>• Video meetings (25-200)</li>
+                                            <li>• Breakout rooms</li>
+                                            <li>• Event registration</li>
+                                            <li>• QR check-in/tickets</li>
+                                            <li>• Volunteer sign-ups</li>
+                                            <li>• Live stream scheduler</li>
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <h4 className="font-semibold text-amber-900 mb-2">🎯 Unique to REACH</h4>
+                                        <ul className="space-y-1 text-amber-800">
+                                            <li>• Coffee Shop POS</li>
+                                            <li>• Bookstore management</li>
+                                            <li>• Inventory tracking</li>
+                                            <li>• Loyalty programs</li>
+                                            <li>• PWA mobile app</li>
+                                            <li>• Display management</li>
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <h4 className="font-semibold text-pink-900 mb-2">👶 Kids & Analytics</h4>
+                                        <ul className="space-y-1 text-pink-800">
+                                            <li>• Kids check-in/out</li>
+                                            <li>• Label printing</li>
+                                            <li>• Parent SMS alerts</li>
+                                            <li>• Financial reports</li>
+                                            <li>• Donor analytics</li>
+                                            <li>• Budget tracking</li>
                                         </ul>
                                     </div>
                                 </div>
-                                <p className="text-xs text-slate-600 mt-4 text-center">
-                                    ⏱️ Setup takes 5-10 minutes • Save $110-349/mo vs competitors
-                                </p>
+                                <div className="mt-4 pt-4 border-t border-blue-200">
+                                    <p className="text-xs text-slate-700 font-semibold">
+                                        ⏱️ Setup takes 5-10 minutes • 💰 Save $110-349/mo vs Planning Center, Tithe.ly, Subsplash
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     )}
