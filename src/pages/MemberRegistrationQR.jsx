@@ -215,7 +215,7 @@ export default function MemberRegistrationQRPage() {
                                 </div>
                                 <h3 className="font-bold text-slate-900 mb-2">Auto Follow-Up</h3>
                                 <p className="text-sm text-slate-600">
-                                    Visitor enters your system for automated follow-up
+                                    Members enters your system data base records
                                 </p>
                             </div>
                         </div>
