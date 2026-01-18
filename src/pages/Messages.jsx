@@ -16,7 +16,7 @@ import {
     Filter, RefreshCw, MoreVertical, Flag, Reply, Forward,
     UsersRound, Megaphone
 } from 'lucide-react';
-import GroupChatCreator from '../components/messaging/GroupChatCreator';
+import GroupChatCreator from '@/components/messaging/GroupChatCreator';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 

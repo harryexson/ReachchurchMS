@@ -19,8 +19,8 @@ import {
   Megaphone,
   UsersRound
 } from "lucide-react";
-import BroadcastComposer from '../components/messaging/BroadcastComposer';
-import GroupChatCreator from '../components/messaging/GroupChatCreator';
+import BroadcastComposer from '@/components/messaging/BroadcastComposer';
+import GroupChatCreator from '@/components/messaging/GroupChatCreator';
 
 export default function AdminMessaging() {
   const [messageType, setMessageType] = useState("in_app");
