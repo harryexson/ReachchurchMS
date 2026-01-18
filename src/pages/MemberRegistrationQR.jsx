@@ -32,7 +32,7 @@ export default function MemberRegistrationQRPage() {
 
     const generateQRCode = async (name) => {
         const churchSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-        const url = `https://reachchurchconnect.com/${churchSlug}/member-registration`;
+        const url = `https://reachchurchMS.com/${churchSlug}/member-registration`;
         setRegistrationUrl(url);
 
         try {
