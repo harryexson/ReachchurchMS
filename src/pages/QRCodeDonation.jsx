@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { QrCode, Download, Printer, Share2, Copy, CheckCircle, Monitor, Maximize } from "lucide-react";
+import { createPageUrl } from "@/utils";
 
 export default function QRCodeDonation() {
     const [churchName, setChurchName] = useState("Our Church");
@@ -40,9 +41,8 @@ export default function QRCodeDonation() {
                 });
             }
 
-            // Generate church-specific donation URL
-            const churchSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-            const givingUrl = `https://reachchurchMS.com/${churchSlug}/give`;
+            // Use actual app URL for donations
+            const givingUrl = `${window.location.origin}${createPageUrl('PublicGiving')}`;
             setDonationUrl(givingUrl);
 
             // Generate QR code using QuickChart API
