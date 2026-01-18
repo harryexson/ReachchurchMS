@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -176,7 +177,7 @@ export default function BroadcastComposer({ open, onOpenChange, onSuccess }) {
     };
 
     const allInterests = [...new Set(allMembers.flatMap(m => m.interests || []))];
-    const allMinistries = [...new Set(allMembers.flatMap(m => m.ministry_involvement || []))];;
+    const allMinistries = [...new Set(allMembers.flatMap(m => m.ministry_involvement || []))];
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
