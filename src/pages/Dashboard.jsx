@@ -557,7 +557,6 @@ export default function Dashboard() {
             ))}
           </div>
         ) : (
-          <div className="space-y-8">
           <>
             {/* Key Metrics Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -909,7 +908,7 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
             </div>
-          </div>
+          </>
         )}
       </div>
     </div>
