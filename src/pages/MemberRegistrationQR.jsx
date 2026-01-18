@@ -195,7 +195,7 @@ export default function MemberRegistrationQRPage() {
                                 </div>
                                 <h3 className="font-bold text-slate-900 mb-2">Visitor Scans</h3>
                                 <p className="text-sm text-slate-600">
-                                    First-time visitors scan the QR code with their smartphone
+                                    New Church Members can scan the QR code with their smartphone
                                 </p>
                             </div>
 
