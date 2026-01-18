@@ -28,7 +28,7 @@ export default function EventQRCodeGenerator({ event, registrationUrl }) {
             // Generate church-specific event registration URL
             const churchSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
             const eventSlug = event.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-            const url = `https://reachchurchconnect.com/${churchSlug}/event/${eventSlug}/register`;
+            const url = `https://reachchurchMS.com/${churchSlug}/event/${eventSlug}/register`;
             setChurchSpecificUrl(url);
             
             // Generate QR code using free API
