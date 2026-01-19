@@ -5,11 +5,11 @@ import { Command, CommandGroup, CommandItem, CommandInput } from "@/components/u
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 
-export function MultiSelect({ options, selected, onChange, placeholder = "Select...", className }) {
+export function MultiSelect({ options, selected = [], onChange, placeholder = "Select...", className }) {
   const [open, setOpen] = useState(false);
 
   const handleUnselect = (item) => {
-    onChange(selected.filter((s) => s !== item));
+    onChange((selected || []).filter((s) => s !== item));
   };
 
   return (
@@ -52,10 +52,11 @@ export function MultiSelect({ options, selected, onChange, placeholder = "Select
               <CommandItem
                 key={option.value}
                 onSelect={() => {
+                  const currentSelected = selected || [];
                   onChange(
-                    selected.includes(option.value)
-                      ? selected.filter((s) => s !== option.value)
-                      : [...selected, option.value]
+                    currentSelected.includes(option.value)
+                      ? currentSelected.filter((s) => s !== option.value)
+                      : [...currentSelected, option.value]
                   );
                   setOpen(true);
                 }}
