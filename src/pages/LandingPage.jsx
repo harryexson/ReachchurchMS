@@ -874,7 +874,7 @@ export default function LandingPage() {
                             <img 
                                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68d38ad0f4d6d5d05900d129/b9c4b383d_REACHLOGOFORBLUEBACKGROUND20-md.jpeg"
                                 alt="REACH Church Connect Logo"
-                                className="h-80 w-auto mb-4"
+                                className="h-[1600px] w-auto mb-4"
                             />
                             <p className="text-slate-400 text-sm">
                                 Empowering churches with modern technology.
