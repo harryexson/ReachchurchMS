@@ -7,10 +7,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
-import { PlusCircle, Search, User, Mail, Phone, Download, Trash2, Filter, MapPin, Users, Zap } from "lucide-react";
+import { PlusCircle, Search, User, Mail, Phone, Download, Trash2, Filter, MapPin, Users, Zap, Eye, Link as LinkIcon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import MemberForm from "../components/members/MemberForm";
 import MemberFilters from "../components/members/MemberFilters";
+import MembershipStats from "../components/members/MembershipStats";
+import MemberDetailView from "../components/members/MemberDetailView";
+import FamilyConnectionsManager from "../components/members/FamilyConnectionsManager";
 import ReportExportModal from "../components/reports/ReportExportModal";
 import BulkActionsModal from "../components/members/BulkActionsModal";
 import { useUserOrganization } from "@/components/hooks/useUserOrganization";
@@ -40,6 +43,10 @@ export default function MembersPage() {
     const [selectedMemberIds, setSelectedMemberIds] = useState([]);
     const [isBulkActionsOpen, setIsBulkActionsOpen] = useState(false);
     const [customFields, setCustomFields] = useState([]);
+    const [viewingMember, setViewingMember] = useState(null);
+    const [familyManagerOpen, setFamilyManagerOpen] = useState(false);
+    const [familyMember, setFamilyMember] = useState(null);
+    const [users, setUsers] = useState([]);
 
     useEffect(() => {
         if (!orgLoading && user) {
@@ -47,6 +54,7 @@ export default function MembersPage() {
             loadMemberGroups();
             loadGroupAssignments();
             loadCustomFields();
+            loadUsers();
         }
     }, [orgLoading, user]);
 
@@ -57,8 +65,27 @@ export default function MembersPage() {
             { created_by: user.email },
             "-created_date"
         );
-        setMembers(memberList);
+        
+        // Merge with user profile pictures
+        const membersWithPhotos = memberList.map(member => {
+            const linkedUser = users.find(u => u.email === member.email);
+            return {
+                ...member,
+                profile_picture_url: linkedUser?.profile_picture_url || member.profile_picture_url
+            };
+        });
+        
+        setMembers(membersWithPhotos);
         setIsLoading(false);
+    };
+
+    const loadUsers = async () => {
+        try {
+            const usersList = await base44.entities.User.list();
+            setUsers(usersList);
+        } catch (error) {
+            console.error('Error loading users:', error);
+        }
     };
 
     const loadMemberGroups = async () => {
@@ -269,6 +296,9 @@ export default function MembersPage() {
                     </div>
                 </div>
 
+                {/* Statistics Dashboard */}
+                <MembershipStats members={members} />
+
                 {/* Filters Panel */}
                 {showFilters && (
                     <MemberFilters
@@ -361,14 +391,27 @@ export default function MembersPage() {
                                                 </TableCell>
                                                 <TableCell>
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center">
-                                                            <User className="w-4 h-4 text-slate-600" />
-                                                        </div>
+                                                        {member.profile_picture_url ? (
+                                                            <img
+                                                                src={member.profile_picture_url}
+                                                                alt={`${member.first_name} ${member.last_name}`}
+                                                                className="w-8 h-8 rounded-full object-cover border-2 border-blue-100"
+                                                            />
+                                                        ) : (
+                                                            <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center">
+                                                                <User className="w-4 h-4 text-slate-600" />
+                                                            </div>
+                                                        )}
                                                         <div>
-                                                            <span className="font-medium">{member.first_name} {member.last_name}</span>
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="font-medium">{member.first_name} {member.last_name}</span>
+                                                                {users.find(u => u.email === member.email) && (
+                                                                    <LinkIcon className="w-3 h-3 text-green-600" title="Has user account" />
+                                                                )}
+                                                            </div>
                                                             {member.gender && (
-                                                                <span className="text-xs text-slate-400 ml-2 capitalize">
-                                                                    ({member.gender})
+                                                                <span className="text-xs text-slate-400 capitalize">
+                                                                    {member.gender}
                                                                 </span>
                                                             )}
                                                         </div>
@@ -436,6 +479,25 @@ export default function MembersPage() {
                                                 </TableCell>
                                                 <TableCell className="text-right">
                                                     <div className="flex gap-1 justify-end">
+                                                        <Button 
+                                                            variant="outline" 
+                                                            size="sm" 
+                                                            onClick={() => setViewingMember(member.id)}
+                                                            title="View details"
+                                                        >
+                                                            <Eye className="w-4 h-4" />
+                                                        </Button>
+                                                        <Button 
+                                                            variant="outline" 
+                                                            size="sm" 
+                                                            onClick={() => {
+                                                                setFamilyMember(member);
+                                                                setFamilyManagerOpen(true);
+                                                            }}
+                                                            title="Manage family"
+                                                        >
+                                                            <Users className="w-4 h-4" />
+                                                        </Button>
                                                         <Button variant="outline" size="sm" onClick={() => handleEdit(member)}>
                                                             Edit
                                                         </Button>
@@ -485,6 +547,30 @@ export default function MembersPage() {
                             loadMembers();
                             setSelectedMemberIds([]);
                         }}
+                    />
+                )}
+
+                {viewingMember && (
+                    <MemberDetailView
+                        isOpen={!!viewingMember}
+                        onClose={() => setViewingMember(null)}
+                        memberId={viewingMember}
+                        onEdit={(member) => {
+                            setViewingMember(null);
+                            handleEdit(member);
+                        }}
+                    />
+                )}
+
+                {familyManagerOpen && familyMember && (
+                    <FamilyConnectionsManager
+                        isOpen={familyManagerOpen}
+                        onClose={() => {
+                            setFamilyManagerOpen(false);
+                            setFamilyMember(null);
+                            loadMembers();
+                        }}
+                        member={familyMember}
                     />
                 )}
             </div>
