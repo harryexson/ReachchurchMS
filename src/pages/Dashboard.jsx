@@ -48,34 +48,17 @@ export default function Dashboard() {
   }, [orgLoading, user]);
 
   const loadDashboardData = async (signal) => {
+    if (!user) {
+      console.log("No user found, skipping data load");
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
     setLoadError(null);
+    setCurrentUser(user);
     
     try {
-      // First check authentication
-      try {
-        const user = await base44.auth.me();
-        setCurrentUser(user);
-        setShowAuthHelp(false);
-      } catch (authError) {
-        // Ignore transient WebSocket/connection errors
-        if (authError.message && (
-          authError.message.includes('WebSocket') || 
-          authError.message.includes('closed') ||
-          authError.message.includes('aborted')
-        )) {
-          console.log("Transient connection error, retrying...");
-          if (!signal?.aborted) {
-            setTimeout(() => loadDashboardData(signal), 1000);
-          }
-          return;
-        }
-        console.error("Authentication issue:", authError);
-        setShowAuthHelp(true);
-        setIsLoading(false);
-        return;
-      }
-
       // Check if request was aborted
       if (signal?.aborted) {
         console.log("Dashboard load was aborted");
@@ -92,7 +75,7 @@ export default function Dashboard() {
       try {
         // Filter members by current user's organization
         members = await base44.entities.Member.filter(
-          { created_by: currentUser.email },
+          { created_by: user.email },
           "-created_date"
         );
       } catch (error) {
@@ -106,7 +89,7 @@ export default function Dashboard() {
       try {
         // Filter donations by current user's organization
         donations = await base44.entities.Donation.filter(
-          { created_by: currentUser.email },
+          { created_by: user.email },
           "-donation_date",
           200
         );
@@ -123,7 +106,7 @@ export default function Dashboard() {
       try {
         // Filter events by current user's organization
         events = await base44.entities.Event.filter(
-          { created_by: currentUser.email },
+          { created_by: user.email },
           "-start_datetime",
           20
         );
@@ -139,7 +122,7 @@ export default function Dashboard() {
         // Filter volunteers by current user's organization
         volunteers = await base44.entities.Volunteer.filter({ 
           status: 'active',
-          created_by: currentUser.email
+          created_by: user.email
         });
       } catch (error) {
         if (!signal?.aborted) {
@@ -152,7 +135,7 @@ export default function Dashboard() {
       try {
         // Filter visitors by current user's organization
         visitors = await base44.entities.Visitor.filter(
-          { created_by: currentUser.email },
+          { created_by: user.email },
           "-visit_date"
         );
       } catch (error) {
