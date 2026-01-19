@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
         }
 
         // Send branded welcome email from church
-        const appUrl = Deno.env.get('BASE44_APP_URL') || 'https://your-app-url.base44.app';
+        const appUrl = `https://${req.headers.get('host')}`;
         
         const emailBody = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
