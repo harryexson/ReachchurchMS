@@ -350,6 +350,11 @@ export default function Layout({ children, currentPageName }) {
     },
 
     {
+      title: "User Management",
+      url: createPageUrl("UserManagement"),
+      icon: UserCog,
+    },
+    {
       title: "Role Management",
       url: createPageUrl("RoleManagement"),
       icon: Shield,
