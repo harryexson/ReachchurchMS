@@ -419,7 +419,7 @@ export default function UserInviteModal({ isOpen, setIsOpen, onInviteSuccess }) 
                                 { value: "media", label: "Media & Tech" },
                                 { value: "prayer", label: "Prayer Ministry" }
                             ]}
-                            value={formData.ministry_areas || []}
+                            selected={formData.ministry_areas || []}
                             onChange={(values) => handleFieldChange('ministry_areas', values)}
                             placeholder="Select ministry areas..."
                         />
