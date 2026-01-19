@@ -92,9 +92,13 @@ Deno.serve(async (req) => {
                     </p>
                     ` : ''}
                     
-                    <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; margin: 20px 0; border-radius: 4px;">
-                        <p style="font-size: 16px; color: #92400e; margin: 0; font-weight: 600;">
-                            📧 Check your email for your invitation link to create your password and complete signup.
+                    <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 20px; margin: 20px 0; border-radius: 4px;">
+                        <p style="font-size: 18px; color: #92400e; margin: 0 0 12px 0; font-weight: 700;">
+                            ⚠️ IMPORTANT: Complete Your Setup
+                        </p>
+                        <p style="font-size: 15px; color: #92400e; margin: 0; line-height: 1.6;">
+                            You will receive a <strong>separate email from Base44</strong> with the subject "Set up your Base44 account". 
+                            <strong>Click the link in THAT email</strong> to create your password and complete your signup.
                         </p>
                     </div>
                     
@@ -119,14 +123,19 @@ Deno.serve(async (req) => {
                         <li>📧 Direct messaging</li>
                     </ul>
                     
-                    <div style="text-align: center; margin: 30px 0;">
-                        <a href="${appUrl}" style="display: inline-block; background: #667eea; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: 600;">
-                            Go to ${churchName} Portal
-                        </a>
+                    <div style="background: #e0e7ff; border: 2px solid #6366f1; padding: 20px; margin: 20px 0; border-radius: 8px; text-align: center;">
+                        <p style="font-size: 16px; color: #312e81; margin: 0 0 12px 0; font-weight: 600;">
+                            Next Steps:
+                        </p>
+                        <ol style="text-align: left; font-size: 15px; color: #312e81; line-height: 1.8; margin: 0; padding-left: 24px;">
+                            <li><strong>Check your email inbox</strong> for an email from Base44</li>
+                            <li><strong>Click the setup link</strong> in that email to create your password</li>
+                            <li><strong>After setting up your password</strong>, you'll be redirected to ${churchName}'s portal</li>
+                        </ol>
                     </div>
                     
-                    <p style="font-size: 14px; color: #64748b; line-height: 1.6;">
-                        Note: You're joining under ${churchName}'s subscription. After creating your password, you'll be directed to your member dashboard.
+                    <p style="font-size: 14px; color: #64748b; line-height: 1.6; margin-top: 20px;">
+                        <strong>Note:</strong> The portal link will only work after you've completed the password setup from the Base44 invitation email.
                     </p>
                     
                     <p style="font-size: 16px; color: #334155; line-height: 1.6;">
