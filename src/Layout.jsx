@@ -750,7 +750,7 @@ export default function Layout({ children, currentPageName }) {
             <div className="flex justify-between items-center py-4">
               <Link to={createPageUrl("LandingPage")} className="flex items-center gap-3">
                 <img 
-                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68d38ad0f4d6d5d05900d129/2ca3c03b0_ReachLOGOEdited08_44_18AM.png"
+                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68d38ad0f4d6d5d05900d129/e2e85f6c7_REACHLOGOGIFF.png"
                   alt="REACH Church Connect Logo"
                   className="h-20 w-auto max-w-[250px] object-contain"
                 />
@@ -795,7 +795,7 @@ export default function Layout({ children, currentPageName }) {
           <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50/30">
             <div className="text-center space-y-6 p-8">
               <img 
-                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68d38ad0f4d6d5d05900d129/2ca3c03b0_ReachLOGOEdited08_44_18AM.png"
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68d38ad0f4d6d5d05900d129/e2e85f6c7_REACHLOGOGIFF.png"
                 alt="REACH Church Connect Logo"
                 className="h-32 w-auto max-w-[400px] mx-auto mb-4 object-contain"
               />
@@ -814,7 +814,7 @@ export default function Layout({ children, currentPageName }) {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50/30">
         <div className="text-center space-y-6 p-8 max-w-md">
           <img 
-            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68d38ad0f4d6d5d05900d129/2ca3c03b0_ReachLOGOEdited08_44_18AM.png"
+            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68d38ad0f4d6d5d05900d129/e2e85f6c7_REACHLOGOGIFF.png"
             alt="REACH Church Connect Logo"
             className="h-32 w-auto max-w-[400px] mx-auto mb-4 object-contain"
           />
@@ -880,7 +880,7 @@ export default function Layout({ children, currentPageName }) {
               onClick={() => setIsMobileMenuOpen(false)}
             >
               <img 
-                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68d38ad0f4d6d5d05900d129/2ca3c03b0_ReachLOGOEdited08_44_18AM.png"
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68d38ad0f4d6d5d05900d129/e2e85f6c7_REACHLOGOGIFF.png"
                 alt="REACH Church Connect Logo"
                 className="w-full max-w-[200px] h-auto group-hover:scale-105 transition-transform"
               />

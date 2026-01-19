@@ -843,7 +843,7 @@ export default function LandingPage() {
                         {/* Logo & About */}
                         <div className="col-span-2 md:col-span-1">
                             <img 
-                                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68d38ad0f4d6d5d05900d129/2ca3c03b0_ReachLOGOEdited08_44_18AM.png"
+                                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68d38ad0f4d6d5d05900d129/e2e85f6c7_REACHLOGOGIFF.png"
                                 alt="REACH Church Connect Logo"
                                 className="h-12 w-auto mb-4 brightness-0 invert"
                             />
