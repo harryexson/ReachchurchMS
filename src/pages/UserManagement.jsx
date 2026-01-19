@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { UserPlus, Shield, Mail, Trash2, Edit, Users, Crown, Search } from "lucide-react";
+import { UserPlus, Shield, Mail, Trash2, Edit, Users, Crown, Search, User as UserIcon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import UserInviteModal from "@/components/users/UserInviteModal";
 import AdminUserProfileEditor from "@/components/users/AdminUserProfileEditor";
@@ -47,7 +47,21 @@ export default function UserManagementPage() {
     const loadUsers = async () => {
         setIsLoading(true);
         const usersList = await base44.entities.User.list("-created_date");
-        setUsers(usersList);
+        
+        // Fetch member profiles to get profile pictures
+        const members = await base44.entities.Member.list();
+        const memberMap = {};
+        members.forEach(member => {
+            memberMap[member.email] = member;
+        });
+        
+        // Merge profile pictures into user data
+        const usersWithPhotos = usersList.map(user => ({
+            ...user,
+            profile_picture_url: memberMap[user.email]?.profile_picture_url || null
+        }));
+        
+        setUsers(usersWithPhotos);
         setIsLoading(false);
     };
 
@@ -210,11 +224,24 @@ export default function UserManagementPage() {
                                         filteredUsers.map(user => (
                                             <TableRow key={user.id}>
                                                 <TableCell>
-                                                    <div>
-                                                        <div className="font-semibold">{user.full_name}</div>
-                                                        <div className="text-sm text-slate-500 flex items-center gap-1">
-                                                            <Mail className="w-3 h-3" />
-                                                            {user.email}
+                                                    <div className="flex items-center gap-3">
+                                                        {user.profile_picture_url ? (
+                                                            <img
+                                                                src={user.profile_picture_url}
+                                                                alt={user.full_name}
+                                                                className="w-10 h-10 rounded-full object-cover border-2 border-blue-100"
+                                                            />
+                                                        ) : (
+                                                            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center border-2 border-blue-200">
+                                                                <UserIcon className="w-5 h-5 text-blue-600" />
+                                                            </div>
+                                                        )}
+                                                        <div>
+                                                            <div className="font-semibold">{user.full_name}</div>
+                                                            <div className="text-sm text-slate-500 flex items-center gap-1">
+                                                                <Mail className="w-3 h-3" />
+                                                                {user.email}
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </TableCell>
