@@ -752,7 +752,7 @@ export default function Layout({ children, currentPageName }) {
                 <img 
                   src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68d38ad0f4d6d5d05900d129/e2e85f6c7_REACHLOGOGIFF.png"
                   alt="REACH Church Connect Logo"
-                  className="h-[307px] w-auto max-w-[960px] object-contain"
+                  className="h-[154px] w-auto max-w-[480px] object-contain"
                 />
               </Link>
               <div className="flex items-center gap-4">
@@ -882,7 +882,7 @@ export default function Layout({ children, currentPageName }) {
               <img 
                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68d38ad0f4d6d5d05900d129/e2e85f6c7_REACHLOGOGIFF.png"
                 alt="REACH Church Connect Logo"
-                className="w-full max-w-[768px] h-auto group-hover:scale-105 transition-transform"
+                className="w-full max-w-[384px] h-auto group-hover:scale-105 transition-transform"
               />
             </Link>
           </div>
