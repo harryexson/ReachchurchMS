@@ -31,12 +31,8 @@ export default function RoleManagement() {
 
     const loadRoles = async () => {
         try {
-            // Filter roles by current user's organization
-            const data = await base44.entities.Role.filter(
-                { created_by: user.email },
-                '-priority',
-                50
-            );
+            // Load all roles - they're organization-wide resources
+            const data = await base44.entities.Role.list('-priority', 50);
             setRoles(data);
         } catch (error) {
             console.error('Error loading roles:', error);
