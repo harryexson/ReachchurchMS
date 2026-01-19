@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { UserPlus, Shield, Mail, Trash2, Edit, Users, Crown, Search } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import UserInviteModal from "@/components/users/UserInviteModal";
+import AdminUserProfileEditor from "@/components/users/AdminUserProfileEditor";
 
 export default function UserManagementPage() {
     const [users, setUsers] = useState([]);
@@ -21,6 +22,7 @@ export default function UserManagementPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isProfileEditorOpen, setIsProfileEditorOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState(null);
     const navigate = useNavigate();
 
@@ -70,7 +72,7 @@ export default function UserManagementPage() {
 
     const handleEditUser = (user) => {
         setSelectedUser(user);
-        setIsEditModalOpen(true);
+        setIsProfileEditorOpen(true);
     };
 
     const handleSaveUserEdits = async () => {
@@ -238,27 +240,15 @@ export default function UserManagementPage() {
                                                 </TableCell>
                                                 <TableCell className="text-right">
                                                     <div className="flex justify-end gap-2">
-                                                        <Button 
-                                                            size="sm" 
-                                                            variant="outline"
-                                                            onClick={() => handleEditUser(user)}
-                                                        >
-                                                            <Edit className="w-4 h-4" />
-                                                        </Button>
-                                                        {currentUser?.id !== user.id && (
-                                                            <Select
-                                                                value={user.role}
-                                                                onValueChange={(value) => handleUpdateUserRole(user.id, value)}
-                                                            >
-                                                                <SelectTrigger className="w-32">
-                                                                    <SelectValue />
-                                                                </SelectTrigger>
-                                                                <SelectContent>
-                                                                    <SelectItem value="admin">Admin</SelectItem>
-                                                                    <SelectItem value="user">User</SelectItem>
-                                                                </SelectContent>
-                                                            </Select>
-                                                        )}
+                                                       <Button 
+                                                           size="sm" 
+                                                           variant="outline"
+                                                           onClick={() => handleEditUser(user)}
+                                                           title="Edit full profile"
+                                                       >
+                                                           <Edit className="w-4 h-4 mr-1" />
+                                                           Edit Profile
+                                                       </Button>
                                                     </div>
                                                 </TableCell>
                                             </TableRow>
@@ -278,11 +268,22 @@ export default function UserManagementPage() {
                 </Card>
 
                 {/* UserInviteModal Component */}
-                {isInviteModalOpen && (
-                    <UserInviteModal
-                        isOpen={isInviteModalOpen}
-                        setIsOpen={setIsInviteModalOpen}
-                        onInviteSent={loadUsers}
+                <UserInviteModal
+                    isOpen={isInviteModalOpen}
+                    setIsOpen={setIsInviteModalOpen}
+                    onInviteSuccess={loadUsers}
+                />
+
+                {/* Admin Profile Editor */}
+                {selectedUser && (
+                    <AdminUserProfileEditor
+                        isOpen={isProfileEditorOpen}
+                        onClose={() => {
+                            setIsProfileEditorOpen(false);
+                            setSelectedUser(null);
+                        }}
+                        userId={selectedUser.id}
+                        onSave={loadUsers}
                     />
                 )}
 
