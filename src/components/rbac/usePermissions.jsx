@@ -149,7 +149,7 @@ function getAllPermissions() {
     };
 }
 
-// Legacy admin permissions
+// Admin permissions - full access for all subscribed church admins
 function getAdminPermissions() {
     return {
         members: { view: true, create: true, edit: true, delete: true, export: true },
@@ -158,7 +158,7 @@ function getAdminPermissions() {
         volunteers: { view: true, create: true, edit: true, delete: true, manage_hours: true },
         communications: { view: true, create: true, send: true, delete: true },
         reports: { view_financial: true, view_attendance: true, view_analytics: true, export: true },
-        settings: { view: true, edit: true, manage_users: false, manage_roles: false }
+        settings: { view: true, edit: true, manage_users: true, manage_roles: true }
     };
 }
 
