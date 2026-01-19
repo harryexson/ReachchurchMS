@@ -35,9 +35,16 @@ Deno.serve(async (req) => {
         // Invite user via Base44's built-in invitation system
         // This creates the user account and sends Base44's invitation email with password setup link
         // IMPORTANT: Members get role='user', they join under church's subscription, NOT creating new subscription
-        const invitationResult = await base44.users.inviteUser(email, userRole);
-        
-        console.log('✅ Base44 invitation sent to:', email);
+        try {
+            const invitationResult = await base44.users.inviteUser(email, userRole);
+            console.log('✅ Base44 invitation sent to:', email);
+        } catch (inviteError) {
+            console.error('❌ Failed to send Base44 invitation:', inviteError);
+            return Response.json({ 
+                success: false,
+                error: `Failed to send invitation: ${inviteError.message}` 
+            }, { status: 500 });
+        }
 
         // Store additional user data (access_level, permissions, ministry_areas) in User entity
         // This will be available after user accepts invitation
@@ -60,7 +67,8 @@ Deno.serve(async (req) => {
         }
 
         // Send branded welcome email from church
-        const appUrl = `https://${req.headers.get('host')}`;
+        const host = req.headers.get('host') || 'app.base44.app';
+        const appUrl = `https://${host}`;
         
         const emailBody = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -135,12 +143,17 @@ Deno.serve(async (req) => {
             </div>
         `;
 
-        await base44.asServiceRole.integrations.Core.SendEmail({
-            to: email,
-            from_name: churchName,
-            subject: `Complete Your Signup at ${churchName}! 🎉`,
-            body: emailBody
-        });
+        try {
+            await base44.asServiceRole.integrations.Core.SendEmail({
+                to: email,
+                from_name: churchName,
+                subject: `Complete Your Signup at ${churchName}! 🎉`,
+                body: emailBody
+            });
+            console.log('✅ Welcome email sent to:', email);
+        } catch (emailError) {
+            console.error('⚠️ Failed to send welcome email (non-critical):', emailError.message);
+        }
 
         // Send SMS invitation if phone number provided and Sinch is configured
         if (phone) {
