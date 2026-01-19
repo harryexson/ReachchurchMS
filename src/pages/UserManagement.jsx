@@ -17,14 +17,15 @@ import AdminUserProfileEditor from "@/components/users/AdminUserProfileEditor";
 
 export default function UserManagementPage() {
     const [users, setUsers] = useState([]);
-    const [currentUser, setCurrentUser] = useState(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [searchTerm, setSearchTerm] = useState("");
-    const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [isProfileEditorOpen, setIsProfileEditorOpen] = useState(false);
-    const [selectedUser, setSelectedUser] = useState(null);
-    const navigate = useNavigate();
+     const [currentUser, setCurrentUser] = useState(null);
+     const [adminChurch, setAdminChurch] = useState(null);
+     const [isLoading, setIsLoading] = useState(true);
+     const [searchTerm, setSearchTerm] = useState("");
+     const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+     const [isProfileEditorOpen, setIsProfileEditorOpen] = useState(false);
+     const [selectedUser, setSelectedUser] = useState(null);
+     const navigate = useNavigate();
 
     const checkAuthAndLoadUsers = async () => {
         try {
