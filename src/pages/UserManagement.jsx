@@ -88,6 +88,12 @@ export default function UserManagementPage() {
         checkAuthAndLoadUsers();
     }, [navigate]);
 
+    useEffect(() => {
+        if (adminChurch) {
+            loadUsers();
+        }
+    }, [adminChurch]);
+
     const handleUpdateUserRole = async (userId, newRole) => {
         if (!confirm("Are you sure you want to change this user's role?")) {
             return;
