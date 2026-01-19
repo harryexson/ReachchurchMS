@@ -7,10 +7,15 @@ export default function VisitorQRDisplay() {
     const [qrUrl, setQrUrl] = useState('');
     const [churchSettings, setChurchSettings] = useState(null);
 
+    // CRITICAL: Get organization ID from URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const orgId = urlParams.get('org');
+
     useEffect(() => {
         loadSettings();
         const baseUrl = window.location.origin;
-        const visitorFormUrl = `${baseUrl}${createPageUrl('PublicVisitorRegistration')}`;
+        // Include org parameter in visitor form URL
+        const visitorFormUrl = `${baseUrl}${createPageUrl('PublicVisitorRegistration')}?org=${orgId}`;
         setQrUrl(visitorFormUrl);
 
         // Request fullscreen
@@ -18,7 +23,7 @@ export default function VisitorQRDisplay() {
         if (element.requestFullscreen) {
             element.requestFullscreen().catch(err => console.log(err));
         }
-    }, []);
+    }, [orgId]);
 
     const loadSettings = async () => {
         try {

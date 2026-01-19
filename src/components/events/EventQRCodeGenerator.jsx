@@ -19,23 +19,18 @@ export default function EventQRCodeGenerator({ event, registrationUrl }) {
 
     const loadChurchAndGenerateUrl = async () => {
         try {
-            const settings = await base44.entities.ChurchSettings.list();
-            let name = "Church";
-            if (settings.length > 0) {
-                name = settings[0].church_name || "Church";
-            }
+            const user = await base44.auth.me();
             
-            // Generate church-specific event registration URL
-            const churchSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-            const eventSlug = event.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-            const url = `https://reachchurchMS.com/${churchSlug}/event/${eventSlug}/register`;
-            setChurchSpecificUrl(url);
+            // CRITICAL: Use actual event registration URL with event ID
+            // This links to the VolunteerRegistration page for this specific event
+            const eventRegUrl = `${window.location.origin}${createPageUrl('VolunteerRegistration')}?eventId=${event.id}`;
+            setChurchSpecificUrl(eventRegUrl);
             
             // Generate QR code using free API
-            const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(url)}`;
+            const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(eventRegUrl)}`;
             setQrCodeUrl(qrApiUrl);
         } catch (error) {
-            console.error("Error generating church-specific URL:", error);
+            console.error("Error generating event URL:", error);
             // Fallback to original registrationUrl if provided
             if (registrationUrl) {
                 setChurchSpecificUrl(registrationUrl);
