@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MultiSelect } from "@/components/ui/multi-select";
+import { MultiSelect } from "@/components/ui/MultiSelect";
+import { useUserOrganization } from '@/components/hooks/useUserOrganization';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -24,6 +25,7 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 
 export default function CommunicationHub() {
+    const { user, isLoading: orgLoading, userEmail } = useUserOrganization();
     const [messages, setMessages] = useState([]);
     const [announcements, setAnnouncements] = useState([]);
     const [members, setMembers] = useState([]);
@@ -32,7 +34,6 @@ export default function CommunicationHub() {
     const [displays, setDisplays] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isSending, setIsSending] = useState(false);
-    const [currentUser, setCurrentUser] = useState(null);
     const [showMessageForm, setShowMessageForm] = useState(false);
     const [showAnnouncementForm, setShowAnnouncementForm] = useState(false);
     const [editingMessage, setEditingMessage] = useState(null);
@@ -53,26 +54,26 @@ export default function CommunicationHub() {
     const [sendInApp, setSendInApp] = useState(true);
 
     useEffect(() => {
-        loadData();
-    }, []);
+        if (!orgLoading && user) {
+            loadData();
+        }
+    }, [orgLoading, user]);
 
     const loadData = async () => {
         setIsLoading(true);
         try {
-            const user = await base44.auth.me();
             if (user.role !== 'admin') {
                 window.location.href = '/messages';
                 return;
             }
-            setCurrentUser(user);
 
             const [msgList, annList, memberList, groupList, volList, displayList] = await Promise.all([
-                base44.entities.TargetedMessage.list("-created_date"),
-                base44.entities.ScheduledAnnouncement.list("-created_date"),
-                base44.entities.Member.list(),
-                base44.entities.MemberGroup.list(),
-                base44.entities.Volunteer.filter({ status: "active" }),
-                base44.entities.ConnectedDevice.filter({ device_type: "display" })
+                base44.entities.TargetedMessage.filter({ created_by: userEmail }, "-created_date"),
+                base44.entities.ScheduledAnnouncement.filter({ created_by: userEmail }, "-created_date"),
+                base44.entities.Member.filter({ created_by: userEmail }),
+                base44.entities.MemberGroup.filter({ created_by: userEmail }),
+                base44.entities.Volunteer.filter({ status: "active", created_by: userEmail }),
+                base44.entities.ConnectedDevice.filter({ device_type: "display", created_by: userEmail })
             ]);
             
             setMessages(msgList);
@@ -169,7 +170,7 @@ export default function CommunicationHub() {
             } else {
                 await base44.entities.TargetedMessage.create({
                     ...data,
-                    created_by: currentUser?.email
+                    created_by: userEmail
                 });
             }
             loadData();
@@ -188,7 +189,7 @@ export default function CommunicationHub() {
             } else {
                 await base44.entities.ScheduledAnnouncement.create({
                     ...data,
-                    created_by: currentUser?.email
+                    created_by: userEmail
                 });
             }
             loadData();
@@ -313,7 +314,11 @@ export default function CommunicationHub() {
                 created_by: currentUser?.email
             };
 
-            await base44.entities.DisplayContent.create(contentData);
+            const displayContent = {
+                ...contentData,
+                created_by: userEmail
+            };
+            await base44.entities.DisplayContent.create(displayContent);
 
             await base44.entities.ScheduledAnnouncement.update(announcement.id, {
                 pushed_to_displays: true,
