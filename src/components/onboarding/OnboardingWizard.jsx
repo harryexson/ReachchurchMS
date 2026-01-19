@@ -197,10 +197,16 @@ export default function OnboardingWizard({ userEmail, userName, userType = "admi
 
                 // Update ChurchSettings
                 try {
-                    const settings = await base44.entities.ChurchSettings.list();
                     const settingsData = {
-                        church_name: formData.church_name
+                        church_name: formData.church_name,
+                        church_admin_email: userEmail,
+                        visitor_reply_email: formData.contact_email,
+                        receipt_address: formData.church_address
                     };
+
+                    const settings = await base44.entities.ChurchSettings.filter({
+                        church_name: formData.church_name
+                    });
 
                     if (settings.length > 0) {
                         await base44.entities.ChurchSettings.update(settings[0].id, settingsData);
@@ -214,11 +220,40 @@ export default function OnboardingWizard({ userEmail, userName, userType = "admi
 
             if (currentStep === 4) {
                 updates.point_of_contact = formData.point_of_contact;
+                updates.contact_phone = formData.contact_phone;
+
+                // Update ChurchSettings with contact info
+                try {
+                    const settings = await base44.entities.ChurchSettings.filter({
+                        church_name: formData.church_name
+                    });
+                    if (settings.length > 0) {
+                        await base44.entities.ChurchSettings.update(settings[0].id, {
+                            visitor_reply_email: formData.contact_email
+                        });
+                    }
+                } catch (err) {
+                    console.error("Error updating contact info:", err);
+                }
             }
 
             if (currentStep === 5) {
                 updates.stripe_connected = formData.stripe_connected;
                 updates.bank_account_added = formData.bank_account_added;
+
+                // Update ChurchSettings with Stripe info
+                try {
+                    const settings = await base44.entities.ChurchSettings.filter({
+                        church_name: formData.church_name
+                    });
+                    if (settings.length > 0) {
+                        await base44.entities.ChurchSettings.update(settings[0].id, {
+                            stripe_account_id: formData.stripe_connected ? "connected" : null
+                        });
+                    }
+                } catch (err) {
+                    console.error("Error updating Stripe info:", err);
+                }
             }
 
             if (currentStep === 2) {
