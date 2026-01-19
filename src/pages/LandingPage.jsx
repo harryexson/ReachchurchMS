@@ -837,7 +837,7 @@ export default function LandingPage() {
             </section>
 
             {/* Footer */}
-            <footer className="bg-slate-900 text-white py-16">
+            <footer className="bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 text-white py-16">
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
                         {/* Logo & About */}
@@ -845,7 +845,7 @@ export default function LandingPage() {
                             <img 
                                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68d38ad0f4d6d5d05900d129/b9c4b383d_REACHLOGOFORBLUEBACKGROUND20-md.jpeg"
                                 alt="REACH Church Connect Logo"
-                                className="h-12 w-auto mb-4"
+                                className="h-96 w-auto mb-4"
                             />
                             <p className="text-slate-400 text-sm">
                                 Empowering churches with modern technology.
