@@ -118,29 +118,10 @@ export function useSubscription() {
                     church_admin_email: user.email
                 });
             } catch (subError) {
-                console.warn('[useSubscription] Could not fetch subscriptions (entity may not exist yet):', subError.message);
-                // If Subscription entity doesn't exist yet, create a trial subscription
-                try {
-                    const newSub = await base44.entities.Subscription.create({
-                        church_name: user.church_name || user.full_name || 'My Church',
-                        church_admin_email: user.email,
-                        subscription_tier: 'growth',
-                        billing_cycle: 'monthly',
-                        monthly_price: 149,
-                        status: 'trial',
-                        trial_end_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-                        member_count: 0,
-                        features: PLAN_FEATURES.growth
-                    });
-                    subscriptions = [newSub];
-                    console.log('[useSubscription] Created trial subscription:', newSub);
-                } catch (createError) {
-                    console.error('[useSubscription] Could not create trial subscription:', createError);
-                    // Fall back to starter features
-                    setFeatures(PLAN_FEATURES.starter);
-                    setLoading(false);
-                    return;
-                }
+                console.warn('[useSubscription] Could not fetch subscriptions:', subError.message);
+                setFeatures(PLAN_FEATURES.starter);
+                setLoading(false);
+                return;
             }
 
             if (subscriptions && subscriptions.length > 0) {
@@ -181,27 +162,9 @@ export function useSubscription() {
                     features: mergedFeatures
                 });
             } else {
-                // No subscription found - create a default trial
-                console.log('[useSubscription] No subscription found, creating trial...');
-                try {
-                    const newSub = await base44.entities.Subscription.create({
-                        church_name: user.church_name || user.full_name || 'My Church',
-                        church_admin_email: user.email,
-                        subscription_tier: 'growth',
-                        billing_cycle: 'monthly',
-                        monthly_price: 149,
-                        status: 'trial',
-                        trial_end_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-                        member_count: 0,
-                        features: PLAN_FEATURES.growth
-                    });
-                    setSubscription(newSub);
-                    setFeatures(PLAN_FEATURES.growth);
-                    console.log('[useSubscription] Created new trial subscription');
-                } catch (createError) {
-                    console.error('[useSubscription] Failed to create trial:', createError);
-                    setFeatures(PLAN_FEATURES.starter);
-                }
+                // No subscription found - use starter features
+                console.log('[useSubscription] No subscription found');
+                setFeatures(PLAN_FEATURES.starter);
             }
         } catch (err) {
             console.error('[useSubscription] Error loading subscription:', err);
