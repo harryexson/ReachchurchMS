@@ -271,8 +271,7 @@ export default function BackOfficePage() {
                 <Tabs defaultValue="subscriptions">
                     <TabsList className="grid grid-cols-5 lg:grid-cols-10">
                         <TabsTrigger value="subscriptions">Subscriptions</TabsTrigger>
-                <TabsTrigger value="pricing">Pricing Manager</TabsTrigger>
-                <TabsTrigger value="hr">HR Management</TabsTrigger>
+                        <TabsTrigger value="pricing-manager">Pricing Manager</TabsTrigger>
                         <TabsTrigger value="pricing" disabled={!hasPermission('can_update_pricing')}>
                             <Lock className={`w-3 h-3 mr-1 ${!hasPermission('can_update_pricing') ? 'inline' : 'hidden'}`} />
                             Pricing
@@ -305,6 +304,7 @@ export default function BackOfficePage() {
                             <Lock className={`w-3 h-3 mr-1 ${!hasPermission('can_view_marketing') ? 'inline' : 'hidden'}`} />
                             Marketing
                         </TabsTrigger>
+                        <TabsTrigger value="hr-management">HR Management</TabsTrigger>
                         <TabsTrigger value="hr" disabled={!hasPermission('can_view_hr')}>
                             <Lock className={`w-3 h-3 mr-1 ${!hasPermission('can_view_hr') ? 'inline' : 'hidden'}`} />
                             HR
@@ -330,6 +330,14 @@ export default function BackOfficePage() {
                             onRefresh={loadBackOfficeData}
                             canManage={hasPermission('can_manage_subscriptions')}
                         />
+                    </TabsContent>
+
+                    <TabsContent value="pricing-manager">
+                        <SubscriptionPricingManager />
+                    </TabsContent>
+
+                    <TabsContent value="hr-management">
+                        <HRManagement />
                     </TabsContent>
                     
                     <TabsContent value="pricing">
