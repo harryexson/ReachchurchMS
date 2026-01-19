@@ -595,12 +595,17 @@ export default function Layout({ children, currentPageName }) {
       icon: Zap,
     },
     {
+      title: "Church Settings",
+      url: createPageUrl("ChurchSettings"),
+      icon: Church,
+    },
+    {
       title: "Theme Settings",
       url: createPageUrl("ThemeSettings"),
       icon: Palette,
     },
     {
-      title: "Settings",
+      title: "Technical Settings",
       url: createPageUrl("Settings"),
       icon: Settings,
     },
