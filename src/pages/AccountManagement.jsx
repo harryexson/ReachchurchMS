@@ -17,6 +17,7 @@ export default function AccountManagementPage() {
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [churchSettings, setChurchSettings] = useState(null);
     const [customDomain, setCustomDomain] = useState("");
+    const [userLoading, setUserLoading] = useState(true);
 
     // CRITICAL: Call all hooks before any conditional returns
     const { 
@@ -32,13 +33,21 @@ export default function AccountManagementPage() {
 
     useEffect(() => {
         const loadData = async () => {
-            const user = await base44.auth.me();
-            setCurrentUser(user);
-            
-            const settings = await base44.entities.ChurchSettings.list();
-            if (settings.length > 0) {
-                setChurchSettings(settings[0]);
-                setCustomDomain(settings[0].custom_domain || "");
+            try {
+                const user = await base44.auth.me();
+                setCurrentUser(user);
+                
+                if (user && user.role === 'admin') {
+                    const settings = await base44.entities.ChurchSettings.list();
+                    if (settings.length > 0) {
+                        setChurchSettings(settings[0]);
+                        setCustomDomain(settings[0].custom_domain || "");
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading user:', error);
+            } finally {
+                setUserLoading(false);
             }
         };
         loadData();
@@ -64,14 +73,30 @@ export default function AccountManagementPage() {
 
     const PlanIcon = subscription ? planIcons[subscription.subscription_tier] : Shield;
 
-    if (subscriptionLoading) {
+    if (userLoading || subscriptionLoading) {
         return (
             <div className="p-6 bg-gradient-to-br from-slate-50 to-blue-50/30 min-h-screen">
                 <div className="max-w-4xl mx-auto">
                     <div className="text-center py-12">
                         <RefreshCw className="w-12 h-12 mx-auto mb-4 text-blue-600 animate-spin" />
-                        <p className="text-slate-600">Loading your subscription...</p>
+                        <p className="text-slate-600">Loading your account...</p>
                     </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Only admins can access this page
+    if (currentUser && currentUser.role !== 'admin') {
+        return (
+            <div className="p-6 bg-gradient-to-br from-slate-50 to-blue-50/30 min-h-screen">
+                <div className="max-w-4xl mx-auto">
+                    <Alert className="border-yellow-200 bg-yellow-50 mt-8">
+                        <AlertCircle className="h-4 w-4 text-yellow-600" />
+                        <AlertDescription className="text-yellow-900">
+                            Account management is only available to administrators. Please contact your church administrator for subscription information.
+                        </AlertDescription>
+                    </Alert>
                 </div>
             </div>
         );
