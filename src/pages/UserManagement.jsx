@@ -31,11 +31,20 @@ export default function UserManagementPage() {
         try {
             const user = await base44.auth.me();
             setCurrentUser(user);
-            
+
             if (user.role !== 'admin') {
                 alert("Only administrators can access user management");
                 navigate(createPageUrl('Dashboard'));
                 return;
+            }
+
+            // Get the admin's church to filter users
+            const churchSettings = await base44.entities.ChurchSettings.filter({
+                church_admin_email: user.email
+            });
+
+            if (churchSettings.length > 0) {
+                setAdminChurch(churchSettings[0].church_name);
             }
 
             await loadUsers();
@@ -47,21 +56,30 @@ export default function UserManagementPage() {
 
     const loadUsers = async () => {
         setIsLoading(true);
-        const usersList = await base44.entities.User.list("-created_date");
-        
+
+        // Only load users from the admin's church
+        let usersList = [];
+        if (adminChurch) {
+            usersList = await base44.entities.User.filter({
+                church_name: adminChurch
+            });
+        } else {
+            usersList = [];
+        }
+
         // Fetch member profiles to get profile pictures
         const members = await base44.entities.Member.list();
         const memberMap = {};
         members.forEach(member => {
             memberMap[member.email] = member;
         });
-        
+
         // Merge profile pictures into user data
         const usersWithPhotos = usersList.map(user => ({
             ...user,
             profile_picture_url: memberMap[user.email]?.profile_picture_url || null
         }));
-        
+
         setUsers(usersWithPhotos);
         setIsLoading(false);
     };
