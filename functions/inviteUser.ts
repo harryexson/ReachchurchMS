@@ -13,10 +13,11 @@ Deno.serve(async (req) => {
         }
 
         const body = await req.json();
-        const { email, full_name, role = 'user', phone } = body;
+        const { email, full_name, access_level, permissions, ministry_areas, role = 'user', phone } = body;
 
         // CRITICAL: Validate role - prevent escalation to admin unless explicitly set
-        const userRole = role === 'admin' ? 'admin' : 'user';
+        // Map access_level to Base44 role (admin stays admin, everything else becomes 'user')
+        const userRole = (access_level === 'admin' || role === 'admin') ? 'admin' : 'user';
 
         // Get church name and phone from settings
         let churchName = 'REACH Church Connect';
@@ -38,6 +39,26 @@ Deno.serve(async (req) => {
         
         console.log('✅ Base44 invitation sent to:', email);
 
+        // Store additional user data (access_level, permissions, ministry_areas) in User entity
+        // This will be available after user accepts invitation
+        try {
+            // Wait a moment for user record to be created
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            const users = await base44.asServiceRole.entities.User.filter({ email });
+            if (users.length > 0) {
+                await base44.asServiceRole.entities.User.update(users[0].id, {
+                    access_level: access_level || 'staff',
+                    permissions: permissions || {},
+                    ministry_areas: ministry_areas || [],
+                    full_name: full_name
+                });
+                console.log('✅ User data updated with permissions and ministry areas');
+            }
+        } catch (updateError) {
+            console.log('⚠️ Could not update user data immediately (will retry on login):', updateError.message);
+        }
+
         // Send branded welcome email from church
         const appUrl = Deno.env.get('BASE44_APP_URL') || 'https://your-app-url.base44.app';
         
@@ -54,8 +75,14 @@ Deno.serve(async (req) => {
                     
                     <p style="font-size: 16px; color: #334155; line-height: 1.6;">
                         You've been invited by <strong>${currentUser.full_name}</strong> to join <strong>${churchName}</strong> 
-                        on our church management platform as a <strong>${userRole === 'admin' ? 'Church Administrator' : 'Member'}</strong>!
+                        on our church management platform as a <strong>${access_level ? access_level.charAt(0).toUpperCase() + access_level.slice(1) : (userRole === 'admin' ? 'Church Administrator' : 'Member')}</strong>!
                     </p>
+
+                    ${ministry_areas && ministry_areas.length > 0 ? `
+                    <p style="font-size: 16px; color: #334155; line-height: 1.6;">
+                        <strong>Ministry Areas:</strong> ${ministry_areas.map(area => area.replace('_', ' ')).join(', ')}
+                    </p>
+                    ` : ''}
                     
                     <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; margin: 20px 0; border-radius: 4px;">
                         <p style="font-size: 16px; color: #92400e; margin: 0; font-weight: 600;">

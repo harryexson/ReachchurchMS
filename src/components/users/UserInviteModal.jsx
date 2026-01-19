@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
@@ -9,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge"; // Not used in the changes but present in original code, keep it.
 import { Crown, Church, DollarSign, FileText, Users, UserCheck, User } from 'lucide-react';
-import { MultiSelect } from "@/components/ui/multi-select"; // Assuming this component exists in your UI library
+import { MultiSelect } from "@/components/ui/MultiSelect";
 
 // Define default permissions for each role
 const ROLE_PRESETS_PERMISSIONS = {

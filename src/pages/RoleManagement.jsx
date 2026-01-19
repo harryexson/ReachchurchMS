@@ -10,8 +10,10 @@ import { Badge } from '@/components/ui/badge';
 import { usePermissions } from '@/components/rbac/usePermissions';
 import { Shield, Plus, Edit2, Trash2, Save, X, Users, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useUserOrganization } from '@/components/hooks/useUserOrganization';
 
 export default function RoleManagement() {
+    const { user, isLoading: orgLoading } = useUserOrganization();
     const [roles, setRoles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
@@ -20,16 +22,21 @@ export default function RoleManagement() {
     const { hasPermission, canAccessPage } = usePermissions();
 
     useEffect(() => {
-        if (canAccessPage('RoleManagement')) {
+        if (!orgLoading && user && canAccessPage('RoleManagement')) {
             loadRoles();
-        } else {
+        } else if (!orgLoading) {
             setLoading(false);
         }
-    }, []);
+    }, [orgLoading, user]);
 
     const loadRoles = async () => {
         try {
-            const data = await base44.entities.Role.list('-priority', 50);
+            // Filter roles by current user's organization
+            const data = await base44.entities.Role.filter(
+                { created_by: user.email },
+                '-priority',
+                50
+            );
             setRoles(data);
         } catch (error) {
             console.error('Error loading roles:', error);
