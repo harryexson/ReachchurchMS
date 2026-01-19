@@ -97,7 +97,7 @@ Deno.serve(async (req) => {
                             ⚠️ IMPORTANT: Complete Your Setup
                         </p>
                         <p style="font-size: 15px; color: #92400e; margin: 0; line-height: 1.6;">
-                            You will receive a <strong>separate email from Base44</strong> with the subject "Set up your Base44 account". 
+                            You will receive a <strong>separate email</strong> with the subject "Complete Your Account Setup". 
                             <strong>Click the link in THAT email</strong> to create your password and complete your signup.
                         </p>
                     </div>
@@ -128,14 +128,14 @@ Deno.serve(async (req) => {
                             Next Steps:
                         </p>
                         <ol style="text-align: left; font-size: 15px; color: #312e81; line-height: 1.8; margin: 0; padding-left: 24px;">
-                            <li><strong>Check your email inbox</strong> for an email from Base44</li>
+                            <li><strong>Check your email inbox</strong> for the account setup email</li>
                             <li><strong>Click the setup link</strong> in that email to create your password</li>
                             <li><strong>After setting up your password</strong>, you'll be redirected to ${churchName}'s portal</li>
                         </ol>
                     </div>
                     
                     <p style="font-size: 14px; color: #64748b; line-height: 1.6; margin-top: 20px;">
-                        <strong>Note:</strong> The portal link will only work after you've completed the password setup from the Base44 invitation email.
+                        <strong>Note:</strong> The portal link will only work after you've completed the password setup from the invitation email.
                     </p>
                     
                     <p style="font-size: 16px; color: #334155; line-height: 1.6;">
