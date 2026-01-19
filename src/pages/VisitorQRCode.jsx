@@ -11,13 +11,17 @@ export default function VisitorQRCodePage() {
     const [displayUrl, setDisplayUrl] = useState('');
     const [copied, setCopied] = useState(false);
     const [churchSettings, setChurchSettings] = useState(null);
+    const [currentUser, setCurrentUser] = useState(null);
 
     useEffect(() => {
-        loadSettings();
+        loadUserAndSettings();
     }, []);
 
-    const loadSettings = async () => {
+    const loadUserAndSettings = async () => {
         try {
+            const user = await base44.auth.me();
+            setCurrentUser(user);
+
             const settings = await base44.entities.ChurchSettings.list();
             let name = "Church";
             if (settings.length > 0) {
@@ -25,9 +29,9 @@ export default function VisitorQRCodePage() {
                 name = settings[0].church_name || "Church";
             }
             
-            // Use actual app URLs
-            const visitorFormUrl = `${window.location.origin}${createPageUrl('PublicVisitorRegistration')}`;
-            const displayScreenUrl = `${window.location.origin}${createPageUrl('VisitorQRDisplay')}`;
+            // CRITICAL: Include organization ID in URLs to scope registrations
+            const visitorFormUrl = `${window.location.origin}${createPageUrl('PublicVisitorRegistration')}?org=${user.id}`;
+            const displayScreenUrl = `${window.location.origin}${createPageUrl('VisitorQRDisplay')}?org=${user.id}`;
             
             setQrUrl(visitorFormUrl);
             setDisplayUrl(displayScreenUrl);

@@ -10,30 +10,33 @@ export default function MemberRegistrationQRPage() {
     const [qrCodeUrl, setQrCodeUrl] = useState("");
     const [registrationUrl, setRegistrationUrl] = useState("");
     const [churchName, setChurchName] = useState("");
+    const [currentUser, setCurrentUser] = useState(null);
 
     useEffect(() => {
-        loadChurchSettings();
+        loadUserAndSettings();
     }, []);
 
-    const loadChurchSettings = async () => {
+    const loadUserAndSettings = async () => {
         try {
+            const user = await base44.auth.me();
+            setCurrentUser(user);
+
             const settings = await base44.entities.ChurchSettings.list();
             if (settings.length > 0) {
                 const name = settings[0].church_name || "Church";
                 setChurchName(name);
-                generateQRCode(name);
+                generateQRCode(name, user.id);
             } else {
-                generateQRCode("Church");
+                generateQRCode("Church", user.id);
             }
         } catch (error) {
-            console.error("Error loading church settings:", error);
-            generateQRCode("Church");
+            console.error("Error loading settings:", error);
         }
     };
 
-    const generateQRCode = async (name) => {
-        // Use actual app URL for member registration
-        const url = `${window.location.origin}${createPageUrl('PublicMemberRegistration')}`;
+    const generateQRCode = async (name, userId) => {
+        // CRITICAL: Include organization ID in URL to scope registrations
+        const url = `${window.location.origin}${createPageUrl('PublicMemberRegistration')}?org=${userId}`;
         setRegistrationUrl(url);
 
         try {

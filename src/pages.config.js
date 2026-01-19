@@ -8,6 +8,7 @@ import BluetoothConnectivityResearch from './pages/BluetoothConnectivityResearch
 import Bookstore from './pages/Bookstore';
 import Careers from './pages/Careers';
 import CheckDeposit from './pages/CheckDeposit';
+import ChurchSettings from './pages/ChurchSettings';
 import CoffeeShopKiosk from './pages/CoffeeShopKiosk';
 import CommunicationHub from './pages/CommunicationHub';
 import Communications from './pages/Communications';
@@ -116,8 +117,8 @@ import VideoMeeting from './pages/VideoMeeting';
 import VideoMeetings from './pages/VideoMeetings';
 import ViewMMS from './pages/ViewMMS';
 import ViewMMSCampaign from './pages/ViewMMSCampaign';
-import VisitorAnalytics from './pages/VisitorAnalytics';
 import Visitors from './pages/Visitors';
+import VisitorAnalytics from './pages/VisitorAnalytics';
 import VisitorFollowUp from './pages/VisitorFollowUp';
 import VisitorQRCode from './pages/VisitorQRCode';
 import VisitorQRDisplay from './pages/VisitorQRDisplay';
@@ -129,7 +130,6 @@ import Volunteers from './pages/Volunteers';
 import WhyReach from './pages/WhyReach';
 import WorkflowBuilder from './pages/WorkflowBuilder';
 import backoffice from './pages/backoffice';
-import ChurchSettings from './pages/ChurchSettings';
 import __Layout from './Layout.jsx';
 
 
@@ -144,6 +144,7 @@ export const PAGES = {
     "Bookstore": Bookstore,
     "Careers": Careers,
     "CheckDeposit": CheckDeposit,
+    "ChurchSettings": ChurchSettings,
     "CoffeeShopKiosk": CoffeeShopKiosk,
     "CommunicationHub": CommunicationHub,
     "Communications": Communications,
@@ -252,8 +253,8 @@ export const PAGES = {
     "VideoMeetings": VideoMeetings,
     "ViewMMS": ViewMMS,
     "ViewMMSCampaign": ViewMMSCampaign,
-    "VisitorAnalytics": VisitorAnalytics,
     "Visitors": Visitors,
+    "VisitorAnalytics": VisitorAnalytics,
     "VisitorFollowUp": VisitorFollowUp,
     "VisitorQRCode": VisitorQRCode,
     "VisitorQRDisplay": VisitorQRDisplay,
@@ -265,7 +266,6 @@ export const PAGES = {
     "WhyReach": WhyReach,
     "WorkflowBuilder": WorkflowBuilder,
     "backoffice": backoffice,
-    "ChurchSettings": ChurchSettings,
 }
 
 export const pagesConfig = {

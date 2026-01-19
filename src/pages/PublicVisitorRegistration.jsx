@@ -20,6 +20,34 @@ export default function PublicVisitorRegistration() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
     const [error, setError] = useState(null);
+    const [organizationAdmin, setOrganizationAdmin] = useState(null);
+
+    // Get organization identifier from URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const orgId = urlParams.get('org');
+
+    React.useEffect(() => {
+        loadOrganizationInfo();
+    }, [orgId]);
+
+    const loadOrganizationInfo = async () => {
+        if (!orgId) {
+            setError('Invalid visitor card link. Please scan the QR code again or contact the church.');
+            return;
+        }
+
+        try {
+            const users = await base44.entities.User.filter({ id: orgId });
+            if (users.length > 0) {
+                setOrganizationAdmin(users[0]);
+            } else {
+                setError('Church not found. Please contact the church office.');
+            }
+        } catch (error) {
+            console.error('Error loading organization:', error);
+            setError('Failed to load church information.');
+        }
+    };
 
     const interestOptions = [
         "Sunday Service",
@@ -48,13 +76,20 @@ export default function PublicVisitorRegistration() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        if (!organizationAdmin) {
+            setError('Church information not loaded. Please try again.');
+            return;
+        }
+
         setIsSubmitting(true);
         setError(null);
 
         try {
             await base44.entities.Visitor.create({
                 ...formData,
-                follow_up_status: "new"
+                follow_up_status: "new",
+                created_by: organizationAdmin.email // CRITICAL: Scope to organization
             });
 
             setIsSuccess(true);

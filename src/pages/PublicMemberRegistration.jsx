@@ -30,13 +30,42 @@ export default function PublicMemberRegistrationPage() {
     const [submitted, setSubmitted] = useState(false);
     const [existingVisitor, setExistingVisitor] = useState(null);
     const [checkingVisitor, setCheckingVisitor] = useState(false);
+    const [organizationAdmin, setOrganizationAdmin] = useState(null);
+
+    // Get organization identifier from URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const orgId = urlParams.get('org');
+
+    React.useEffect(() => {
+        loadOrganizationInfo();
+    }, [orgId]);
+
+    const loadOrganizationInfo = async () => {
+        if (!orgId) {
+            alert('Invalid registration link. Please scan the QR code again or contact the church.');
+            return;
+        }
+
+        try {
+            // Find the admin user for this organization
+            const users = await base44.entities.User.filter({ id: orgId });
+            if (users.length > 0) {
+                setOrganizationAdmin(users[0]);
+            } else {
+                alert('Organization not found. Please contact the church.');
+            }
+        } catch (error) {
+            console.error('Error loading organization:', error);
+        }
+    };
 
     const checkForExistingVisitor = async () => {
-        if (!formData.email && !formData.phone) return;
+        if (!formData.email && !formData.phone || !organizationAdmin) return;
 
         setCheckingVisitor(true);
         try {
             const visitors = await base44.entities.Visitor.filter({
+                created_by: organizationAdmin.email,
                 $or: [
                     { email: formData.email },
                     { phone: formData.phone }
@@ -54,11 +83,18 @@ export default function PublicMemberRegistrationPage() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        if (!organizationAdmin) {
+            alert('Organization information not loaded. Please try again.');
+            return;
+        }
+
         setIsSubmitting(true);
 
         try {
-            // Check if already a member
+            // Check if already a member in THIS organization
             const existingMembers = await base44.entities.Member.filter({
+                created_by: organizationAdmin.email,
                 $or: [
                     { email: formData.email },
                     { phone: formData.phone }
@@ -66,13 +102,14 @@ export default function PublicMemberRegistrationPage() {
             });
 
             if (existingMembers.length > 0) {
-                alert("You're already registered as a member!");
+                alert("You're already registered as a member at this church!");
                 setIsSubmitting(false);
                 return;
             }
 
-            // Check for existing visitor to convert
+            // Check for existing visitor to convert (within this organization)
             const visitors = await base44.entities.Visitor.filter({
+                created_by: organizationAdmin.email,
                 $or: [
                     { email: formData.email },
                     { phone: formData.phone }
@@ -84,7 +121,8 @@ export default function PublicMemberRegistrationPage() {
                 member_status: "member",
                 join_date: new Date().toISOString().split('T')[0],
                 interests: formData.interests ? formData.interests.split(',').map(i => i.trim()) : [],
-                skills: formData.skills ? formData.skills.split(',').map(s => s.trim()) : []
+                skills: formData.skills ? formData.skills.split(',').map(s => s.trim()) : [],
+                created_by: organizationAdmin.email // CRITICAL: Scope to organization
             };
 
             // If visitor exists, include visitor info

@@ -1,9 +1,6 @@
-
 import React, { useState, useEffect, useCallback } from "react";
 import { useLocation } from "react-router-dom";
-import { Event } from "@/entities/Event";
-import { VolunteerRegistration } from "@/entities/VolunteerRegistration";
-import { SendEmail } from "@/integrations/Core"; // Import SendEmail
+import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar, HandHeart, Users, Clock, Loader2, CheckCircle } from "lucide-react";
@@ -59,8 +56,10 @@ export default function VolunteerRegistrationPage() {
         
         setIsLoading(true);
         try {
-            const eventData = await Event.get(eventId);
-            setEvent(eventData);
+            const events = await base44.entities.Event.filter({ id: eventId });
+            if (events.length > 0) {
+                setEvent(events[0]);
+            }
         } catch (error) {
             console.error("Failed to load event data:", error);
         }
@@ -88,18 +87,19 @@ export default function VolunteerRegistrationPage() {
         }
         setIsSubmitting(true);
         try {
-            await VolunteerRegistration.create({
+            await base44.entities.VolunteerRegistration.create({
                 ...formData,
                 event_id: event.id,
                 event_title: event.title,
-                registration_date: new Date().toISOString().split('T')[0]
+                registration_date: new Date().toISOString().split('T')[0],
+                created_by: event.created_by // CRITICAL: Inherit organization from event
             });
 
             // Send notification email to the event planner
             if (event.planner_email) {
-                await SendEmail({
+                await base44.integrations.Core.SendEmail({
                     to: event.planner_email,
-                    from_name: "ChurchConnect Volunteer System",
+                    from_name: "REACH Volunteer System",
                     subject: `New Volunteer for: ${event.title}`,
                     body: `
                         <p>Hi ${event.planner_name || 'Event Planner'},</p>
@@ -113,9 +113,9 @@ export default function VolunteerRegistrationPage() {
                             <li><strong>Selected Role:</strong> ${formData.selected_role}</li>
                         </ul>
                         <br/>
-                        <p>You can view all volunteers in the Event Check-in tab in your ChurchConnect dashboard.</p>
+                        <p>You can view all volunteers in the Event Check-in tab in your dashboard.</p>
                         <p>Thank you,</p>
-                        <p>The ChurchConnect Team</p>
+                        <p>The REACH Team</p>
                     `
                 });
             }
