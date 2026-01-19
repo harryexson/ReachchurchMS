@@ -149,7 +149,7 @@ export default function UserManagementPage() {
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
                         <h1 className="text-3xl font-bold text-slate-900">User Management</h1>
-                        <p className="text-slate-600 mt-1">Manage team members and access permissions.</p>
+                        <p className="text-slate-600 mt-1">{adminChurch ? `Managing ${adminChurch}` : 'Manage team members and access permissions.'}</p>
                     </div>
                     <Button onClick={() => setIsInviteModalOpen(true)} className="bg-blue-600 hover:bg-blue-700 shadow-lg">
                         <UserPlus className="w-5 h-5 mr-2" />
