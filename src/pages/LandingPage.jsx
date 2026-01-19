@@ -64,7 +64,7 @@ export default function LandingPage() {
   {
     icon: Users,
     title: "Member Management",
-    description: "Complete member directory with engagement scoring, lifecycle stages, custom fields, and automated follow-up tasks.",
+    description: "Complete member directory with engagement scoring, lifecycle stages, family connections, custom fields, and automated follow-up tasks.",
     tier: "All Plans",
     color: "from-blue-500 to-indigo-600",
     unique: true
@@ -72,7 +72,7 @@ export default function LandingPage() {
   {
     icon: Heart,
     title: "Digital Giving (6 Ways!)",
-    description: "Kiosk giving, text-to-give, online portal, mobile app, QR codes, check scanning—all included. No extra fees!",
+    description: "Kiosk giving, text-to-give, online portal, mobile app, QR codes, check scanning—all included. Recurring donations & receipt automation!",
     tier: "All Plans",
     color: "from-green-500 to-emerald-600",
     unique: true
@@ -80,14 +80,14 @@ export default function LandingPage() {
   {
     icon: Calendar,
     title: "Event Management",
-    description: "QR check-ins, registration with QR tickets, volunteer sign-ups, feedback collection, and automated communications.",
+    description: "QR check-ins, registration with QR tickets, volunteer sign-ups, feedback collection, promotional flyers, and automated communications.",
     tier: "All Plans",
     color: "from-purple-500 to-pink-600"
   },
   {
     icon: MessageSquare,
     title: "SMS & MMS Campaigns",
-    description: "1,000 SMS + 10 MMS monthly included. Text keywords, automated workflows, multimedia campaigns with videos.",
+    description: "1,000 SMS + 10 MMS monthly included. Text keywords, automated workflows, multimedia campaigns with videos and images.",
     tier: "Growth+",
     color: "from-orange-500 to-amber-600",
     unique: true
@@ -95,14 +95,14 @@ export default function LandingPage() {
   {
     icon: Mail,
     title: "Multi-Channel Communications",
-    description: "Bulk email, SMS, push notifications, in-app messaging, targeted segments, and scheduled broadcasts.",
+    description: "Bulk email, SMS, push notifications, in-app messaging, targeted segments, scheduled broadcasts, and contact groups.",
     tier: "All Plans",
     color: "from-red-500 to-rose-600"
   },
   {
     icon: Video,
     title: "Video Meetings (Built-In)",
-    description: "HD video with 25-200 participants, breakout rooms, recording, screen share. No Zoom subscription needed!",
+    description: "HD video with 25-200 participants, breakout rooms, recording, screen share, co-hosts. No Zoom subscription needed!",
     tier: "Growth+",
     color: "from-cyan-500 to-teal-600",
     unique: true
@@ -110,22 +110,22 @@ export default function LandingPage() {
   {
     icon: UserCheck,
     title: "Visitor Follow-Up Automation",
-    description: "Automated 7-step nurture sequence via SMS/email, engagement scoring, at-risk alerts, QR visitor cards.",
+    description: "Automated 7-step nurture sequence via SMS/email, engagement scoring, at-risk alerts, QR visitor cards, visit tracking.",
     tier: "Growth+",
     color: "from-violet-500 to-purple-600",
     unique: true
   },
   {
     icon: BarChart3,
-    title: "Advanced Analytics",
-    description: "Donor risk prediction, giving trends, member engagement tracking, attendance reports, exportable dashboards.",
+    title: "Advanced Analytics & Reports",
+    description: "Donor risk prediction, giving trends, member engagement tracking, attendance reports, exportable dashboards, financial statements.",
     tier: "Growth+",
     color: "from-indigo-500 to-blue-600"
   },
   {
     icon: UserPlus,
     title: "Kids Check-In System",
-    description: "Secure check-in/out with label printing, parent SMS notifications, allergy tracking, safety protocols.",
+    description: "Secure check-in/out with label printing, parent SMS notifications, allergy tracking, safety protocols, family management.",
     tier: "Growth+",
     color: "from-pink-500 to-rose-600",
     unique: true
@@ -133,14 +133,14 @@ export default function LandingPage() {
   {
     icon: DollarSign,
     title: "Financial Management",
-    description: "Budget tracking, expense management, financial reports, automated donor statements, tax receipts.",
+    description: "Budget tracking, expense management, financial reports, automated donor statements, tax receipts, check deposit scanning.",
     tier: "Growth+",
     color: "from-emerald-500 to-green-600"
   },
   {
     icon: Gift,
     title: "Coffee Shop & Bookstore POS",
-    description: "Full point-of-sale with inventory management, stock alerts, loyalty programs, order fulfillment. Unique to REACH!",
+    description: "Full point-of-sale with inventory management, stock alerts, loyalty programs, order fulfillment, kitchen display. Unique to REACH!",
     tier: "Growth+",
     color: "from-amber-500 to-yellow-600",
     unique: true
@@ -148,38 +148,67 @@ export default function LandingPage() {
   {
     icon: Smartphone,
     title: "Progressive Web App (PWA)",
-    description: "Install-to-home-screen capability, push notifications, offline mode, mobile bottom nav—no App Store needed!",
+    description: "Install-to-home-screen capability, push notifications, offline mode, mobile bottom nav, responsive design—no App Store needed!",
     tier: "All Plans",
     color: "from-purple-500 to-indigo-600",
     unique: true
   },
   {
     icon: Monitor,
-    title: "Display Management",
-    description: "Push announcements to lobby displays, schedule content, manage digital signage remotely.",
+    title: "Display Management & Casting",
+    description: "Push announcements to lobby displays, schedule content, manage digital signage remotely, stream live services.",
     tier: "Growth+",
     color: "from-slate-500 to-gray-600"
   },
   {
     icon: Shield,
     title: "Advanced Permissions & Groups",
-    description: "Role-based access, custom user roles, member groups, segmentation, and granular security controls.",
+    description: "Role-based access, custom user roles, member groups, segmentation, granular security controls, group join requests.",
     tier: "Premium",
     color: "from-red-500 to-orange-600"
   },
   {
     icon: Bell,
     title: "Sermon Library & Community",
-    description: "Upload sermons, auto-sync from YouTube/Facebook, share with REACH Connect community of churches.",
+    description: "Upload sermons, auto-sync from YouTube/Facebook, share with REACH Connect community of churches, video player with engagement.",
     tier: "All Plans",
     color: "from-blue-500 to-cyan-600"
   },
   {
     icon: Zap,
     title: "Automated Workflows",
-    description: "Visitor follow-up sequences, donor thank-you automation, volunteer reminders, event communications—all automated.",
+    description: "Visitor follow-up sequences, donor thank-you automation, volunteer reminders, event communications, SMS workflows—all automated.",
     tier: "Growth+",
     color: "from-yellow-500 to-orange-600",
+    unique: true
+  },
+  {
+    icon: Users,
+    title: "Volunteer Management",
+    description: "Track volunteer hours, manage roles, send invitations, schedule shifts, application tracking, engagement metrics.",
+    tier: "All Plans",
+    color: "from-teal-500 to-cyan-600"
+  },
+  {
+    icon: Heart,
+    title: "Donor Communications",
+    description: "Automated thank-you messages, targeted campaigns by giving history, segment builders, engagement tracking, personalized outreach.",
+    tier: "Growth+",
+    color: "from-rose-500 to-pink-600"
+  },
+  {
+    icon: FileText,
+    title: "Resource Library & Webinars",
+    description: "Share documents, videos, articles with members. Host webinars with registration tracking and attendance reports.",
+    tier: "Growth+",
+    color: "from-indigo-500 to-purple-600"
+  },
+  {
+    icon: TrendingUp,
+    title: "Member Engagement Scoring",
+    description: "AI-powered engagement tracking, lifecycle stages, at-risk member alerts, automated follow-up tasks, retention insights.",
+    tier: "Premium",
+    color: "from-blue-500 to-sky-600",
     unique: true
   }];
 
