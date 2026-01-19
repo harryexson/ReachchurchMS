@@ -1,4 +1,3 @@
-
 import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
 import { v4 as uuidv4 } from 'npm:uuid@9.0.0';
 
@@ -32,6 +31,7 @@ Deno.serve(async (req) => {
         // Get church settings
         const settings = await base44.entities.ChurchSettings.list();
         const churchName = settings.length > 0 ? settings[0].church_name : 'Our Church';
+        const replyToEmail = settings.length > 0 ? settings[0].visitor_reply_email : null;
 
         // Get active message template
         const templates = await base44.entities.VisitorFollowUpTemplate.filter({
@@ -70,12 +70,19 @@ Deno.serve(async (req) => {
         // Send via email
         if (channel === 'email' || channel === 'both') {
             try {
-                await base44.integrations.Core.SendEmail({
+                const emailParams = {
                     from_name: churchName,
                     to: visitor.email,
                     subject: subject,
                     body: messageBody
-                });
+                };
+                
+                // Add Reply-To header if visitor_reply_email is configured
+                if (replyToEmail) {
+                    emailParams.reply_to = replyToEmail;
+                }
+                
+                await base44.integrations.Core.SendEmail(emailParams);
 
                 results.email_sent = true;
 

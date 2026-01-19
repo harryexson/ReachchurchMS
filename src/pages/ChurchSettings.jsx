@@ -510,6 +510,19 @@ export default function ChurchSettingsPage() {
                                 </div>
 
                                 <div className="space-y-2">
+                                    <Label>Visitor Reply Email</Label>
+                                    <p className="text-sm text-slate-600">
+                                        Email address where visitor replies to follow-up messages will be sent
+                                    </p>
+                                    <Input
+                                        value={churchSettings?.visitor_reply_email || ""}
+                                        onChange={(e) => setChurchSettings({ ...churchSettings, visitor_reply_email: e.target.value })}
+                                        placeholder="visitors@yourchurch.org"
+                                        type="email"
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
                                     <Label>Social Media Links</Label>
                                     <div className="space-y-3">
                                         <Input
@@ -530,7 +543,22 @@ export default function ChurchSettingsPage() {
                                     </div>
                                 </div>
 
-                                <Button onClick={handleSaveChurchInfo} disabled={isSaving} className="w-full bg-green-600">
+                                <Button onClick={async () => {
+                                    setIsSaving(true);
+                                    try {
+                                        if (churchSettings) {
+                                            await base44.entities.ChurchSettings.update(churchSettings.id, churchSettings);
+                                        }
+                                        if (onboardingProgress) {
+                                            await base44.entities.OnboardingProgress.update(onboardingProgress.id, onboardingProgress);
+                                        }
+                                        toast.success('Contact information saved!');
+                                    } catch (error) {
+                                        console.error('Save failed:', error);
+                                        toast.error('Failed to save contact information');
+                                    }
+                                    setIsSaving(false);
+                                }} disabled={isSaving} className="w-full bg-green-600">
                                     {isSaving ? (
                                         <>
                                             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
