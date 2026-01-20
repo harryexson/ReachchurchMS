@@ -866,7 +866,7 @@ export default function LandingPage() {
             </section>
 
             {/* Footer */}
-            <footer className="text-white py-16" style={{ backgroundColor: '#0B2D5B' }}>
+            <footer className="text-white py-16" style={{ backgroundColor: '#0D234C' }}>
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
                         {/* Logo & About */}
