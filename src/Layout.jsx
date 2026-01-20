@@ -128,8 +128,7 @@ export default function Layout({ children, currentPageName }) {
           // CRITICAL: Redirect authenticated users away from landing/signup pages IMMEDIATELY
           // BUT allow subscription plans page during upgrade flow
           if ((currentPageName?.toLowerCase() === 'landingpage' || 
-              location.pathname === '/' || 
-              currentPageName?.toLowerCase() === 'accountmanagement') && !isUpgradeFlow) {
+              location.pathname === '/') && !isUpgradeFlow) {
             const dashboardUrl = user.role === 'admin' 
               ? createPageUrl('Dashboard') 
               : createPageUrl('MemberDashboard');
