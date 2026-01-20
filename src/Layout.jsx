@@ -282,6 +282,8 @@ export default function Layout({ children, currentPageName }) {
           error.message.includes('closed')
         )) {
           console.log('Connection issue (will retry):', error.message);
+          setAuthError(null);
+          setIsLoadingUser(false);
           return;
         }
 
