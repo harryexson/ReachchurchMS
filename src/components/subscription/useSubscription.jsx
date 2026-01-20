@@ -101,7 +101,21 @@ export function useSubscription() {
             setError(null);
 
             // Get current user
-            const user = await base44.auth.me();
+            let user;
+            try {
+                user = await base44.auth.me();
+            } catch (authError) {
+                // Handle aborted requests gracefully
+                if (authError.message && authError.message.includes('aborted')) {
+                    console.log('[useSubscription] Request aborted, retrying...');
+                    setLoading(false);
+                    return;
+                }
+                console.warn('[useSubscription] Auth error:', authError.message);
+                setFeatures(PLAN_FEATURES.starter);
+                setLoading(false);
+                return;
+            }
             
             if (!user || !user.email) {
                 console.warn('[useSubscription] No authenticated user');
