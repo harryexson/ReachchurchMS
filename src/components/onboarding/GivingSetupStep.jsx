@@ -69,7 +69,6 @@ export default function GivingSetupStep({ onComplete }) {
         </div>
       </div>
 
-      {/* Setup Method Selection */}
       <div className="space-y-3">
         <Label className="font-semibold text-slate-900">How would you like to set up giving?</Label>
         <div className="grid gap-3">
@@ -101,7 +100,6 @@ export default function GivingSetupStep({ onComplete }) {
 
       {setupMethod === "goal" && (
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Goal Title */}
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <Label htmlFor="goal_title" className="font-semibold text-slate-900">
@@ -124,7 +122,6 @@ export default function GivingSetupStep({ onComplete }) {
             />
           </div>
 
-          {/* Goal Description */}
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <Label htmlFor="goal_description" className="font-semibold text-slate-900">
@@ -147,7 +144,6 @@ export default function GivingSetupStep({ onComplete }) {
             />
           </div>
 
-          {/* Monthly Goal Amount */}
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <Label htmlFor="goal_amount" className="font-semibold text-slate-900">
@@ -175,7 +171,6 @@ export default function GivingSetupStep({ onComplete }) {
             <p className="text-xs text-slate-500">Update this anytime in your Church Settings</p>
           </div>
 
-          {/* Preview */}
           <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
             <p className="text-xs font-medium text-slate-600 mb-3">PREVIEW</p>
             <div className="bg-white rounded border border-slate-200 p-4 space-y-3">

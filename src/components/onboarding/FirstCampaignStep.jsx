@@ -34,7 +34,6 @@ export default function FirstCampaignStep({ onComplete }) {
         throw new Error("Title and message are required");
       }
 
-      // Create announcement as first campaign
       await base44.entities.Announcement.create({
         title: formData.title,
         message: formData.message,
@@ -77,7 +76,6 @@ export default function FirstCampaignStep({ onComplete }) {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Campaign Type */}
         <div className="space-y-3">
           <Label className="font-semibold text-slate-900">Communication Type</Label>
           <div className="grid grid-cols-2 gap-3">
@@ -106,7 +104,6 @@ export default function FirstCampaignStep({ onComplete }) {
           </div>
         </div>
 
-        {/* Title */}
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <Label htmlFor="title" className="font-semibold text-slate-900">
@@ -133,7 +130,6 @@ export default function FirstCampaignStep({ onComplete }) {
           />
         </div>
 
-        {/* Message */}
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <Label htmlFor="message" className="font-semibold text-slate-900">
@@ -159,7 +155,6 @@ export default function FirstCampaignStep({ onComplete }) {
           </p>
         </div>
 
-        {/* Preview */}
         <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
           <p className="text-xs font-medium text-slate-600 mb-3">PREVIEW</p>
           <div className="bg-white rounded border border-slate-200 p-4">

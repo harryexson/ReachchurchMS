@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AlertCircle, Upload, Plus, HelpCircle } from "lucide-react";
+import { AlertCircle, Upload, Plus } from "lucide-react";
 
 export default function MembersSetupStep({ onComplete }) {
   const [importMethod, setImportMethod] = useState("manual");
@@ -40,7 +40,6 @@ export default function MembersSetupStep({ onComplete }) {
         return;
       }
 
-      // Create members
       const membersToCreate = validMembers.map((m) => ({
         first_name: m.first_name,
         last_name: m.last_name,
@@ -82,7 +81,6 @@ export default function MembersSetupStep({ onComplete }) {
         </div>
       </div>
 
-      {/* Method Selection */}
       <div className="space-y-3">
         <Label className="font-semibold text-slate-900">How would you like to add members?</Label>
         <div className="grid gap-3">

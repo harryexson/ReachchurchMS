@@ -41,13 +41,11 @@ export default function InviteTeamStep({ onComplete }) {
         return;
       }
 
-      // Invite team members
       for (const invite of validInvites) {
         try {
           await base44.users.inviteUser(invite.email, invite.role);
         } catch (inviteError) {
           console.warn(`Could not invite ${invite.email}:`, inviteError);
-          // Continue with other invites
         }
       }
 

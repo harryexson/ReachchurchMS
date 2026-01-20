@@ -3,18 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/card";
 import { AlertCircle, HelpCircle } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-
-const Tooltip_Wrapper = ({ children, content }) => (
-  <div className="group relative inline-block">
-    {children}
-    <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block bg-slate-900 text-white text-sm rounded px-3 py-2 whitespace-nowrap z-10">
-      {content}
-    </div>
-  </div>
-);
 
 export default function ChurchInfoStep({ onComplete }) {
   const [formData, setFormData] = useState({
@@ -90,7 +79,6 @@ export default function ChurchInfoStep({ onComplete }) {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Church Name */}
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <Label htmlFor="church_name" className="font-semibold text-slate-900">
@@ -114,7 +102,6 @@ export default function ChurchInfoStep({ onComplete }) {
           <p className="text-xs text-slate-500">This will appear on your public pages</p>
         </div>
 
-        {/* Tagline */}
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <Label htmlFor="tagline" className="font-semibold text-slate-900">
@@ -138,7 +125,6 @@ export default function ChurchInfoStep({ onComplete }) {
           <p className="text-xs text-slate-500">Optional - helps visitors understand your church's heart</p>
         </div>
 
-        {/* Primary Color */}
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <Label htmlFor="primary_color" className="font-semibold text-slate-900">
