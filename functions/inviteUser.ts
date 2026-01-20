@@ -19,11 +19,13 @@ Deno.serve(async (req) => {
         // Map access_level to Base44 role (admin stays admin, everything else becomes 'user')
         const userRole = (access_level === 'admin' || role === 'admin') ? 'admin' : 'user';
 
-        // Get church name and phone from settings
+        // Get church name and phone from settings - CRITICAL: Filter by current admin
         let churchName = 'REACH Church Connect';
         let churchPhone = null;
         try {
-            const settings = await base44.asServiceRole.entities.ChurchSettings.list();
+            const settings = await base44.asServiceRole.entities.ChurchSettings.filter({
+                created_by: currentUser.email
+            });
             if (settings.length > 0) {
                 churchName = settings[0].church_name || churchName;
                 churchPhone = settings[0].church_phone;
