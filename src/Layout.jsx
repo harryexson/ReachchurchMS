@@ -46,6 +46,7 @@ import PWAInstaller from "@/components/pwa/PWAInstaller";
 import PushNotificationManager from "@/components/pwa/PushNotificationManager";
 import OfflineIndicator from "@/components/pwa/OfflineIndicator";
 import MobileNavBar from "@/components/pwa/MobileNavBar";
+import SupportChatWidget from "@/components/support/SupportChatWidget";
 import { Button } from "@/components/ui/button";
 
 const publicPages = [
@@ -989,6 +990,9 @@ export default function Layout({ children, currentPageName }) {
           onClick={() => setIsMobileMenuOpen(false)}
           />
           )}
+
+          {/* Support Chat - Available to all authenticated users */}
+          {currentUser && <SupportChatWidget />}
 
           {/* Floating Chat - Available on all authenticated pages */}
           {currentUser && <FloatingChat />}
