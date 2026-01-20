@@ -27,6 +27,8 @@ import RefundProcessing from "../components/backoffice/RefundProcessing";
 import BackOfficeUserManagement from "../components/backoffice/BackOfficeUserManagement";
 import MarketingDashboard from "../components/backoffice/MarketingDashboard";
 import HRDashboard from "../components/backoffice/HRDashboard";
+import SubscriptionPricingManager from "../components/backoffice/SubscriptionPricingManager";
+import HRManagement from "../components/backoffice/HRManagement";
 
 export default function BackOfficePage() {
     const [subscriptions, setSubscriptions] = useState([]);
