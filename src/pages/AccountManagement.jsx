@@ -38,7 +38,10 @@ export default function AccountManagementPage() {
                 setCurrentUser(user);
                 
                 if (user && user.role === 'admin') {
-                    const settings = await base44.entities.ChurchSettings.list();
+                    // CRITICAL: Filter by created_by to ensure data isolation between churches
+                    const settings = await base44.entities.ChurchSettings.filter({
+                        created_by: user.email
+                    });
                     if (settings.length > 0) {
                         setChurchSettings(settings[0]);
                         setCustomDomain(settings[0].custom_domain || "");
