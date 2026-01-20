@@ -130,6 +130,7 @@ import Volunteers from './pages/Volunteers';
 import WhyReach from './pages/WhyReach';
 import WorkflowBuilder from './pages/WorkflowBuilder';
 import backoffice from './pages/backoffice';
+import AdminOnboarding from './pages/AdminOnboarding';
 import __Layout from './Layout.jsx';
 
 
@@ -266,6 +267,7 @@ export const PAGES = {
     "WhyReach": WhyReach,
     "WorkflowBuilder": WorkflowBuilder,
     "backoffice": backoffice,
+    "AdminOnboarding": AdminOnboarding,
 }
 
 export const pagesConfig = {
