@@ -29,6 +29,7 @@ import MarketingDashboard from "../components/backoffice/MarketingDashboard";
 import HRDashboard from "../components/backoffice/HRDashboard";
 import SubscriptionPricingManager from "../components/backoffice/SubscriptionPricingManager";
 import HRManagement from "../components/backoffice/HRManagement";
+import SupportChatDashboard from "../components/backoffice/SupportChatDashboard";
 
 export default function BackOfficePage() {
     const [subscriptions, setSubscriptions] = useState([]);
@@ -272,6 +273,7 @@ export default function BackOfficePage() {
 
                 <Tabs defaultValue="subscriptions">
                     <TabsList className="grid grid-cols-5 lg:grid-cols-10">
+                        <TabsTrigger value="support-chat">Support Chat</TabsTrigger>
                         <TabsTrigger value="subscriptions">Subscriptions</TabsTrigger>
                         <TabsTrigger value="pricing-manager">Pricing Manager</TabsTrigger>
                         <TabsTrigger value="pricing" disabled={!hasPermission('can_update_pricing')}>
@@ -325,6 +327,10 @@ export default function BackOfficePage() {
                         </TabsTrigger>
                     </TabsList>
                     
+                    <TabsContent value="support-chat">
+                        <SupportChatDashboard />
+                    </TabsContent>
+
                     <TabsContent value="subscriptions">
                         <SubscriptionDashboard 
                             subscriptions={subscriptions} 
