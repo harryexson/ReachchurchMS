@@ -222,7 +222,7 @@ export default function Layout({ children, currentPageName }) {
               }
 
               // If user has valid access, check onboarding status
-              if (hasValidAccess && user.role === 'admin' && !pageLower.includes('onboarding')) {
+              if (hasValidAccess && user.role === 'admin' && !pageLower.includes('onboarding') && !pageLower.includes('adminonboarding')) {
                 try {
                   const onboardingRecords = await base44.entities.OnboardingProgress.filter({
                     user_email: user.email
@@ -230,7 +230,7 @@ export default function Layout({ children, currentPageName }) {
 
                   if (onboardingRecords.length === 0 || !onboardingRecords[0].onboarding_completed) {
                     console.log('🎯 First-time admin - redirecting to onboarding');
-                    window.location.href = createPageUrl('OnboardingWizard');
+                    window.location.href = createPageUrl('AdminOnboarding');
                     return;
                   } else {
                     console.log('✅ Onboarding already completed');
