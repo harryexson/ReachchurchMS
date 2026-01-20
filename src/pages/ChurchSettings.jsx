@@ -37,8 +37,10 @@ export default function ChurchSettingsPage() {
                 return;
             }
 
-            // Load church settings
-            const settings = await base44.entities.ChurchSettings.list();
+            // Load church settings - CRITICAL: Filter by current admin
+            const settings = await base44.entities.ChurchSettings.filter({
+                created_by: user.email
+            });
             if (settings.length > 0) {
                 setChurchSettings(settings[0]);
             } else {

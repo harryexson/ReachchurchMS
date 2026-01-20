@@ -62,10 +62,13 @@ export default function EventsPage() {
     const loadData = async () => {
         setIsLoading(true);
         try {
+            // Get current user to filter by organization
+            const user = await base44.auth.me();
+            
             const [eventsList, volunteersList, registrationsList] = await Promise.all([
-                Event.list("-start_datetime"),
-                Volunteer.list(),
-                EventRegistration.list()
+                base44.entities.Event.filter({ created_by: user.email }, "-start_datetime"),
+                base44.entities.Volunteer.filter({ created_by: user.email }),
+                base44.entities.EventRegistration.list() // Keep all registrations for now
             ]);
             setEvents(eventsList);
             setVolunteers(volunteersList);
@@ -166,7 +169,7 @@ export default function EventsPage() {
 
         if (events.length > 0) {
             console.log(`Creating ${events.length} recurring event instances...`);
-            await Event.bulkCreate(events); // Use Event.bulkCreate
+            await base44.entities.Event.bulkCreate(events);
             alert(`Successfully created ${events.length} recurring events!`);
         } else {
             alert('No recurring events were generated based on the pattern and end date.');
@@ -183,9 +186,9 @@ export default function EventsPage() {
                 // Create single event
                 let savedEvent;
                 if (selectedEvent && selectedEvent.id) {
-                    savedEvent = await Event.update(selectedEvent.id, data);
+                    savedEvent = await base44.entities.Event.update(selectedEvent.id, data);
                 } else {
-                    savedEvent = await Event.create(data);
+                    savedEvent = await base44.entities.Event.create(data);
                 }
                 
                 // After creating/updating, prompt to create an announcement
@@ -680,7 +683,7 @@ REACH Church Team`);
                         isOpen={isAnnouncementFormOpen}
                         setIsOpen={setIsAnnouncementFormOpen}
                         onSubmit={async (announcementData) => {
-                            await Announcement.create(announcementData);
+                            await base44.entities.Announcement.create(announcementData);
                             setIsAnnouncementFormOpen(false);
                             // Optionally, refresh communications data or show a success message
                         }}

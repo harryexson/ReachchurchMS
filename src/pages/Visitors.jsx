@@ -126,10 +126,11 @@ export default function VisitorsPage() {
             const user = await base44.auth.me();
             setCurrentUser(user);
             
+            // CRITICAL: Filter by current user to ensure data isolation
             const [visitorList, followUpList, visitsList] = await Promise.all([
-                base44.entities.Visitor.list("-visit_date"),
-                base44.entities.VisitorFollowUp.list(),
-                base44.entities.VisitorVisit.list("-visit_date")
+                base44.entities.Visitor.filter({ created_by: user.email }, "-visit_date"),
+                base44.entities.VisitorFollowUp.filter({ created_by: user.email }),
+                base44.entities.VisitorVisit.filter({ created_by: user.email }, "-visit_date")
             ]);
             setVisitors(visitorList);
             setFollowUps(followUpList);

@@ -36,9 +36,13 @@ export default function GivingPage() {
 
     const loadData = async () => {
         setIsLoading(true);
+        
+        // Get current user to filter by organization
+        const user = await base44.auth.me();
+        
         const [donationsList, membersList] = await Promise.all([
-            Donation.list("-donation_date"),
-            Member.list()
+            base44.entities.Donation.filter({ created_by: user.email }, "-donation_date"),
+            base44.entities.Member.filter({ created_by: user.email })
         ]);
         setDonations(donationsList);
         setMembers(membersList);
@@ -72,10 +76,10 @@ export default function GivingPage() {
     const handleFormSubmit = async (data) => {
         let donationId;
         if (selectedDonation) {
-            await Donation.update(selectedDonation.id, data);
+            await base44.entities.Donation.update(selectedDonation.id, data);
             donationId = selectedDonation.id;
         } else {
-            const newDonation = await Donation.create(data);
+            const newDonation = await base44.entities.Donation.create(data);
             donationId = newDonation.id;
             
             // Automatically send receipt for new donations
