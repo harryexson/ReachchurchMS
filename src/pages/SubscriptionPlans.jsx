@@ -281,7 +281,7 @@ export default function SubscriptionPlansPage() {
                 user = await base44.auth.me();
             } catch (authError) {
                 console.warn("User not authenticated");
-                base44.auth.redirectToLogin(window.location.href);
+                await base44.auth.redirectToLogin(window.location.href);
                 return;
             }
 
