@@ -27,11 +27,11 @@ Deno.serve(async (req) => {
 
         // Check if user already exists
         try {
-            const existingUser = await base44.asServiceRole.entities.User.filter({ 
+            const existingUsers = await base44.asServiceRole.entities.User.filter({ 
                 email: memberEmail 
             });
 
-            if (existingUser.length > 0) {
+            if (existingUsers.length > 0) {
                 console.log(`User already exists for ${memberEmail}, skipping invitation`);
                 return Response.json({ 
                     message: 'User already exists',
@@ -42,8 +42,19 @@ Deno.serve(async (req) => {
             console.warn('Could not check existing user:', error.message);
         }
 
-        // Send invitation using Base44's built-in invite system with service role
-        await base44.asServiceRole.users.inviteUser(memberEmail, 'user');
+        // Get admin user to send invitation
+        const currentUser = await base44.auth.me();
+        if (!currentUser) {
+            return Response.json({ 
+                error: 'User not authenticated' 
+            }, { status: 401 });
+        }
+
+        // Send invitation using Base44's invite function
+        await base44.asServiceRole.functions.invoke('inviteUser', {
+            email: memberEmail,
+            role: 'user'
+        });
 
         console.log(`✅ Member invitation sent to ${memberEmail}`);
 

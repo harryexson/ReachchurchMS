@@ -97,7 +97,7 @@ export default function MemberForm({ isOpen, setIsOpen, onSubmit, member, custom
                 <DialogHeader>
                     <DialogTitle>{member ? "Edit Member" : "Add New Member"}</DialogTitle>
                     <DialogDescription>
-                        {member ? "Update the details for this member." : "Enter the details for the new member."}
+                        {member ? "Update the details for this member." : "Enter the details for the new member. They will receive an invitation email to create their account."}
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit}>
