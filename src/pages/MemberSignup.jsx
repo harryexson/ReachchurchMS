@@ -18,11 +18,28 @@ export default function MemberSignup() {
     const [error, setError] = useState('');
 
     useEffect(() => {
-        // Get email from URL parameters
         const urlParams = new URLSearchParams(window.location.search);
-        const emailParam = urlParams.get('email');
-        if (emailParam) {
-            setEmail(emailParam);
+        const token = urlParams.get('token');
+        
+        if (token) {
+            // Load invitation details from token
+            base44.entities.MemberInvitation.filter({ invitation_token: token })
+                .then(invitations => {
+                    if (invitations.length > 0) {
+                        const invitation = invitations[0];
+                        setEmail(invitation.email);
+                        
+                        // Check if expired
+                        if (new Date(invitation.expires_at) < new Date()) {
+                            setError('This invitation has expired. Please contact your church administrator.');
+                        }
+                    } else {
+                        setError('Invalid invitation link.');
+                    }
+                })
+                .catch(err => {
+                    console.error('Error loading invitation:', err);
+                });
         }
     }, []);
 

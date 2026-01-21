@@ -5,7 +5,6 @@ Deno.serve(async (req) => {
         const base44 = createClientFromRequest(req);
         const payload = await req.json();
 
-        // Get the member data from the automation payload
         const { event, data } = payload;
 
         if (!data || !data.email) {
@@ -14,7 +13,6 @@ Deno.serve(async (req) => {
             }, { status: 400 });
         }
 
-        // Only send invitation for new members who don't have a user account yet
         if (event.type !== 'create') {
             return Response.json({ 
                 message: 'Invitation only sent for new members',
@@ -42,53 +40,28 @@ Deno.serve(async (req) => {
             console.warn('Could not check existing user:', error.message);
         }
 
-        // Get admin user to send invitation
-        const currentUser = await base44.auth.me();
-        if (!currentUser) {
-            return Response.json({ 
-                error: 'User not authenticated' 
-            }, { status: 401 });
-        }
-
         // Get church settings for branding
         const churchSettings = await base44.asServiceRole.entities.ChurchSettings.list();
         const churchName = churchSettings.length > 0 ? churchSettings[0].church_name : 'Your Church';
 
-        // Send invitation email with direct signup link
-        const signupUrl = `${Deno.env.get('BASE44_APP_URL') || 'https://your-app-url'}/signup?email=${encodeURIComponent(memberEmail)}&type=member`;
-        
-        await base44.integrations.Core.SendEmail({
-            to: memberEmail,
-            from_name: churchName,
-            subject: `Join ${churchName} on REACH Church Connect`,
-            body: `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                    <h2 style="color: #2563eb;">Welcome to ${churchName}!</h2>
-                    
-                    <p>You've been invited to join ${churchName} on REACH Church Connect - our church management platform.</p>
-                    
-                    <p>Click the button below to create your account and get started:</p>
-                    
-                    <div style="text-align: center; margin: 30px 0;">
-                        <a href="${signupUrl}" 
-                           style="background-color: #2563eb; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">
-                            Join ${churchName}
-                        </a>
-                    </div>
-                    
-                    <p style="color: #64748b; font-size: 14px;">
-                        Your email: <strong>${memberEmail}</strong><br>
-                        You'll create your password during account setup.
-                    </p>
-                    
-                    <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0;">
-                    
-                    <p style="color: #64748b; font-size: 12px;">
-                        If you didn't expect this invitation, you can safely ignore this email.
-                    </p>
-                </div>
-            `
+        // Generate unique invitation token
+        const invitationToken = crypto.randomUUID();
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+
+        // Create invitation record
+        await base44.asServiceRole.entities.MemberInvitation.create({
+            member_id: data.id,
+            email: memberEmail,
+            invitation_token: invitationToken,
+            status: 'pending',
+            expires_at: expiresAt.toISOString()
         });
+
+        // Build signup URL with token
+        const signupUrl = `${Deno.env.get('BASE44_APP_URL')}/MemberSignup?token=${invitationToken}`;
+        
+        // Use the inviteUser function which properly handles external emails
+        await base44.asServiceRole.users.inviteUser(memberEmail, 'user');
 
         console.log(`✅ Member invitation sent to ${memberEmail}`);
 
