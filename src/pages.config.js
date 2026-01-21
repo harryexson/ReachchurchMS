@@ -134,6 +134,7 @@ import WorkflowBuilder from './pages/WorkflowBuilder';
 import backoffice from './pages/backoffice';
 import ServicePlanning from './pages/ServicePlanning';
 import ServicePlanDetail from './pages/ServicePlanDetail';
+import ResourceManagement from './pages/ResourceManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -274,6 +275,7 @@ export const PAGES = {
     "backoffice": backoffice,
     "ServicePlanning": ServicePlanning,
     "ServicePlanDetail": ServicePlanDetail,
+    "ResourceManagement": ResourceManagement,
 }
 
 export const pagesConfig = {
