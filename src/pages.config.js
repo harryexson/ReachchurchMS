@@ -135,6 +135,7 @@ import backoffice from './pages/backoffice';
 import ServicePlanning from './pages/ServicePlanning';
 import ServicePlanDetail from './pages/ServicePlanDetail';
 import ResourceManagement from './pages/ResourceManagement';
+import GroupMessaging from './pages/GroupMessaging';
 import __Layout from './Layout.jsx';
 
 
@@ -276,6 +277,7 @@ export const PAGES = {
     "ServicePlanning": ServicePlanning,
     "ServicePlanDetail": ServicePlanDetail,
     "ResourceManagement": ResourceManagement,
+    "GroupMessaging": GroupMessaging,
 }
 
 export const pagesConfig = {
