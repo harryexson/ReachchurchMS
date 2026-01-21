@@ -42,8 +42,8 @@ Deno.serve(async (req) => {
             console.warn('Could not check existing user:', error.message);
         }
 
-        // Send invitation using Base44's built-in invite system
-        await base44.users.inviteUser(memberEmail, 'user');
+        // Send invitation using Base44's built-in invite system with service role
+        await base44.asServiceRole.users.inviteUser(memberEmail, 'user');
 
         console.log(`✅ Member invitation sent to ${memberEmail}`);
 
