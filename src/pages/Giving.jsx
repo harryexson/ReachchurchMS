@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";
 import DonationForm from "../components/giving/DonationForm";
 import ReportExportModal from "../components/reports/ReportExportModal";
+import GoalTracker from "../components/giving/GoalTracker";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { base44 } from "@/api/base44Client";
 
@@ -214,6 +215,9 @@ export default function GivingPage() {
                         </CardContent>
                     </Card>
                 </div>
+
+                {/* Financial Goal Tracker */}
+                <GoalTracker donations={donations} />
 
                 {/* Giving by Category - Featured Section */}
                 <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
