@@ -61,6 +61,7 @@ import MemberDashboard from './pages/MemberDashboard';
 import MemberGroups from './pages/MemberGroups';
 import MemberRegistrationQR from './pages/MemberRegistrationQR';
 import MemberSermons from './pages/MemberSermons';
+import MemberSignup from './pages/MemberSignup';
 import Members from './pages/Members';
 import Messages from './pages/Messages';
 import MobileDashboard from './pages/MobileDashboard';
@@ -117,13 +118,13 @@ import UserRoleAssignment from './pages/UserRoleAssignment';
 import VideoMeeting from './pages/VideoMeeting';
 import VideoMeetings from './pages/VideoMeetings';
 import ViewMMS from './pages/ViewMMS';
-import Visitors from './pages/Visitors';
 import ViewMMSCampaign from './pages/ViewMMSCampaign';
 import VisitorAnalytics from './pages/VisitorAnalytics';
 import VisitorFollowUp from './pages/VisitorFollowUp';
 import VisitorQRCode from './pages/VisitorQRCode';
 import VisitorQRDisplay from './pages/VisitorQRDisplay';
 import VisitorSMSWorkflows from './pages/VisitorSMSWorkflows';
+import Visitors from './pages/Visitors';
 import VolunteerConfirm from './pages/VolunteerConfirm';
 import VolunteerPortal from './pages/VolunteerPortal';
 import VolunteerRegistration from './pages/VolunteerRegistration';
@@ -131,7 +132,8 @@ import Volunteers from './pages/Volunteers';
 import WhyReach from './pages/WhyReach';
 import WorkflowBuilder from './pages/WorkflowBuilder';
 import backoffice from './pages/backoffice';
-import MemberSignup from './pages/MemberSignup';
+import ServicePlanning from './pages/ServicePlanning';
+import ServicePlanDetail from './pages/ServicePlanDetail';
 import __Layout from './Layout.jsx';
 
 
@@ -199,6 +201,7 @@ export const PAGES = {
     "MemberGroups": MemberGroups,
     "MemberRegistrationQR": MemberRegistrationQR,
     "MemberSermons": MemberSermons,
+    "MemberSignup": MemberSignup,
     "Members": Members,
     "Messages": Messages,
     "MobileDashboard": MobileDashboard,
@@ -255,13 +258,13 @@ export const PAGES = {
     "VideoMeeting": VideoMeeting,
     "VideoMeetings": VideoMeetings,
     "ViewMMS": ViewMMS,
-    "Visitors": Visitors,
     "ViewMMSCampaign": ViewMMSCampaign,
     "VisitorAnalytics": VisitorAnalytics,
     "VisitorFollowUp": VisitorFollowUp,
     "VisitorQRCode": VisitorQRCode,
     "VisitorQRDisplay": VisitorQRDisplay,
     "VisitorSMSWorkflows": VisitorSMSWorkflows,
+    "Visitors": Visitors,
     "VolunteerConfirm": VolunteerConfirm,
     "VolunteerPortal": VolunteerPortal,
     "VolunteerRegistration": VolunteerRegistration,
@@ -269,7 +272,8 @@ export const PAGES = {
     "WhyReach": WhyReach,
     "WorkflowBuilder": WorkflowBuilder,
     "backoffice": backoffice,
-    "MemberSignup": MemberSignup,
+    "ServicePlanning": ServicePlanning,
+    "ServicePlanDetail": ServicePlanDetail,
 }
 
 export const pagesConfig = {
