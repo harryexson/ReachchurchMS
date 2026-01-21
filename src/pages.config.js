@@ -41,6 +41,7 @@ import Giving from './pages/Giving';
 import GivingCategoryManagement from './pages/GivingCategoryManagement';
 import GivingMessages from './pages/GivingMessages';
 import GroupJoinRequests from './pages/GroupJoinRequests';
+import GroupMessaging from './pages/GroupMessaging';
 import HardwareRecommendations from './pages/HardwareRecommendations';
 import HardwareSetupWizard from './pages/HardwareSetupWizard';
 import HelpCenter from './pages/HelpCenter';
@@ -87,6 +88,7 @@ import PublicVolunteerOpportunities from './pages/PublicVolunteerOpportunities';
 import QRCodeDonation from './pages/QRCodeDonation';
 import QuickExpense from './pages/QuickExpense';
 import Reports from './pages/Reports';
+import ResourceManagement from './pages/ResourceManagement';
 import Resources from './pages/Resources';
 import RoleManagement from './pages/RoleManagement';
 import SMSAutoResponder from './pages/SMSAutoResponder';
@@ -100,6 +102,8 @@ import SMSHelpCenter from './pages/SMSHelpCenter';
 import SMSPrivacyPolicy from './pages/SMSPrivacyPolicy';
 import SMSTermsAndConditions from './pages/SMSTermsAndConditions';
 import Sermons from './pages/Sermons';
+import ServicePlanDetail from './pages/ServicePlanDetail';
+import ServicePlanning from './pages/ServicePlanning';
 import Settings from './pages/Settings';
 import SignalhouseSetup from './pages/SignalhouseSetup';
 import SinchSetupGuide from './pages/SinchSetupGuide';
@@ -132,10 +136,8 @@ import Volunteers from './pages/Volunteers';
 import WhyReach from './pages/WhyReach';
 import WorkflowBuilder from './pages/WorkflowBuilder';
 import backoffice from './pages/backoffice';
-import ServicePlanning from './pages/ServicePlanning';
-import ServicePlanDetail from './pages/ServicePlanDetail';
-import ResourceManagement from './pages/ResourceManagement';
-import GroupMessaging from './pages/GroupMessaging';
+import SongLibrary from './pages/SongLibrary';
+import ServiceTemplates from './pages/ServiceTemplates';
 import __Layout from './Layout.jsx';
 
 
@@ -183,6 +185,7 @@ export const PAGES = {
     "GivingCategoryManagement": GivingCategoryManagement,
     "GivingMessages": GivingMessages,
     "GroupJoinRequests": GroupJoinRequests,
+    "GroupMessaging": GroupMessaging,
     "HardwareRecommendations": HardwareRecommendations,
     "HardwareSetupWizard": HardwareSetupWizard,
     "HelpCenter": HelpCenter,
@@ -229,6 +232,7 @@ export const PAGES = {
     "QRCodeDonation": QRCodeDonation,
     "QuickExpense": QuickExpense,
     "Reports": Reports,
+    "ResourceManagement": ResourceManagement,
     "Resources": Resources,
     "RoleManagement": RoleManagement,
     "SMSAutoResponder": SMSAutoResponder,
@@ -242,6 +246,8 @@ export const PAGES = {
     "SMSPrivacyPolicy": SMSPrivacyPolicy,
     "SMSTermsAndConditions": SMSTermsAndConditions,
     "Sermons": Sermons,
+    "ServicePlanDetail": ServicePlanDetail,
+    "ServicePlanning": ServicePlanning,
     "Settings": Settings,
     "SignalhouseSetup": SignalhouseSetup,
     "SinchSetupGuide": SinchSetupGuide,
@@ -274,10 +280,8 @@ export const PAGES = {
     "WhyReach": WhyReach,
     "WorkflowBuilder": WorkflowBuilder,
     "backoffice": backoffice,
-    "ServicePlanning": ServicePlanning,
-    "ServicePlanDetail": ServicePlanDetail,
-    "ResourceManagement": ResourceManagement,
-    "GroupMessaging": GroupMessaging,
+    "SongLibrary": SongLibrary,
+    "ServiceTemplates": ServiceTemplates,
 }
 
 export const pagesConfig = {

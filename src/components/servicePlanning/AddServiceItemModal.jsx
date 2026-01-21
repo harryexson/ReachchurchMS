@@ -1,13 +1,18 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { X } from "lucide-react";
+import { X, Music } from "lucide-react";
 import { toast } from "sonner";
 
 export default function AddServiceItemModal({ servicePlanId, editingItem, nextOrderIndex, onClose, onSuccess }) {
+  const { data: songs = [] } = useQuery({
+    queryKey: ['songLibrary'],
+    queryFn: () => base44.entities.SongLibrary.list(),
+  });
   const [formData, setFormData] = useState(editingItem || {
     service_plan_id: servicePlanId,
     item_type: "song",
@@ -19,6 +24,20 @@ export default function AddServiceItemModal({ servicePlanId, editingItem, nextOr
     assigned_to: ""
   });
   const [loading, setLoading] = useState(false);
+
+  const handleSongSelect = (songId) => {
+    const song = songs.find(s => s.id === songId);
+    if (song) {
+      setFormData({
+        ...formData,
+        title: song.title,
+        song_key: song.default_key,
+        song_tempo: song.tempo,
+        duration_minutes: song.default_duration_minutes,
+        resources_url: song.lyrics_url || song.sheet_music_url || ""
+      });
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -92,6 +111,21 @@ export default function AddServiceItemModal({ servicePlanId, editingItem, nextOr
             </div>
           </div>
 
+          {formData.item_type === 'song' && (
+            <div>
+              <Label>Quick Select from Song Library</Label>
+              <select
+                onChange={(e) => handleSongSelect(e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg"
+              >
+                <option value="">Select a song...</option>
+                {songs.map(song => (
+                  <option key={song.id} value={song.id}>{song.title}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <div>
             <Label>Title *</Label>
             <Input
@@ -139,13 +173,17 @@ export default function AddServiceItemModal({ servicePlanId, editingItem, nextOr
           </div>
 
           <div>
-            <Label>Notes / Instructions</Label>
+            <Label>Notes / Instructions (Visible to assigned team members)</Label>
             <Textarea
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              placeholder="Special instructions, cues, or notes"
-              rows={3}
+              placeholder="Special instructions, cues, arrangements, or notes for team members"
+              rows={4}
+              className="bg-amber-50 border-amber-200"
             />
+            <p className="text-xs text-slate-500 mt-1">
+              These notes will be visible to all team members assigned to this service
+            </p>
           </div>
 
           <div className="flex justify-end gap-3 pt-4">

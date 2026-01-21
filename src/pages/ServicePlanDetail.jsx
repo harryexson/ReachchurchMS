@@ -44,19 +44,22 @@ export default function ServicePlanDetail() {
         published_date: new Date().toISOString(),
         status: 'ready'
       });
-      
-      // Send notifications to all team members
-      const allEmails = [
-        ...teamPositions.filter(p => p.assigned_email).map(p => p.assigned_email),
-        servicePlan.preacher_email,
-        servicePlan.worship_leader_email
-      ].filter(Boolean);
-
-      // TODO: Implement notification sending
-      toast.success(`Service plan published! Notifications sent to ${allEmails.length} team members.`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['servicePlan', servicePlanId]);
+      toast.success("Service plan published! Team will be notified automatically.");
+    }
+  });
+
+  const sendPlanMutation = useMutation({
+    mutationFn: async () => {
+      const response = await base44.functions.invoke('sendServicePlan', {
+        service_plan_id: servicePlanId
+      });
+      return response;
+    },
+    onSuccess: (data) => {
+      toast.success(`Service plan sent to ${data.recipients_count} team members!`);
     }
   });
 
@@ -109,6 +112,14 @@ export default function ServicePlanDetail() {
           </div>
 
           <div className="flex gap-3">
+            <Button
+              onClick={() => sendPlanMutation.mutate()}
+              disabled={sendPlanMutation.isLoading}
+              variant="outline"
+            >
+              <Send className="w-5 h-5 mr-2" />
+              {sendPlanMutation.isLoading ? "Sending..." : "Send Service Plan"}
+            </Button>
             {!servicePlan.published && (
               <Button
                 onClick={() => publishMutation.mutate()}
