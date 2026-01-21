@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { User as UserIcon, Mail, Phone, MapPin, Calendar, Users, Upload, Plus, X, Loader2, Heart, Briefcase, Church } from "lucide-react";
+import { User as UserIcon, Mail, Phone, MapPin, Calendar, Users, Upload, Plus, X, Loader2, Heart, Briefcase, Church, Bell, Cake } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from 'sonner';
+import { createPageUrl } from "@/utils";
+import { Link } from "react-router-dom";
 
 export default function MyProfilePage() {
     const [currentUser, setCurrentUser] = useState(null);
@@ -23,6 +25,7 @@ export default function MyProfilePage() {
     const [newEmergencyContact, setNewEmergencyContact] = useState({ name: '', relationship: '', phone: '', email: '' });
     const [newInterest, setNewInterest] = useState('');
     const [newSkill, setNewSkill] = useState('');
+    const [customFields, setCustomFields] = useState([]);
 
     useEffect(() => {
         loadProfile();
@@ -46,6 +49,12 @@ export default function MyProfilePage() {
                 setOnboardingProgress(progress[0]);
             }
 
+            // Load custom field definitions
+            const customFieldDefs = await base44.entities.CustomFieldDefinition.filter({
+                entity_type: 'member'
+            });
+            setCustomFields(customFieldDefs);
+
             // Try to find linked member record
             const members = await base44.entities.Member.filter({ email: user.email });
             if (members.length > 0) {
@@ -57,11 +66,13 @@ export default function MyProfilePage() {
                     state: members[0].state || "",
                     zip_code: members[0].zip_code || "",
                     bio: members[0].bio || "",
+                    birth_date: members[0].birth_date || "",
                     profile_picture_url: members[0].profile_picture_url || "",
                     family_members: members[0].family_members || [],
                     emergency_contacts: members[0].emergency_contacts || [],
                     interests: members[0].interests || [],
-                    skills: members[0].skills || []
+                    skills: members[0].skills || [],
+                    custom_fields: members[0].custom_fields || {}
                 });
             }
         } catch (error) {
@@ -492,30 +503,121 @@ export default function MyProfilePage() {
                     </CardContent>
                 </Card>
 
-                {/* Basic Info */}
+                {/* Personal Dates */}
                 <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
-                            <UserIcon className="w-5 h-5 text-blue-600" />
-                            Personal Information
+                            <Cake className="w-5 h-5 text-pink-600" />
+                            Important Dates
                         </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-6">
+                    <CardContent className="space-y-4">
+                        <div>
+                            <Label>Birthday</Label>
+                            <Input 
+                                type="date"
+                                value={isEditing ? formData.birth_date : memberProfile?.birth_date || ""}
+                                onChange={(e) => setFormData({...formData, birth_date: e.target.value})}
+                                disabled={!isEditing}
+                            />
+                            <p className="text-xs text-slate-500 mt-1">
+                                We'll send you a birthday greeting!
+                            </p>
+                        </div>
+                    </CardContent>
+                </Card>
 
+                {/* Custom Fields */}
+                {customFields.length > 0 && (
+                    <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <UserIcon className="w-5 h-5 text-orange-600" />
+                                Additional Information
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {customFields.map(field => (
+                                    <div key={field.id}>
+                                        <Label>
+                                            {field.field_label}
+                                            {field.is_required && <span className="text-red-500 ml-1">*</span>}
+                                        </Label>
+                                        
+                                        {field.field_type === "text" && (
+                                            <Input
+                                                value={isEditing ? (formData.custom_fields?.[field.field_name] || "") : (memberProfile?.custom_fields?.[field.field_name] || "Not set")}
+                                                onChange={(e) => setFormData({
+                                                    ...formData, 
+                                                    custom_fields: {...formData.custom_fields, [field.field_name]: e.target.value}
+                                                })}
+                                                disabled={!isEditing}
+                                            />
+                                        )}
+                                        
+                                        {field.field_type === "date" && (
+                                            <Input
+                                                type="date"
+                                                value={isEditing ? (formData.custom_fields?.[field.field_name] || "") : (memberProfile?.custom_fields?.[field.field_name] || "")}
+                                                onChange={(e) => setFormData({
+                                                    ...formData, 
+                                                    custom_fields: {...formData.custom_fields, [field.field_name]: e.target.value}
+                                                })}
+                                                disabled={!isEditing}
+                                            />
+                                        )}
 
+                                        {field.field_type === "textarea" && (
+                                            <Textarea
+                                                value={isEditing ? (formData.custom_fields?.[field.field_name] || "") : (memberProfile?.custom_fields?.[field.field_name] || "Not set")}
+                                                onChange={(e) => setFormData({
+                                                    ...formData, 
+                                                    custom_fields: {...formData.custom_fields, [field.field_name]: e.target.value}
+                                                })}
+                                                disabled={!isEditing}
+                                                rows={3}
+                                            />
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
 
-                        <div className="flex justify-end gap-3 pt-4">
+                {/* Communication Preferences */}
+                <Card className="shadow-lg border-0 bg-gradient-to-br from-purple-50 to-pink-50">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Bell className="w-5 h-5 text-purple-600" />
+                            Communication Preferences
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-slate-700 mb-4">
+                            Manage how and when you receive notifications from the church
+                        </p>
+                        <Link to={createPageUrl('NotificationSettings')}>
+                            <Button className="bg-purple-600 hover:bg-purple-700">
+                                <Bell className="w-4 h-4 mr-2" />
+                                Manage Notification Settings
+                            </Button>
+                        </Link>
+                    </CardContent>
+                </Card>
+
+                {/* Save/Edit Buttons */}
+                <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                    <CardContent className="pt-6">
+                        <div className="flex justify-end gap-3">
                             {isEditing ? (
                                 <>
                                     <Button 
                                         variant="outline" 
                                         onClick={() => {
                                             setIsEditing(false);
-                                            setFormData({
-                                                phone: memberProfile?.phone || "",
-                                                address: memberProfile?.address || "",
-                                                notes: memberProfile?.notes || ""
-                                            });
+                                            loadProfile();
                                         }}
                                     >
                                         Cancel
