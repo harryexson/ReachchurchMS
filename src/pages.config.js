@@ -1,5 +1,6 @@
 import AccountManagement from './pages/AccountManagement';
 import AdminMessaging from './pages/AdminMessaging';
+import AdminOnboarding from './pages/AdminOnboarding';
 import AnalyticsDashboard from './pages/AnalyticsDashboard';
 import AutoDeviceSetup from './pages/AutoDeviceSetup';
 import BackOffice from './pages/BackOffice';
@@ -116,8 +117,8 @@ import UserRoleAssignment from './pages/UserRoleAssignment';
 import VideoMeeting from './pages/VideoMeeting';
 import VideoMeetings from './pages/VideoMeetings';
 import ViewMMS from './pages/ViewMMS';
-import ViewMMSCampaign from './pages/ViewMMSCampaign';
 import Visitors from './pages/Visitors';
+import ViewMMSCampaign from './pages/ViewMMSCampaign';
 import VisitorAnalytics from './pages/VisitorAnalytics';
 import VisitorFollowUp from './pages/VisitorFollowUp';
 import VisitorQRCode from './pages/VisitorQRCode';
@@ -130,13 +131,14 @@ import Volunteers from './pages/Volunteers';
 import WhyReach from './pages/WhyReach';
 import WorkflowBuilder from './pages/WorkflowBuilder';
 import backoffice from './pages/backoffice';
-import AdminOnboarding from './pages/AdminOnboarding';
+import MemberSignup from './pages/MemberSignup';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "AccountManagement": AccountManagement,
     "AdminMessaging": AdminMessaging,
+    "AdminOnboarding": AdminOnboarding,
     "AnalyticsDashboard": AnalyticsDashboard,
     "AutoDeviceSetup": AutoDeviceSetup,
     "BackOffice": BackOffice,
@@ -253,8 +255,8 @@ export const PAGES = {
     "VideoMeeting": VideoMeeting,
     "VideoMeetings": VideoMeetings,
     "ViewMMS": ViewMMS,
-    "ViewMMSCampaign": ViewMMSCampaign,
     "Visitors": Visitors,
+    "ViewMMSCampaign": ViewMMSCampaign,
     "VisitorAnalytics": VisitorAnalytics,
     "VisitorFollowUp": VisitorFollowUp,
     "VisitorQRCode": VisitorQRCode,
@@ -267,7 +269,7 @@ export const PAGES = {
     "WhyReach": WhyReach,
     "WorkflowBuilder": WorkflowBuilder,
     "backoffice": backoffice,
-    "AdminOnboarding": AdminOnboarding,
+    "MemberSignup": MemberSignup,
 }
 
 export const pagesConfig = {

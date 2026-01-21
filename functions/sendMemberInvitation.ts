@@ -50,10 +50,44 @@ Deno.serve(async (req) => {
             }, { status: 401 });
         }
 
-        // Send invitation using Base44's invite function
-        await base44.asServiceRole.functions.invoke('inviteUser', {
-            email: memberEmail,
-            role: 'user'
+        // Get church settings for branding
+        const churchSettings = await base44.asServiceRole.entities.ChurchSettings.list();
+        const churchName = churchSettings.length > 0 ? churchSettings[0].church_name : 'Your Church';
+
+        // Send invitation email with direct signup link
+        const signupUrl = `${Deno.env.get('BASE44_APP_URL') || 'https://your-app-url'}/signup?email=${encodeURIComponent(memberEmail)}&type=member`;
+        
+        await base44.integrations.Core.SendEmail({
+            to: memberEmail,
+            from_name: churchName,
+            subject: `Join ${churchName} on REACH Church Connect`,
+            body: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                    <h2 style="color: #2563eb;">Welcome to ${churchName}!</h2>
+                    
+                    <p>You've been invited to join ${churchName} on REACH Church Connect - our church management platform.</p>
+                    
+                    <p>Click the button below to create your account and get started:</p>
+                    
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="${signupUrl}" 
+                           style="background-color: #2563eb; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">
+                            Join ${churchName}
+                        </a>
+                    </div>
+                    
+                    <p style="color: #64748b; font-size: 14px;">
+                        Your email: <strong>${memberEmail}</strong><br>
+                        You'll create your password during account setup.
+                    </p>
+                    
+                    <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0;">
+                    
+                    <p style="color: #64748b; font-size: 12px;">
+                        If you didn't expect this invitation, you can safely ignore this email.
+                    </p>
+                </div>
+            `
         });
 
         console.log(`✅ Member invitation sent to ${memberEmail}`);
@@ -61,7 +95,8 @@ Deno.serve(async (req) => {
         return Response.json({
             success: true,
             message: `Invitation sent to ${memberName} (${memberEmail})`,
-            member_id: data.id
+            member_id: data.id,
+            signup_url: signupUrl
         });
 
     } catch (error) {
