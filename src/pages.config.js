@@ -104,11 +104,13 @@ import SMSTermsAndConditions from './pages/SMSTermsAndConditions';
 import Sermons from './pages/Sermons';
 import ServicePlanDetail from './pages/ServicePlanDetail';
 import ServicePlanning from './pages/ServicePlanning';
+import ServiceTemplates from './pages/ServiceTemplates';
 import Settings from './pages/Settings';
 import SignalhouseSetup from './pages/SignalhouseSetup';
 import SinchSetupGuide from './pages/SinchSetupGuide';
 import SinchWebhookDiagnostics from './pages/SinchWebhookDiagnostics';
 import SinchWebhookTest from './pages/SinchWebhookTest';
+import SongLibrary from './pages/SongLibrary';
 import StreamScheduler from './pages/StreamScheduler';
 import SubscriptionPlans from './pages/SubscriptionPlans';
 import Support from './pages/Support';
@@ -136,8 +138,6 @@ import Volunteers from './pages/Volunteers';
 import WhyReach from './pages/WhyReach';
 import WorkflowBuilder from './pages/WorkflowBuilder';
 import backoffice from './pages/backoffice';
-import SongLibrary from './pages/SongLibrary';
-import ServiceTemplates from './pages/ServiceTemplates';
 import __Layout from './Layout.jsx';
 
 
@@ -248,11 +248,13 @@ export const PAGES = {
     "Sermons": Sermons,
     "ServicePlanDetail": ServicePlanDetail,
     "ServicePlanning": ServicePlanning,
+    "ServiceTemplates": ServiceTemplates,
     "Settings": Settings,
     "SignalhouseSetup": SignalhouseSetup,
     "SinchSetupGuide": SinchSetupGuide,
     "SinchWebhookDiagnostics": SinchWebhookDiagnostics,
     "SinchWebhookTest": SinchWebhookTest,
+    "SongLibrary": SongLibrary,
     "StreamScheduler": StreamScheduler,
     "SubscriptionPlans": SubscriptionPlans,
     "Support": Support,
@@ -280,8 +282,6 @@ export const PAGES = {
     "WhyReach": WhyReach,
     "WorkflowBuilder": WorkflowBuilder,
     "backoffice": backoffice,
-    "SongLibrary": SongLibrary,
-    "ServiceTemplates": ServiceTemplates,
 }
 
 export const pagesConfig = {

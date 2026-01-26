@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 // Feature definitions for each plan
 const PLAN_FEATURES = {
     starter: {
-        member_limit: 100,
+        member_limit: 150,
         sms_enabled: false,
         sms_monthly_limit: 0,
         mms_enabled: false,
@@ -31,7 +31,7 @@ const PLAN_FEATURES = {
         dedicated_account_manager: false
     },
     growth: {
-        member_limit: 500,
+        member_limit: 750,
         sms_enabled: true,
         sms_monthly_limit: 1000,
         mms_enabled: true,

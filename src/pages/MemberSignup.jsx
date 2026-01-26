@@ -66,6 +66,27 @@ export default function MemberSignup() {
         setIsLoading(true);
 
         try {
+            // Get invitation details
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token');
+            let memberRecord = null;
+            let churchAdminEmail = null;
+
+            if (token) {
+                const invitations = await base44.entities.MemberInvitation.filter({ invitation_token: token });
+                if (invitations.length > 0) {
+                    const invitation = invitations[0];
+                    memberRecord = await base44.entities.Member.filter({ id: invitation.member_id }).then(m => m[0]);
+                    churchAdminEmail = memberRecord?.created_by;
+
+                    // Update invitation status
+                    await base44.entities.MemberInvitation.update(invitation.id, {
+                        status: 'accepted',
+                        accepted_at: new Date().toISOString()
+                    });
+                }
+            }
+
             // Create user account using Base44's signup
             const signupResponse = await fetch('/api/auth/signup', {
                 method: 'POST',
@@ -81,6 +102,27 @@ export default function MemberSignup() {
             if (!signupResponse.ok) {
                 const errorData = await signupResponse.json();
                 throw new Error(errorData.error || 'Failed to create account');
+            }
+
+            // If member record exists, link it to the new user account
+            if (memberRecord) {
+                await base44.entities.Member.update(memberRecord.id, {
+                    member_status: 'member',
+                    join_date: new Date().toISOString().split('T')[0]
+                });
+            } else {
+                // Create a member record if it doesn't exist (fallback case)
+                const firstName = fullName.split(' ')[0] || fullName;
+                const lastName = fullName.split(' ').slice(1).join(' ') || '';
+                
+                await base44.entities.Member.create({
+                    first_name: firstName,
+                    last_name: lastName,
+                    email: email,
+                    member_status: 'member',
+                    join_date: new Date().toISOString().split('T')[0],
+                    created_by: churchAdminEmail || email
+                });
             }
 
             // Account created successfully
