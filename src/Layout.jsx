@@ -442,6 +442,31 @@ export default function Layout({ children, currentPageName }) {
       icon: DollarSign,
     },
     {
+      title: "Service Planning",
+      url: createPageUrl("ServicePlanning"),
+      icon: Calendar,
+    },
+    {
+      title: "Service Calendar",
+      url: createPageUrl("ServiceCalendar"),
+      icon: Calendar,
+    },
+    {
+      title: "Song Library",
+      url: createPageUrl("SongLibrary"),
+      icon: BookOpen,
+    },
+    {
+      title: "Service Templates",
+      url: createPageUrl("ServiceTemplates"),
+      icon: Calendar,
+    },
+    {
+      title: "Volunteer Scheduling",
+      url: createPageUrl("VolunteerScheduling"),
+      icon: UserCheck,
+    },
+    {
       title: "Volunteers",
       url: createPageUrl("Volunteers"),
       icon: UserPlus,
