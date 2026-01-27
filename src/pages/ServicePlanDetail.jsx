@@ -4,7 +4,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Plus, Save, Send, Users, Music, Clock, Edit } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ArrowLeft, Plus, Save, Send, Users, Music, Clock, Edit, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
@@ -17,7 +18,13 @@ export default function ServicePlanDetail() {
   const urlParams = new URLSearchParams(window.location.search);
   const servicePlanId = urlParams.get('id');
   const [activeTab, setActiveTab] = useState("flow");
+  const [selectedTemplateId, setSelectedTemplateId] = useState(null);
   const queryClient = useQueryClient();
+
+  const { data: templates = [] } = useQuery({
+    queryKey: ['notificationTemplates'],
+    queryFn: () => base44.entities.ServicePlanNotificationTemplate.list()
+  });
 
   const { data: servicePlan, isLoading } = useQuery({
     queryKey: ['servicePlan', servicePlanId],
@@ -54,7 +61,8 @@ export default function ServicePlanDetail() {
   const sendPlanMutation = useMutation({
     mutationFn: async () => {
       const response = await base44.functions.invoke('sendServicePlan', {
-        service_plan_id: servicePlanId
+        service_plan_id: servicePlanId,
+        template_id: selectedTemplateId
       });
       return response;
     },
@@ -111,14 +119,33 @@ export default function ServicePlanDetail() {
             </div>
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex gap-3 items-center">
+            <Link to={createPageUrl("ServiceNotificationTemplates")}>
+              <Button variant="outline" size="sm">
+                <Settings className="w-4 h-4 mr-2" />
+                Templates
+              </Button>
+            </Link>
+            {templates.length > 0 && (
+              <Select value={selectedTemplateId} onValueChange={setSelectedTemplateId}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Select template" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={null}>Default</SelectItem>
+                  {templates.map(t => (
+                    <SelectItem key={t.id} value={t.id}>{t.template_name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
             <Button
               onClick={() => sendPlanMutation.mutate()}
               disabled={sendPlanMutation.isLoading}
               variant="outline"
             >
               <Send className="w-5 h-5 mr-2" />
-              {sendPlanMutation.isLoading ? "Sending..." : "Send Service Plan"}
+              {sendPlanMutation.isLoading ? "Sending..." : "Send Now"}
             </Button>
             {!servicePlan.published && (
               <Button

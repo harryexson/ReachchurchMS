@@ -462,6 +462,11 @@ export default function Layout({ children, currentPageName }) {
       icon: Calendar,
     },
     {
+      title: "Notification Templates",
+      url: createPageUrl("ServiceNotificationTemplates"),
+      icon: Mail,
+    },
+    {
       title: "Volunteer Scheduling",
       url: createPageUrl("VolunteerScheduling"),
       icon: UserCheck,

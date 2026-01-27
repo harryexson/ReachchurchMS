@@ -5,7 +5,7 @@ Deno.serve(async (req) => {
         const base44 = createClientFromRequest(req);
         const payload = await req.json();
 
-        const { service_plan_id } = payload;
+        const { service_plan_id, template_id } = payload;
 
         // Get service plan
         const servicePlan = await base44.asServiceRole.entities.ServicePlan.filter({ 
@@ -28,11 +28,29 @@ Deno.serve(async (req) => {
             service_plan_id: service_plan_id
         });
 
-        // Collect recipients
+        // Get notification template
+        let template = null;
+        if (template_id) {
+            template = await base44.asServiceRole.entities.ServicePlanNotificationTemplate.filter({ 
+                id: template_id 
+            }).then(r => r[0]);
+        } else {
+            // Get default template
+            template = await base44.asServiceRole.entities.ServicePlanNotificationTemplate.filter({ 
+                is_default: true 
+            }).then(r => r[0]);
+        }
+
+        // Collect recipients with their roles
         const recipients = [
-            { email: servicePlan.worship_leader_email, name: servicePlan.worship_leader },
-            { email: servicePlan.preacher_email, name: servicePlan.preacher },
-            ...teamPositions.map(p => ({ email: p.assigned_email, name: p.assigned_member }))
+            { email: servicePlan.worship_leader_email, name: servicePlan.worship_leader, role: 'Worship Leader', phone: null },
+            { email: servicePlan.preacher_email, name: servicePlan.preacher, role: 'Preacher', phone: null },
+            ...teamPositions.map(p => ({ 
+                email: p.assigned_email, 
+                name: p.assigned_member,
+                role: p.position_name?.replace('_', ' '),
+                phone: p.assigned_phone
+            }))
         ].filter(r => r.email);
 
         // Build service flow HTML
@@ -56,43 +74,79 @@ Deno.serve(async (req) => {
         }
         teamHtml += '</ul>';
 
-        // Send to each recipient
+        // Helper to replace template variables
+        const replaceVariables = (text, recipient) => {
+            return text
+                .replace(/{service_title}/g, servicePlan.title)
+                .replace(/{service_date}/g, new Date(servicePlan.service_date).toLocaleString())
+                .replace(/{team_role}/g, recipient.role || 'Team Member')
+                .replace(/{team_member}/g, recipient.name)
+                .replace(/{service_theme}/g, servicePlan.theme || '')
+                .replace(/{rehearsal_date}/g, servicePlan.rehearsal_date ? new Date(servicePlan.rehearsal_date).toLocaleString() : 'TBD');
+        };
+
+        // Send notifications to each recipient
         for (const recipient of recipients) {
-            await base44.integrations.Core.SendEmail({
-                to: recipient.email,
-                subject: `Service Plan: ${servicePlan.title}`,
-                body: `
-                    <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;">
-                        <h1 style="color: #2563eb;">${servicePlan.title}</h1>
-                        
-                        <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                            <p><strong>Date:</strong> ${new Date(servicePlan.service_date).toLocaleString()}</p>
-                            ${servicePlan.theme ? `<p><strong>Theme:</strong> ${servicePlan.theme}</p>` : ''}
-                            ${servicePlan.rehearsal_date ? `<p><strong>Rehearsal:</strong> ${new Date(servicePlan.rehearsal_date).toLocaleString()}</p>` : ''}
-                            <p><strong>Total Duration:</strong> ${servicePlan.total_duration_minutes} minutes</p>
-                        </div>
+            // Send Email (default or template)
+            if (!template || template.send_email) {
+                const emailSubject = template 
+                    ? replaceVariables(template.email_subject, recipient)
+                    : `Service Plan: ${servicePlan.title}`;
 
-                        <h2 style="color: #1e40af; margin-top: 30px;">Service Flow</h2>
-                        ${itemsHtml}
-
-                        <h2 style="color: #1e40af; margin-top: 30px;">Team Assignments</h2>
-                        ${teamHtml}
-
-                        ${servicePlan.notes ? `
-                            <div style="background: #fef3c7; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #f59e0b;">
-                                <h3 style="margin-top: 0;">Service Notes</h3>
-                                <p>${servicePlan.notes}</p>
+                const emailBody = template?.email_body 
+                    ? replaceVariables(template.email_body, recipient)
+                    : `
+                        <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;">
+                            <h1 style="color: #2563eb;">${servicePlan.title}</h1>
+                            
+                            <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                                <p><strong>Date:</strong> ${new Date(servicePlan.service_date).toLocaleString()}</p>
+                                <p><strong>Your Role:</strong> ${recipient.role}</p>
+                                ${servicePlan.theme ? `<p><strong>Theme:</strong> ${servicePlan.theme}</p>` : ''}
+                                ${servicePlan.rehearsal_date ? `<p><strong>Rehearsal:</strong> ${new Date(servicePlan.rehearsal_date).toLocaleString()}</p>` : ''}
+                                <p><strong>Total Duration:</strong> ${servicePlan.total_duration_minutes} minutes</p>
                             </div>
-                        ` : ''}
 
-                        <hr style="margin: 30px 0; border: none; border-top: 1px solid #e2e8f0;">
-                        
-                        <p style="color: #64748b; font-size: 14px;">
-                            Please review your assignment and prepare accordingly. If you have any questions, contact the worship leader or service coordinator.
-                        </p>
-                    </div>
-                `
-            });
+                            <h2 style="color: #1e40af; margin-top: 30px;">Service Flow</h2>
+                            ${itemsHtml}
+
+                            <h2 style="color: #1e40af; margin-top: 30px;">Team Assignments</h2>
+                            ${teamHtml}
+
+                            ${servicePlan.notes ? `
+                                <div style="background: #fef3c7; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #f59e0b;">
+                                    <h3 style="margin-top: 0;">Service Notes</h3>
+                                    <p>${servicePlan.notes}</p>
+                                </div>
+                            ` : ''}
+
+                            <hr style="margin: 30px 0; border: none; border-top: 1px solid #e2e8f0;">
+                            
+                            <p style="color: #64748b; font-size: 14px;">
+                                Please review your assignment and prepare accordingly. If you have any questions, contact the worship leader or service coordinator.
+                            </p>
+                        </div>
+                    `;
+
+                await base44.integrations.Core.SendEmail({
+                    to: recipient.email,
+                    subject: emailSubject,
+                    body: emailBody
+                });
+            }
+
+            // Send SMS if enabled and phone available
+            if (template?.send_sms && recipient.phone) {
+                try {
+                    const smsMessage = replaceVariables(template.sms_message, recipient);
+                    await base44.functions.invoke('sendSinchSMS', {
+                        to: recipient.phone,
+                        message: smsMessage
+                    });
+                } catch (smsError) {
+                    console.error(`Failed to send SMS to ${recipient.phone}:`, smsError);
+                }
+            }
         }
 
         return Response.json({

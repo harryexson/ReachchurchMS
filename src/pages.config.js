@@ -102,6 +102,7 @@ import SMSHelpCenter from './pages/SMSHelpCenter';
 import SMSPrivacyPolicy from './pages/SMSPrivacyPolicy';
 import SMSTermsAndConditions from './pages/SMSTermsAndConditions';
 import Sermons from './pages/Sermons';
+import ServiceCalendar from './pages/ServiceCalendar';
 import ServicePlanDetail from './pages/ServicePlanDetail';
 import ServicePlanning from './pages/ServicePlanning';
 import ServiceTemplates from './pages/ServiceTemplates';
@@ -134,12 +135,12 @@ import Visitors from './pages/Visitors';
 import VolunteerConfirm from './pages/VolunteerConfirm';
 import VolunteerPortal from './pages/VolunteerPortal';
 import VolunteerRegistration from './pages/VolunteerRegistration';
+import VolunteerScheduling from './pages/VolunteerScheduling';
 import Volunteers from './pages/Volunteers';
 import WhyReach from './pages/WhyReach';
 import WorkflowBuilder from './pages/WorkflowBuilder';
 import backoffice from './pages/backoffice';
-import VolunteerScheduling from './pages/VolunteerScheduling';
-import ServiceCalendar from './pages/ServiceCalendar';
+import ServiceNotificationTemplates from './pages/ServiceNotificationTemplates';
 import __Layout from './Layout.jsx';
 
 
@@ -248,6 +249,7 @@ export const PAGES = {
     "SMSPrivacyPolicy": SMSPrivacyPolicy,
     "SMSTermsAndConditions": SMSTermsAndConditions,
     "Sermons": Sermons,
+    "ServiceCalendar": ServiceCalendar,
     "ServicePlanDetail": ServicePlanDetail,
     "ServicePlanning": ServicePlanning,
     "ServiceTemplates": ServiceTemplates,
@@ -280,12 +282,12 @@ export const PAGES = {
     "VolunteerConfirm": VolunteerConfirm,
     "VolunteerPortal": VolunteerPortal,
     "VolunteerRegistration": VolunteerRegistration,
+    "VolunteerScheduling": VolunteerScheduling,
     "Volunteers": Volunteers,
     "WhyReach": WhyReach,
     "WorkflowBuilder": WorkflowBuilder,
     "backoffice": backoffice,
-    "VolunteerScheduling": VolunteerScheduling,
-    "ServiceCalendar": ServiceCalendar,
+    "ServiceNotificationTemplates": ServiceNotificationTemplates,
 }
 
 export const pagesConfig = {
