@@ -752,8 +752,22 @@ export default function Layout({ children, currentPageName }) {
   let pages = [];
   if (currentUser) {
     if (currentUser.role === "admin") {
-      pages = [...adminPages];
-      if (currentUser.email === "david@base44.app" || currentUser.developer_access) {
+      // Filter out developer-only service planning pages for non-developers
+      const isDeveloper = currentUser.email === "david@base44.app" || currentUser.developer_access;
+      const developerOnlyPages = [
+        "ServicePlanning",
+        "ServiceCalendar", 
+        "SongLibrary",
+        "ServiceTemplates",
+        "ServiceNotificationTemplates",
+        "VolunteerScheduling"
+      ];
+      
+      pages = isDeveloper 
+        ? [...adminPages]
+        : adminPages.filter(p => !developerOnlyPages.some(dev => p.url.includes(dev)));
+      
+      if (isDeveloper) {
         pages = [...pages, ...superAdminPages];
       }
     } else {

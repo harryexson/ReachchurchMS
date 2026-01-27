@@ -103,6 +103,7 @@ import SMSPrivacyPolicy from './pages/SMSPrivacyPolicy';
 import SMSTermsAndConditions from './pages/SMSTermsAndConditions';
 import Sermons from './pages/Sermons';
 import ServiceCalendar from './pages/ServiceCalendar';
+import ServiceNotificationTemplates from './pages/ServiceNotificationTemplates';
 import ServicePlanDetail from './pages/ServicePlanDetail';
 import ServicePlanning from './pages/ServicePlanning';
 import ServiceTemplates from './pages/ServiceTemplates';
@@ -115,8 +116,8 @@ import SongLibrary from './pages/SongLibrary';
 import StreamScheduler from './pages/StreamScheduler';
 import SubscriptionPlans from './pages/SubscriptionPlans';
 import Support from './pages/Support';
-import SystemDiagnostics from './pages/SystemDiagnostics';
 import TermsOfService from './pages/TermsOfService';
+import SystemDiagnostics from './pages/SystemDiagnostics';
 import TestingTasks from './pages/TestingTasks';
 import TextMessaging from './pages/TextMessaging';
 import ThemeSettings from './pages/ThemeSettings';
@@ -140,7 +141,6 @@ import Volunteers from './pages/Volunteers';
 import WhyReach from './pages/WhyReach';
 import WorkflowBuilder from './pages/WorkflowBuilder';
 import backoffice from './pages/backoffice';
-import ServiceNotificationTemplates from './pages/ServiceNotificationTemplates';
 import __Layout from './Layout.jsx';
 
 
@@ -250,6 +250,7 @@ export const PAGES = {
     "SMSTermsAndConditions": SMSTermsAndConditions,
     "Sermons": Sermons,
     "ServiceCalendar": ServiceCalendar,
+    "ServiceNotificationTemplates": ServiceNotificationTemplates,
     "ServicePlanDetail": ServicePlanDetail,
     "ServicePlanning": ServicePlanning,
     "ServiceTemplates": ServiceTemplates,
@@ -262,8 +263,8 @@ export const PAGES = {
     "StreamScheduler": StreamScheduler,
     "SubscriptionPlans": SubscriptionPlans,
     "Support": Support,
-    "SystemDiagnostics": SystemDiagnostics,
     "TermsOfService": TermsOfService,
+    "SystemDiagnostics": SystemDiagnostics,
     "TestingTasks": TestingTasks,
     "TextMessaging": TextMessaging,
     "ThemeSettings": ThemeSettings,
@@ -287,7 +288,6 @@ export const PAGES = {
     "WhyReach": WhyReach,
     "WorkflowBuilder": WorkflowBuilder,
     "backoffice": backoffice,
-    "ServiceNotificationTemplates": ServiceNotificationTemplates,
 }
 
 export const pagesConfig = {
