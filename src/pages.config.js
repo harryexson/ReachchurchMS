@@ -138,6 +138,8 @@ import Volunteers from './pages/Volunteers';
 import WhyReach from './pages/WhyReach';
 import WorkflowBuilder from './pages/WorkflowBuilder';
 import backoffice from './pages/backoffice';
+import VolunteerScheduling from './pages/VolunteerScheduling';
+import ServiceCalendar from './pages/ServiceCalendar';
 import __Layout from './Layout.jsx';
 
 
@@ -282,6 +284,8 @@ export const PAGES = {
     "WhyReach": WhyReach,
     "WorkflowBuilder": WorkflowBuilder,
     "backoffice": backoffice,
+    "VolunteerScheduling": VolunteerScheduling,
+    "ServiceCalendar": ServiceCalendar,
 }
 
 export const pagesConfig = {
