@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Mail, Phone, MapPin, Calendar, Users, Heart, Briefcase, Gift, MessageSquare, Link as LinkIcon } from "lucide-react";
+import { User, Mail, Phone, MapPin, Calendar, Users, Heart, Briefcase, Gift, MessageSquare, Link as LinkIcon, Target } from "lucide-react";
+import EngagementInsights from "@/components/engagement/EngagementInsights";
 
 export default function MemberDetailView({ isOpen, onClose, memberId, onEdit }) {
     const [member, setMember] = useState(null);
@@ -81,12 +82,20 @@ export default function MemberDetailView({ isOpen, onClose, memberId, onEdit }) 
                 </DialogHeader>
 
                 <Tabs defaultValue="info" className="w-full">
-                    <TabsList className="grid w-full grid-cols-4">
+                    <TabsList className="grid w-full grid-cols-5">
                         <TabsTrigger value="info">Info</TabsTrigger>
+                        <TabsTrigger value="engagement">
+                            <Target className="w-4 h-4 mr-1" />
+                            Engagement
+                        </TabsTrigger>
                         <TabsTrigger value="family">Family</TabsTrigger>
                         <TabsTrigger value="giving">Giving</TabsTrigger>
                         <TabsTrigger value="ministry">Ministry</TabsTrigger>
                     </TabsList>
+
+                    <TabsContent value="engagement" className="space-y-4">
+                        <EngagementInsights memberId={member.id} memberName={`${member.first_name} ${member.last_name}`} />
+                    </TabsContent>
 
                     <TabsContent value="info" className="space-y-4">
                         <Card>
