@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import WorkflowBuilder from "../components/visitors/WorkflowBuilder";
 import { 
     Plus, Edit, Play, Pause, BarChart3, Users, Zap, 
-    TrendingUp, CheckCircle, Clock, Target
+    TrendingUp, CheckCircle, Clock, Target, Sparkles
 } from "lucide-react";
 
 export default function VisitorFollowUpPage() {
@@ -124,8 +124,8 @@ export default function VisitorFollowUpPage() {
             <div className="max-w-7xl mx-auto space-y-8">
                 <div className="flex justify-between items-center">
                     <div>
-                        <h1 className="text-3xl font-bold text-slate-900">Visitor Engagement Workflows</h1>
-                        <p className="text-slate-600 mt-1">Automate visitor follow-up with multi-step sequences</p>
+                        <h1 className="text-3xl font-bold text-slate-900">People Engagement Workflows</h1>
+                        <p className="text-slate-600 mt-1">AI-powered follow-up for visitors and members</p>
                     </div>
                     <Button onClick={handleCreate} className="bg-blue-600 hover:bg-blue-700">
                         <Plus className="w-5 h-5 mr-2" />
@@ -165,7 +165,7 @@ export default function VisitorFollowUpPage() {
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm font-medium text-slate-600 mb-1">Visitors Enrolled</p>
+                                    <p className="text-sm font-medium text-slate-600 mb-1">Active Enrollments</p>
                                     <p className="text-2xl font-bold text-slate-900">
                                         {executions.filter(e => e.status === 'active').length}
                                     </p>
@@ -221,11 +221,18 @@ export default function VisitorFollowUpPage() {
                                                     <div className="flex justify-between items-start">
                                                         <div className="flex-1">
                                                             <div className="flex items-center gap-2 mb-1">
-                                                                <h3 className="text-lg font-semibold">{workflow.workflow_name}</h3>
-                                                                <Badge className={workflow.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
-                                                                    {workflow.is_active ? 'Active' : 'Paused'}
-                                                                </Badge>
-                                                                <Badge variant="outline">{workflow.trigger_type.replace('_', ' ')}</Badge>
+                                                               <h3 className="text-lg font-semibold">{workflow.workflow_name}</h3>
+                                                               <Badge className={workflow.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
+                                                                   {workflow.is_active ? 'Active' : 'Paused'}
+                                                               </Badge>
+                                                               {workflow.ai_personalization_enabled && (
+                                                                   <Badge className="bg-purple-100 text-purple-800">
+                                                                       <Sparkles className="w-3 h-3 mr-1" />
+                                                                       AI
+                                                                   </Badge>
+                                                               )}
+                                                               <Badge variant="outline">{workflow.target_audience}</Badge>
+                                                               <Badge variant="outline">{workflow.trigger_type.replace(/_/g, ' ')}</Badge>
                                                             </div>
                                                             {workflow.description && (
                                                                 <p className="text-sm text-slate-600 mb-2">{workflow.description}</p>
@@ -377,6 +384,10 @@ export default function VisitorFollowUpPage() {
                             </CardContent>
                         </Card>
                     </TabsContent>
+
+                    <TabsContent value="insights">
+                        <EngagementInsightsTab />
+                    </TabsContent>
                 </Tabs>
 
                 {showBuilder && (
@@ -387,6 +398,110 @@ export default function VisitorFollowUpPage() {
                     />
                 )}
             </div>
+        </div>
+    );
+}
+
+function EngagementInsightsTab() {
+    const [members, setMembers] = useState([]);
+    const [engagements, setEngagements] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        loadData();
+    }, []);
+
+    const loadData = async () => {
+        try {
+            const [memberList, engagementList] = await Promise.all([
+                base44.entities.Member.list('-created_date', 50),
+                base44.entities.MemberEngagement.list('-engagement_score')
+            ]);
+            setMembers(memberList);
+            setEngagements(engagementList);
+        } catch (error) {
+            console.error('Error loading engagement data:', error);
+        }
+        setIsLoading(false);
+    };
+
+    const getEngagementForMember = (memberId) => {
+        return engagements.find(e => e.member_id === memberId);
+    };
+
+    const levelColors = {
+        high: 'bg-green-100 text-green-800',
+        medium: 'bg-yellow-100 text-yellow-800',
+        low: 'bg-orange-100 text-orange-800',
+        at_risk: 'bg-red-100 text-red-800'
+    };
+
+    if (isLoading) {
+        return (
+            <Card>
+                <CardContent className="p-12 text-center">
+                    <Users className="w-12 h-12 animate-pulse mx-auto text-slate-300 mb-4" />
+                    <p className="text-slate-600">Loading engagement data...</p>
+                </CardContent>
+            </Card>
+        );
+    }
+
+    const atRiskMembers = engagements.filter(e => e.engagement_level === 'at_risk');
+    const lowEngagement = engagements.filter(e => e.engagement_level === 'low');
+
+    return (
+        <div className="space-y-6">
+            {/* Alert Summary */}
+            {(atRiskMembers.length > 0 || lowEngagement.length > 0) && (
+                <Card className="border-2 border-red-200 bg-red-50">
+                    <CardContent className="p-6">
+                        <div className="flex items-start gap-3">
+                            <Target className="w-6 h-6 text-red-600 mt-1" />
+                            <div>
+                                <h3 className="font-semibold text-red-900 mb-1">Engagement Alerts</h3>
+                                <p className="text-sm text-red-700">
+                                    {atRiskMembers.length} members at risk • {lowEngagement.length} with low engagement
+                                </p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* Member Engagement List */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>Member Engagement Overview</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="space-y-3">
+                        {members.slice(0, 20).map(member => {
+                            const engagement = getEngagementForMember(member.id);
+                            return (
+                                <div key={member.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-slate-50">
+                                    <div className="flex-1">
+                                        <p className="font-medium">{member.first_name} {member.last_name}</p>
+                                        <p className="text-xs text-slate-500">{member.email}</p>
+                                    </div>
+                                    {engagement ? (
+                                        <div className="flex items-center gap-3">
+                                            <div className="text-right text-sm">
+                                                <div className="font-semibold">{engagement.engagement_score}/100</div>
+                                                <Badge className={levelColors[engagement.engagement_level]}>
+                                                    {engagement.engagement_level}
+                                                </Badge>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <Badge variant="outline">No data</Badge>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </CardContent>
+            </Card>
         </div>
     );
 }

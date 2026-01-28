@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { 
-    Plus, Trash2, Save, ArrowRight, Copy, Target, Zap 
+    Plus, Trash2, Save, ArrowRight, Copy, Target, Zap, Sparkles 
 } from "lucide-react";
 
 const MESSAGE_TEMPLATES = {
@@ -65,8 +65,10 @@ export default function WorkflowBuilder({ workflow, onSave, onClose }) {
     const [workflowData, setWorkflowData] = useState({
         workflow_name: "",
         description: "",
+        target_audience: "visitors",
         trigger_type: "first_visit",
         trigger_delay_days: 0,
+        ai_personalization_enabled: false,
         is_active: true,
         notes: ""
     });
@@ -269,6 +271,20 @@ export default function WorkflowBuilder({ workflow, onSave, onClose }) {
                                 </div>
 
                                 <div>
+                                    <Label>Target Audience *</Label>
+                                    <Select value={workflowData.target_audience} onValueChange={(v) => handleWorkflowChange('target_audience', v)}>
+                                        <SelectTrigger>
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="visitors">Visitors Only</SelectItem>
+                                            <SelectItem value="members">Members Only</SelectItem>
+                                            <SelectItem value="both">Both Visitors & Members</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <div>
                                     <Label>Trigger *</Label>
                                     <Select value={workflowData.trigger_type} onValueChange={(v) => handleWorkflowChange('trigger_type', v)}>
                                         <SelectTrigger>
@@ -278,6 +294,10 @@ export default function WorkflowBuilder({ workflow, onSave, onClose }) {
                                             <SelectItem value="first_visit">First Visit</SelectItem>
                                             <SelectItem value="second_visit">Second Visit</SelectItem>
                                             <SelectItem value="third_visit">Third Visit</SelectItem>
+                                            <SelectItem value="new_member">New Member</SelectItem>
+                                            <SelectItem value="low_engagement">Low Engagement Detected</SelectItem>
+                                            <SelectItem value="missed_service">Missed 2+ Services</SelectItem>
+                                            <SelectItem value="giving_pattern_change">Giving Pattern Change</SelectItem>
                                             <SelectItem value="status_change">Status Change</SelectItem>
                                             <SelectItem value="after_days_since_visit">Days Since Last Visit</SelectItem>
                                             <SelectItem value="manual">Manual Only</SelectItem>
@@ -303,6 +323,17 @@ export default function WorkflowBuilder({ workflow, onSave, onClose }) {
                                         value={workflowData.trigger_delay_days}
                                         onChange={(e) => handleWorkflowChange('trigger_delay_days', parseInt(e.target.value))}
                                     />
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                    <Switch
+                                        checked={workflowData.ai_personalization_enabled}
+                                        onCheckedChange={(checked) => handleWorkflowChange('ai_personalization_enabled', checked)}
+                                    />
+                                    <Label className="flex items-center gap-1">
+                                        <Sparkles className="w-4 h-4 text-purple-600" />
+                                        AI Personalization
+                                    </Label>
                                 </div>
 
                                 <div className="flex items-center gap-2">

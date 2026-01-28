@@ -382,7 +382,7 @@ export default function Layout({ children, currentPageName }) {
       icon: UserCheck,
     },
     {
-      title: "Visitor Follow-Up",
+      title: "People Engagement",
       url: createPageUrl("VisitorFollowUp"),
       icon: Heart,
     },
