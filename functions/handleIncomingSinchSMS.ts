@@ -1,7 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 
 // TCPA Compliance - Required disclaimer for all SMS messages
-const SMS_DISCLAIMER = "\n\nMsg & data rates may apply. Reply STOP to opt out. Text HELP for assistance.";
+const SMS_DISCLAIMER = "\n\nTo opt out text: STOP, END, CANCEL, UNSUBSCRIBE, QUIT, REVOKE, or OPT OUT. For more info see Terms under privacy. Msg & data rates may apply.";
 
 Deno.serve(async (req) => {
     console.log('=== SINCH WEBHOOK RECEIVED ===');
@@ -123,8 +123,8 @@ Deno.serve(async (req) => {
 
         console.log('✅ Sinch credentials loaded successfully');
 
-        // Handle STOP/UNSUBSCRIBE requests
-        if (['STOP', 'UNSUBSCRIBE', 'CANCEL', 'END', 'QUIT'].includes(keyword)) {
+        // Handle STOP/UNSUBSCRIBE requests - support all variations
+        if (['STOP', 'UNSUBSCRIBE', 'CANCEL', 'END', 'QUIT', 'REVOKE', 'OPT OUT', 'OPTOUT'].includes(keyword) || messageBody.toUpperCase().includes('OPT OUT')) {
             console.log('🛑 Processing opt-out request...');
             
             try {

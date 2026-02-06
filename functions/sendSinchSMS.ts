@@ -1,7 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 
 // TCPA Compliance - Required disclaimer for all SMS messages
-const SMS_DISCLAIMER = "\n\nWe respect your privacy. Your information is used only for church communications and is never shared. Msg & data rates may apply. Reply STOP to opt-out.";
+const SMS_DISCLAIMER = "\n\nTo opt out text: STOP, END, CANCEL, UNSUBSCRIBE, QUIT, REVOKE, or OPT OUT. For more info see Terms under privacy. Msg & data rates may apply.";
 
 Deno.serve(async (req) => {
     const requestId = Date.now().toString(36);
