@@ -13,6 +13,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { base44 } from "@/api/base44Client";
 import KeywordForm from "../components/texting/KeywordForm";
 import BroadcastForm from "../components/texting/BroadcastForm";
+import ComplianceHelper from "../components/texting/ComplianceHelper";
 import FeatureGate from "../components/subscription/FeatureGate";
 import { useSubscription } from "../components/subscription/useSubscription";
 
@@ -220,14 +221,19 @@ export default function TextMessagingPage() {
                         </Card>
                     </div>
 
-                    <Tabs defaultValue="test" className="space-y-6">
+                    <Tabs defaultValue="compliance" className="space-y-6">
                         <TabsList>
+                            <TabsTrigger value="compliance">Compliance</TabsTrigger>
                             <TabsTrigger value="test">Test SMS</TabsTrigger>
                             <TabsTrigger value="keywords">Keywords</TabsTrigger>
                             <TabsTrigger value="subscribers">Subscribers</TabsTrigger>
                             <TabsTrigger value="messages">Message History</TabsTrigger>
                             <TabsTrigger value="setup">Setup Guide</TabsTrigger>
                         </TabsList>
+
+                        <TabsContent value="compliance">
+                            <ComplianceHelper />
+                        </TabsContent>
 
                         {/* Test SMS Tab */}
                         <TabsContent value="test">

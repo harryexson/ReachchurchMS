@@ -230,6 +230,16 @@ export default function KeywordForm({ isOpen, setIsOpen, onSubmit, keyword }) {
                             <p className="text-xs text-slate-500">
                                 This message will be sent automatically when someone texts this keyword
                             </p>
+                            <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                <p className="text-xs text-yellow-800 font-semibold mb-1">
+                                    ⚠️ TCPA Compliance Reminder
+                                </p>
+                                <p className="text-xs text-yellow-700">
+                                    All opt-in messages should include: frequency (e.g., 1-4 msgs/month), 
+                                    "Msg & data rates may apply", "Reply STOP to opt out", and links to your 
+                                    privacy policy and terms of service.
+                                </p>
+                            </div>
                         </div>
 
                         <div className="space-y-2">
