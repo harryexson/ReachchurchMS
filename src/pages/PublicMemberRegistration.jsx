@@ -69,25 +69,7 @@ export default function PublicMemberRegistrationPage() {
     };
 
     const checkForExistingVisitor = async () => {
-        if (!formData.email && !formData.phone || !organizationAdmin) return;
-
-        setCheckingVisitor(true);
-        try {
-            const visitors = await base44.asServiceRole.entities.Visitor.filter({
-                created_by: organizationAdmin.email,
-                $or: [
-                    { email: formData.email },
-                    { phone: formData.phone }
-                ]
-            });
-
-            if (visitors.length > 0) {
-                setExistingVisitor(visitors[0]);
-            }
-        } catch (error) {
-            console.error("Error checking visitor:", error);
-        }
-        setCheckingVisitor(false);
+        // Disabled for now - visitor check happens on backend during registration
     };
 
     const handleSubmit = async (e) => {
