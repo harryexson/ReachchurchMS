@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
 import { Event } from "@/entities/Event";
 import { EventRegistration } from "@/entities/EventRegistration";
 import { Volunteer } from "@/entities/Volunteer";
