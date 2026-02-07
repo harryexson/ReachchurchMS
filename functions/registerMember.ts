@@ -62,6 +62,19 @@ Deno.serve(async (req) => {
         // Create member record
         const newMember = await base44.asServiceRole.entities.Member.create(finalMemberData);
         
+        // Send invitation email for member to create account
+        try {
+            await base44.asServiceRole.functions.invoke('sendMemberInvitation', {
+                memberEmail: newMember.email,
+                memberName: newMember.first_name + ' ' + newMember.last_name,
+                memberId: newMember.id,
+                churchAdminEmail: orgAdminEmail
+            });
+        } catch (emailError) {
+            console.error('Failed to send invitation email:', emailError);
+            // Continue even if email fails
+        }
+        
         return Response.json({ 
             success: true,
             member: newMember
