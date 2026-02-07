@@ -18,7 +18,8 @@ Deno.serve(async (req) => {
         
         // Check if orgId looks like an email
         if (orgId.includes('@')) {
-            users = await base44.asServiceRole.entities.User.filter({ email: orgId });
+            users = await base44.asServiceRole.entities.User.list();
+            users = users.filter(u => u.email === orgId && u.role === 'admin');
         } else {
             users = await base44.asServiceRole.entities.User.filter({ id: orgId });
         }
