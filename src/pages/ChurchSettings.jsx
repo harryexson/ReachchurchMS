@@ -376,6 +376,20 @@ export default function ChurchSettingsPage() {
                                     </div>
                                 </div>
 
+                                {/* Brand Marketing */}
+                                <div className="space-y-4">
+                                    <Label>Brand Marketing Message</Label>
+                                    <p className="text-sm text-slate-600">
+                                        A compelling message about your church for marketing and promotional materials
+                                    </p>
+                                    <Textarea
+                                        value={churchSettings?.brand_marketing || ""}
+                                        onChange={(e) => setChurchSettings({ ...churchSettings, brand_marketing: e.target.value })}
+                                        placeholder="e.g., 'We are a vibrant community dedicated to serving God and our neighbors through worship, fellowship, and outreach...'"
+                                        rows={4}
+                                    />
+                                </div>
+
                                 {/* Color Customization */}
                                 <div className="grid md:grid-cols-2 gap-6">
                                     <div className="space-y-2">
