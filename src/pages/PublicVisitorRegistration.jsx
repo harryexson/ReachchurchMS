@@ -40,10 +40,10 @@ export default function PublicVisitorRegistration() {
 
         try {
             setIsLoadingOrg(true);
-            const response = await base44.functions.invoke('getOrganizationInfo', { orgId });
+            const { data } = await base44.functions.invoke('getOrganizationInfo', { orgId });
             
-            if (response.data && response.data.success) {
-                setOrganizationAdmin(response.data.organization);
+            if (data && data.success) {
+                setOrganizationAdmin(data.organization);
                 setError(null);
             } else {
                 setError('Church not found. Please contact the church office.');
@@ -93,11 +93,14 @@ export default function PublicVisitorRegistration() {
         setError(null);
 
         try {
-            await base44.asServiceRole.entities.Visitor.create({
-                ...formData,
-                follow_up_status: "new",
-                created_by: organizationAdmin.email // CRITICAL: Scope to organization
+            const { data } = await base44.functions.invoke('registerVisitor', {
+                visitorData: formData,
+                orgAdminEmail: organizationAdmin.email
             });
+
+            if (!data || !data.success) {
+                throw new Error(data?.error || 'Registration failed');
+            }
 
             setIsSuccess(true);
             setFormData({
@@ -110,7 +113,7 @@ export default function PublicVisitorRegistration() {
             });
         } catch (err) {
             console.error("Registration error:", err);
-            setError("Failed to submit your information. Please try again or contact us directly.");
+            setError(err.message || "Failed to submit your information. Please try again or contact us directly.");
         }
 
         setIsSubmitting(false);
