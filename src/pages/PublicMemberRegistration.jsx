@@ -47,8 +47,8 @@ export default function PublicMemberRegistrationPage() {
         }
 
         try {
-            // Find the admin user for this organization
-            const users = await base44.entities.User.filter({ id: orgId });
+            // Find the admin user for this organization using asServiceRole
+            const users = await base44.asServiceRole.entities.User.filter({ id: orgId });
             if (users.length > 0) {
                 setOrganizationAdmin(users[0]);
             } else {
@@ -56,6 +56,7 @@ export default function PublicMemberRegistrationPage() {
             }
         } catch (error) {
             console.error('Error loading organization:', error);
+            alert('Failed to load organization information. Please try again.');
         }
     };
 
@@ -64,7 +65,7 @@ export default function PublicMemberRegistrationPage() {
 
         setCheckingVisitor(true);
         try {
-            const visitors = await base44.entities.Visitor.filter({
+            const visitors = await base44.asServiceRole.entities.Visitor.filter({
                 created_by: organizationAdmin.email,
                 $or: [
                     { email: formData.email },
@@ -93,7 +94,7 @@ export default function PublicMemberRegistrationPage() {
 
         try {
             // Check if already a member in THIS organization
-            const existingMembers = await base44.entities.Member.filter({
+            const existingMembers = await base44.asServiceRole.entities.Member.filter({
                 created_by: organizationAdmin.email,
                 $or: [
                     { email: formData.email },
@@ -108,7 +109,7 @@ export default function PublicMemberRegistrationPage() {
             }
 
             // Check for existing visitor to convert (within this organization)
-            const visitors = await base44.entities.Visitor.filter({
+            const visitors = await base44.asServiceRole.entities.Visitor.filter({
                 created_by: organizationAdmin.email,
                 $or: [
                     { email: formData.email },
@@ -133,14 +134,14 @@ export default function PublicMemberRegistrationPage() {
                 memberData.conversion_date = new Date().toISOString().split('T')[0];
                 
                 // Update visitor record to mark as converted
-                await base44.entities.Visitor.update(visitor.id, {
+                await base44.asServiceRole.entities.Visitor.update(visitor.id, {
                     conversion_status: "converted_to_member",
                     member_conversion_date: new Date().toISOString().split('T')[0]
                 });
             }
 
             // Create member record
-            await base44.entities.Member.create(memberData);
+            await base44.asServiceRole.entities.Member.create(memberData);
             
             // Send invitation to complete profile and create login credentials
             // This invites them as a MEMBER (role='user'), not an admin
