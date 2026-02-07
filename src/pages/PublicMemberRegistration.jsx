@@ -31,6 +31,8 @@ export default function PublicMemberRegistrationPage() {
     const [existingVisitor, setExistingVisitor] = useState(null);
     const [checkingVisitor, setCheckingVisitor] = useState(false);
     const [organizationAdmin, setOrganizationAdmin] = useState(null);
+    const [isLoadingOrg, setIsLoadingOrg] = useState(true);
+    const [orgError, setOrgError] = useState(null);
 
     // Get organization identifier from URL parameter
     const urlParams = new URLSearchParams(window.location.search);
@@ -42,22 +44,27 @@ export default function PublicMemberRegistrationPage() {
 
     const loadOrganizationInfo = async () => {
         if (!orgId) {
-            alert('Invalid registration link. Please scan the QR code again or contact the church.');
+            setOrgError('Invalid registration link. Please scan the QR code again or contact the church.');
+            setIsLoadingOrg(false);
             return;
         }
 
         try {
+            setIsLoadingOrg(true);
             // Use backend function to load org info (public page needs service role)
             const response = await base44.functions.invoke('getOrganizationInfo', { orgId });
             
-            if (response.data.success) {
+            if (response.data && response.data.success) {
                 setOrganizationAdmin(response.data.organization);
+                setOrgError(null);
             } else {
-                alert('Organization not found. Please contact the church.');
+                setOrgError('Organization not found. Please contact the church.');
             }
         } catch (error) {
             console.error('Error loading organization:', error);
-            alert('Failed to load organization information. Please try again.');
+            setOrgError('Failed to load organization information. Please try again.');
+        } finally {
+            setIsLoadingOrg(false);
         }
     };
 
@@ -207,6 +214,39 @@ export default function PublicMemberRegistrationPage() {
                         </p>
                         <Button onClick={() => window.location.reload()} className="w-full bg-blue-600 hover:bg-blue-700">
                             Register Another Person
+                        </Button>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
+
+    if (isLoadingOrg) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-4">
+                <Card className="max-w-md w-full shadow-2xl">
+                    <CardContent className="p-8 text-center space-y-4">
+                        <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto" />
+                        <h2 className="text-xl font-semibold text-slate-900">Loading Registration...</h2>
+                        <p className="text-slate-600">Please wait while we load the registration form.</p>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
+
+    if (orgError) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-4">
+                <Card className="max-w-md w-full shadow-2xl">
+                    <CardContent className="p-8 text-center space-y-4">
+                        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
+                            <Church className="w-10 h-10 text-red-600" />
+                        </div>
+                        <h2 className="text-xl font-semibold text-slate-900">Organization Not Found</h2>
+                        <p className="text-slate-600">{orgError}</p>
+                        <Button onClick={() => window.location.reload()} className="w-full bg-blue-600 hover:bg-blue-700">
+                            Try Again
                         </Button>
                     </CardContent>
                 </Card>
