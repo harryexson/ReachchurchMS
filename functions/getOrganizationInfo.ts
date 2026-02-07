@@ -13,13 +13,12 @@ Deno.serve(async (req) => {
         }
 
         // Use service role to fetch user info (no auth required for public page)
-        // Support both user ID and email as org identifier
-        const users = await base44.asServiceRole.entities.User.filter({
-            $or: [
-                { id: orgId },
-                { email: orgId }
-            ]
-        });
+        // Try to find by email first, then by ID
+        let users = await base44.asServiceRole.entities.User.filter({ email: orgId });
+        
+        if (users.length === 0) {
+            users = await base44.asServiceRole.entities.User.filter({ id: orgId });
+        }
         
         if (users.length === 0) {
             return Response.json({ 
