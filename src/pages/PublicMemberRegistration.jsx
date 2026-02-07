@@ -52,10 +52,10 @@ export default function PublicMemberRegistrationPage() {
         try {
             setIsLoadingOrg(true);
             // Use backend function to load org info (public page needs service role)
-            const response = await base44.functions.invoke('getOrganizationInfo', { orgId });
+            const { data } = await base44.functions.invoke('getOrganizationInfo', { orgId });
             
-            if (response.data && response.data.success) {
-                setOrganizationAdmin(response.data.organization);
+            if (data && data.success) {
+                setOrganizationAdmin(data.organization);
                 setOrgError(null);
             } else {
                 setOrgError('Organization not found. Please contact the church.');
@@ -91,13 +91,13 @@ export default function PublicMemberRegistrationPage() {
             };
 
             // Use backend function to register member
-            const response = await base44.functions.invoke('registerMember', {
+            const { data } = await base44.functions.invoke('registerMember', {
                 memberData,
                 orgAdminEmail: organizationAdmin.email
             });
 
-            if (!response.data || !response.data.success) {
-                const errorMsg = response.data?.message || response.data?.error || 'Registration failed';
+            if (!data || !data.success) {
+                const errorMsg = data?.message || data?.error || 'Registration failed';
                 alert(errorMsg);
                 setIsSubmitting(false);
                 return;
