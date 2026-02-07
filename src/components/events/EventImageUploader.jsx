@@ -2,36 +2,64 @@ import React, { useState } from 'react';
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { Upload, X, Image as ImageIcon, Loader2, AlertCircle } from 'lucide-react';
 import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function EventImageUploader({ images = [], onImagesChange }) {
     const [uploading, setUploading] = useState(false);
+    const [uploadError, setUploadError] = useState(null);
+    const [uploadProgress, setUploadProgress] = useState('');
 
     const handleFileUpload = async (e) => {
         const files = Array.from(e.target.files);
         if (files.length === 0) return;
 
+        // Validate files
+        const maxSize = 10 * 1024 * 1024; // 10MB
+        const invalidFiles = files.filter(file => {
+            if (file.size > maxSize) return true;
+            if (!file.type.startsWith('image/')) return true;
+            return false;
+        });
+
+        if (invalidFiles.length > 0) {
+            setUploadError('Some files are invalid. Please ensure all files are images under 10MB.');
+            return;
+        }
+
         setUploading(true);
+        setUploadError(null);
+        setUploadProgress('');
+        
         try {
             const uploadedUrls = [];
             
-            for (const file of files) {
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                setUploadProgress(`Uploading ${i + 1} of ${files.length}...`);
+                
                 const result = await base44.integrations.Core.UploadFile({ file });
+                
                 if (result && result.file_url) {
                     uploadedUrls.push(result.file_url);
+                } else {
+                    console.error('Upload failed for file:', file.name, 'Result:', result);
                 }
             }
             
             if (uploadedUrls.length > 0) {
                 onImagesChange([...images, ...uploadedUrls]);
+                setUploadProgress(`Successfully uploaded ${uploadedUrls.length} image(s)`);
+                setTimeout(() => setUploadProgress(''), 3000);
+            } else {
+                setUploadError('Failed to upload any images. Please try again.');
             }
         } catch (error) {
             console.error('Upload error:', error);
-            alert('Failed to upload images: ' + (error.message || 'Please try again'));
+            setUploadError(error.message || 'Failed to upload images. Please try again.');
         } finally {
             setUploading(false);
-            // Reset the input
             e.target.value = '';
         }
     };
@@ -46,9 +74,22 @@ export default function EventImageUploader({ images = [], onImagesChange }) {
             <div>
                 <Label>Promotional Images/Flyers</Label>
                 <p className="text-xs text-slate-500 mb-2">
-                    Upload flyers, posters, or promotional images for this event
+                    Upload flyers, posters, or promotional images for this event (max 10MB per image)
                 </p>
             </div>
+
+            {uploadError && (
+                <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{uploadError}</AlertDescription>
+                </Alert>
+            )}
+
+            {uploadProgress && !uploadError && (
+                <Alert>
+                    <AlertDescription className="text-green-700">{uploadProgress}</AlertDescription>
+                </Alert>
+            )}
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {images.map((url, index) => (
@@ -72,22 +113,27 @@ export default function EventImageUploader({ images = [], onImagesChange }) {
                 ))}
 
                 <Card className="border-2 border-dashed border-slate-300 hover:border-slate-400 transition-colors">
-                    <CardContent className="p-2 h-full flex items-center justify-center">
+                    <CardContent className="p-2 h-full flex items-center justify-center min-h-[140px]">
                         <label className="cursor-pointer flex flex-col items-center justify-center w-full h-full">
                             <input
                                 type="file"
-                                accept="image/*"
+                                accept="image/*,.jpg,.jpeg,.png,.gif,.webp"
                                 multiple
                                 onChange={handleFileUpload}
                                 disabled={uploading}
                                 className="hidden"
                             />
                             {uploading ? (
-                                <Loader2 className="w-8 h-8 text-slate-400 animate-spin" />
+                                <div className="flex flex-col items-center">
+                                    <Loader2 className="w-8 h-8 text-blue-500 animate-spin mb-2" />
+                                    <span className="text-xs text-slate-600">{uploadProgress}</span>
+                                </div>
                             ) : (
                                 <>
                                     <Upload className="w-8 h-8 text-slate-400 mb-2" />
-                                    <span className="text-xs text-slate-500">Upload Images</span>
+                                    <span className="text-xs text-slate-500 text-center px-2">
+                                        Click to upload<br />or drag and drop
+                                    </span>
                                 </>
                             )}
                         </label>
