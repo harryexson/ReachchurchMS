@@ -13,15 +13,17 @@ Deno.serve(async (req) => {
         }
 
         // Use service role to fetch user info (no auth required for public page)
-        // Try to find by email first, then by ID
         let users;
         
         // Check if orgId looks like an email
         if (orgId.includes('@')) {
-            users = await base44.asServiceRole.entities.User.list();
-            users = users.filter(u => u.email === orgId && u.role === 'admin');
+            // Fetch all admin users and filter by email
+            const allUsers = await base44.asServiceRole.entities.User.list();
+            users = allUsers.filter(u => u.email === orgId && u.role === 'admin');
         } else {
-            users = await base44.asServiceRole.entities.User.filter({ id: orgId });
+            // Fetch by ID
+            const allUsers = await base44.asServiceRole.entities.User.list();
+            users = allUsers.filter(u => u.id === orgId);
         }
         
         if (users.length === 0) {
