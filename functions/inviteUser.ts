@@ -68,6 +68,37 @@ Deno.serve(async (req) => {
             console.log('⚠️ Could not update user data immediately (will retry on login):', updateError.message);
         }
 
+        // CRITICAL: Create Member record so they appear in Members directory
+        // Check if member already exists
+        try {
+            const existingMembers = await base44.asServiceRole.entities.Member.filter({
+                email: email,
+                created_by: currentUser.email
+            });
+
+            if (existingMembers.length === 0) {
+                // Split full_name into first_name and last_name
+                const nameParts = (full_name || email).split(' ');
+                const firstName = nameParts[0] || email.split('@')[0];
+                const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+
+                await base44.asServiceRole.entities.Member.create({
+                    first_name: firstName,
+                    last_name: lastName,
+                    email: email,
+                    phone: phone || '',
+                    member_status: 'member',
+                    join_date: new Date().toISOString().split('T')[0],
+                    created_by: currentUser.email // CRITICAL: Scope to church
+                });
+                console.log('✅ Member record created for:', email);
+            } else {
+                console.log('ℹ️ Member record already exists');
+            }
+        } catch (memberError) {
+            console.error('⚠️ Failed to create member record (non-critical):', memberError.message);
+        }
+
         // Send branded welcome email from church
         const host = req.headers.get('host') || 'app.base44.app';
         const appUrl = `https://${host}`;
