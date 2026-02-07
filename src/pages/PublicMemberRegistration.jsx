@@ -47,10 +47,11 @@ export default function PublicMemberRegistrationPage() {
         }
 
         try {
-            // Find the admin user for this organization using asServiceRole
-            const users = await base44.asServiceRole.entities.User.filter({ id: orgId });
-            if (users.length > 0) {
-                setOrganizationAdmin(users[0]);
+            // Use backend function to load org info (public page needs service role)
+            const response = await base44.functions.invoke('getOrganizationInfo', { orgId });
+            
+            if (response.data.success) {
+                setOrganizationAdmin(response.data.organization);
             } else {
                 alert('Organization not found. Please contact the church.');
             }
