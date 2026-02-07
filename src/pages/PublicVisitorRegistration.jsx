@@ -21,6 +21,7 @@ export default function PublicVisitorRegistration() {
     const [isSuccess, setIsSuccess] = useState(false);
     const [error, setError] = useState(null);
     const [organizationAdmin, setOrganizationAdmin] = useState(null);
+    const [isLoadingOrg, setIsLoadingOrg] = useState(true);
 
     // Get organization identifier from URL parameter
     const urlParams = new URLSearchParams(window.location.search);
@@ -33,19 +34,25 @@ export default function PublicVisitorRegistration() {
     const loadOrganizationInfo = async () => {
         if (!orgId) {
             setError('Invalid visitor card link. Please scan the QR code again or contact the church.');
+            setIsLoadingOrg(false);
             return;
         }
 
         try {
-            const users = await base44.entities.User.filter({ id: orgId });
-            if (users.length > 0) {
-                setOrganizationAdmin(users[0]);
+            setIsLoadingOrg(true);
+            const response = await base44.functions.invoke('getOrganizationInfo', { orgId });
+            
+            if (response.data && response.data.success) {
+                setOrganizationAdmin(response.data.organization);
+                setError(null);
             } else {
                 setError('Church not found. Please contact the church office.');
             }
         } catch (error) {
             console.error('Error loading organization:', error);
             setError('Failed to load church information.');
+        } finally {
+            setIsLoadingOrg(false);
         }
     };
 
@@ -86,7 +93,7 @@ export default function PublicVisitorRegistration() {
         setError(null);
 
         try {
-            await base44.entities.Visitor.create({
+            await base44.asServiceRole.entities.Visitor.create({
                 ...formData,
                 follow_up_status: "new",
                 created_by: organizationAdmin.email // CRITICAL: Scope to organization
@@ -137,6 +144,20 @@ export default function PublicVisitorRegistration() {
                         >
                             Submit Another Visit Card
                         </Button>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
+
+    if (isLoadingOrg) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center p-6">
+                <Card className="max-w-md w-full shadow-2xl">
+                    <CardContent className="pt-12 pb-12 text-center space-y-6">
+                        <Loader2 className="w-12 h-12 animate-spin text-purple-600 mx-auto" />
+                        <h2 className="text-xl font-semibold text-slate-900">Loading...</h2>
+                        <p className="text-slate-600">Please wait while we load the visitor card.</p>
                     </CardContent>
                 </Card>
             </div>
