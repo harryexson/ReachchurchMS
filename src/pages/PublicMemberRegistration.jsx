@@ -31,6 +31,7 @@ export default function PublicMemberRegistrationPage() {
     const [existingVisitor, setExistingVisitor] = useState(null);
     const [checkingVisitor, setCheckingVisitor] = useState(false);
     const [organizationAdmin, setOrganizationAdmin] = useState(null);
+    const [churchSettings, setChurchSettings] = useState(null);
     const [isLoadingOrg, setIsLoadingOrg] = useState(true);
     const [orgError, setOrgError] = useState(null);
 
@@ -56,6 +57,7 @@ export default function PublicMemberRegistrationPage() {
             
             if (data && data.success) {
                 setOrganizationAdmin(data.organization);
+                setChurchSettings(data.settings);
                 setOrgError(null);
             } else {
                 setOrgError('Organization not found. Please contact the church.');
@@ -201,9 +203,21 @@ export default function PublicMemberRegistrationPage() {
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 p-4">
             <div className="max-w-2xl mx-auto py-8">
                 <div className="text-center mb-8">
-                    <Church className="w-16 h-16 text-blue-600 mx-auto mb-4" />
-                    <h1 className="text-4xl font-bold text-slate-900 mb-2">Become a Member</h1>
-                    <p className="text-slate-600">Join our church family today</p>
+                    {churchSettings?.logo_url ? (
+                        <img 
+                            src={churchSettings.logo_url} 
+                            alt={churchSettings.church_name || "Church Logo"} 
+                            className="w-32 h-32 object-contain mx-auto mb-4"
+                        />
+                    ) : (
+                        <Church className="w-16 h-16 text-blue-600 mx-auto mb-4" />
+                    )}
+                    <h1 className="text-4xl font-bold text-slate-900 mb-2">
+                        {churchSettings?.church_name ? `Join ${churchSettings.church_name}` : 'Become a Member'}
+                    </h1>
+                    <p className="text-slate-600">
+                        {churchSettings?.tagline || 'Join our church family today'}
+                    </p>
                     <Alert className="mt-4 bg-green-50 border-green-200 text-left">
                         <AlertDescription className="text-sm text-green-800">
                             <strong>Note:</strong> You're registering as a church member. After submitting, you'll receive an email 

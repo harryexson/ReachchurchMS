@@ -28,9 +28,15 @@ Deno.serve(async (req) => {
             }, { status: 404 });
         }
 
+        // Also fetch church settings for branding
+        const churchSettings = await base44.asServiceRole.entities.ChurchSettings.filter({
+            created_by: users[0].email
+        });
+
         return Response.json({ 
             success: true,
-            organization: users[0]
+            organization: users[0],
+            settings: churchSettings.length > 0 ? churchSettings[0] : null
         });
 
     } catch (error) {
