@@ -101,73 +101,34 @@ export default function PublicMemberRegistrationPage() {
         setIsSubmitting(true);
 
         try {
-            // Check if already a member in THIS organization
-            const existingMembers = await base44.asServiceRole.entities.Member.filter({
-                created_by: organizationAdmin.email,
-                $or: [
-                    { email: formData.email },
-                    { phone: formData.phone }
-                ]
+            // Prepare member data
+            const memberData = {
+                ...formData,
+                interests: formData.interests ? formData.interests.split(',').map(i => i.trim()) : [],
+                skills: formData.skills ? formData.skills.split(',').map(s => s.trim()) : []
+            };
+
+            // Use backend function to register member
+            const response = await base44.functions.invoke('registerMember', {
+                memberData,
+                orgAdminEmail: organizationAdmin.email
             });
 
-            if (existingMembers.length > 0) {
-                alert("You're already registered as a member at this church!");
+            if (!response.data || !response.data.success) {
+                const errorMsg = response.data?.message || response.data?.error || 'Registration failed';
+                alert(errorMsg);
                 setIsSubmitting(false);
                 return;
             }
-
-            // Check for existing visitor to convert (within this organization)
-            const visitors = await base44.asServiceRole.entities.Visitor.filter({
-                created_by: organizationAdmin.email,
-                $or: [
-                    { email: formData.email },
-                    { phone: formData.phone }
-                ]
-            });
-
-            const memberData = {
-                ...formData,
-                member_status: "member",
-                join_date: new Date().toISOString().split('T')[0],
-                interests: formData.interests ? formData.interests.split(',').map(i => i.trim()) : [],
-                skills: formData.skills ? formData.skills.split(',').map(s => s.trim()) : [],
-                created_by: organizationAdmin.email // CRITICAL: Scope to organization
-            };
-
-            // If visitor exists, include visitor info
-            if (visitors.length > 0) {
-                const visitor = visitors[0];
-                memberData.visitor_id = visitor.id;
-                memberData.total_visits = visitor.total_visits || 1;
-                memberData.conversion_date = new Date().toISOString().split('T')[0];
-                
-                // Update visitor record to mark as converted
-                await base44.asServiceRole.entities.Visitor.update(visitor.id, {
-                    conversion_status: "converted_to_member",
-                    member_conversion_date: new Date().toISOString().split('T')[0]
-                });
-            }
-
-            // Create member record
-            await base44.asServiceRole.entities.Member.create(memberData);
             
             // Send invitation to complete profile and create login credentials
-            // This invites them as a MEMBER (role='user'), not an admin
             try {
-                const response = await fetch('/api/functions/inviteUser', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        email: formData.email,
-                        full_name: `${formData.first_name} ${formData.last_name}`,
-                        role: 'user', // CRITICAL: Members get 'user' role, NOT admin
-                        phone: formData.phone
-                    })
+                await base44.functions.invoke('inviteUser', {
+                    email: formData.email,
+                    full_name: `${formData.first_name} ${formData.last_name}`,
+                    role: 'user',
+                    phone: formData.phone
                 });
-                
-                if (!response.ok) {
-                    console.warn('Could not send invitation email/SMS, but member was created');
-                }
             } catch (inviteError) {
                 console.warn('Invitation error:', inviteError);
                 // Don't fail registration if invitation fails
