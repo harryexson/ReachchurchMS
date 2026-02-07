@@ -25,18 +25,18 @@ export default function MemberRegistrationQRPage() {
             if (settings.length > 0) {
                 const name = settings[0].church_name || "Church";
                 setChurchName(name);
-                generateQRCode(name, user.id);
+                generateQRCode(name, user.email);
             } else {
-                generateQRCode("Church", user.id);
+                generateQRCode("Church", user.email);
             }
         } catch (error) {
             console.error("Error loading settings:", error);
         }
     };
 
-    const generateQRCode = async (name, userId) => {
-        // CRITICAL: Include organization ID in URL to scope registrations
-        const url = `${window.location.origin}${createPageUrl('PublicMemberRegistration')}?org=${userId}`;
+    const generateQRCode = async (name, userEmail) => {
+        // CRITICAL: Include organization admin email in URL to scope registrations
+        const url = `${window.location.origin}${createPageUrl('PublicMemberRegistration')}?org=${encodeURIComponent(userEmail)}`;
         setRegistrationUrl(url);
 
         try {
