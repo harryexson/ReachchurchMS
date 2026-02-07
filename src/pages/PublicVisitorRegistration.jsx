@@ -21,6 +21,7 @@ export default function PublicVisitorRegistration() {
     const [isSuccess, setIsSuccess] = useState(false);
     const [error, setError] = useState(null);
     const [organizationAdmin, setOrganizationAdmin] = useState(null);
+    const [churchSettings, setChurchSettings] = useState(null);
     const [isLoadingOrg, setIsLoadingOrg] = useState(true);
 
     // Get organization identifier from URL parameter
@@ -44,6 +45,7 @@ export default function PublicVisitorRegistration() {
             
             if (data && data.success) {
                 setOrganizationAdmin(data.organization);
+                setChurchSettings(data.settings);
                 setError(null);
             } else {
                 setError('Church not found. Please contact the church office.');
@@ -171,14 +173,22 @@ export default function PublicVisitorRegistration() {
         <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 py-12 px-6">
             <div className="max-w-3xl mx-auto">
                 <div className="text-center mb-8">
-                    <div className="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Heart className="w-10 h-10 text-white" />
-                    </div>
+                    {churchSettings?.logo_url ? (
+                        <img 
+                            src={churchSettings.logo_url} 
+                            alt={churchSettings.church_name || "Church Logo"} 
+                            className="w-32 h-32 object-contain mx-auto mb-4"
+                        />
+                    ) : (
+                        <div className="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Heart className="w-10 h-10 text-white" />
+                        </div>
+                    )}
                     <h1 className="text-4xl font-bold text-slate-900 mb-3">
-                        Welcome! We're Glad You're Here
+                        {churchSettings?.church_name ? `Welcome to ${churchSettings.church_name}!` : "Welcome! We're Glad You're Here"}
                     </h1>
                     <p className="text-lg text-slate-600">
-                        Thank you for visiting our church! We'd love to stay in touch and help you get connected.
+                        {churchSettings?.tagline || "Thank you for visiting our church! We'd love to stay in touch and help you get connected."}
                     </p>
                 </div>
 
