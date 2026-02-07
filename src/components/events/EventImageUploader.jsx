@@ -14,19 +14,26 @@ export default function EventImageUploader({ images = [], onImagesChange }) {
 
         setUploading(true);
         try {
-            const uploadPromises = files.map(file => 
-                base44.integrations.Core.UploadFile({ file })
-            );
+            const uploadedUrls = [];
             
-            const results = await Promise.all(uploadPromises);
-            const newImageUrls = results.map(result => result.file_url);
+            for (const file of files) {
+                const result = await base44.integrations.Core.UploadFile({ file });
+                if (result && result.file_url) {
+                    uploadedUrls.push(result.file_url);
+                }
+            }
             
-            onImagesChange([...images, ...newImageUrls]);
+            if (uploadedUrls.length > 0) {
+                onImagesChange([...images, ...uploadedUrls]);
+            }
         } catch (error) {
             console.error('Upload error:', error);
-            alert('Failed to upload images. Please try again.');
+            alert('Failed to upload images: ' + (error.message || 'Please try again'));
+        } finally {
+            setUploading(false);
+            // Reset the input
+            e.target.value = '';
         }
-        setUploading(false);
     };
 
     const removeImage = (index) => {
