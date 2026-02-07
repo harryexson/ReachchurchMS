@@ -12,6 +12,23 @@ Deno.serve(async (req) => {
             }, { status: 400 });
         }
 
+        // Check for duplicate visitor in this organization
+        const existingVisitors = await base44.asServiceRole.entities.Visitor.filter({
+            created_by: orgAdminEmail,
+            $or: [
+                { email: visitorData.email },
+                { phone: visitorData.phone }
+            ]
+        });
+
+        if (existingVisitors.length > 0) {
+            return Response.json({ 
+                success: false,
+                error: 'duplicate_visitor',
+                message: 'A visitor with this email or phone number is already registered at this church.'
+            }, { status: 400 });
+        }
+
         // Create visitor record
         const newVisitor = await base44.asServiceRole.entities.Visitor.create({
             ...visitorData,
