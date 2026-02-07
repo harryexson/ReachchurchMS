@@ -183,17 +183,23 @@ export default function EventsPage() {
             if (data.is_recurring && data.recurrence_pattern !== 'none' && data.recurrence_end_date) {
                 // Create multiple event instances
                 await createRecurringEvents(data);
+                await loadData();
             } else {
                 // Create single event
                 let savedEvent;
                 if (selectedEvent && selectedEvent.id) {
                     savedEvent = await base44.entities.Event.update(selectedEvent.id, data);
+                    alert('Event updated successfully!');
                 } else {
                     savedEvent = await base44.entities.Event.create(data);
+                    alert('Event created successfully!');
                 }
                 
+                // Reload data immediately
+                await loadData();
+                
                 // After creating/updating, prompt to create an announcement
-                if (savedEvent.registration_required) {
+                if (savedEvent && savedEvent.registration_required) {
                     const regUrl = `${window.location.origin}${createPageUrl('EventRegistration')}?eventId=${savedEvent.id}`;
                     const formattedDate = savedEvent.start_datetime ? format(new Date(savedEvent.start_datetime), 'MMMM d, yyyy') : 'N/A date';
                     const formattedTime = savedEvent.start_datetime ? format(new Date(savedEvent.start_datetime), 'h:mm a') : 'N/A time';
@@ -206,8 +212,6 @@ export default function EventsPage() {
                     setIsAnnouncementFormOpen(true);
                 }
             }
-            
-            await loadData();
 
         } catch (error) {
             console.error("Error submitting form:", error);
