@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import FeatureGate from "../components/subscription/FeatureGate";
 import { useSubscription } from "../components/subscription/useSubscription";
@@ -77,7 +76,8 @@ export default function KidsCheckInPage() {
 
     const loadEvents = async () => {
         try {
-            const eventsList = await base44.entities.Event.list("-start_datetime");
+            const user = await base44.auth.me();
+            const eventsList = await base44.entities.Event.filter({ created_by: user.email }, "-start_datetime");
 
             const today = new Date();
             today.setHours(0, 0, 0, 0);
