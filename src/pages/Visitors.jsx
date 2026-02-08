@@ -126,22 +126,23 @@ export default function VisitorsPage() {
             const user = await base44.auth.me();
             setCurrentUser(user);
             
-            // Load visitors only - reduce API calls
+            console.log('Loading visitors for user:', user.email);
+            
+            // Load all visitors for this organization
             const visitorList = await base44.entities.Visitor.filter({ 
                 created_by: user.email 
             }, "-visit_date");
             
+            console.log('Loaded visitors:', visitorList.length);
             setVisitors(visitorList);
             
-            // Load related data only when needed
-            if (visitorList.length > 0) {
-                const [followUpList, visitsList] = await Promise.all([
-                    base44.entities.VisitorFollowUp.filter({ created_by: user.email }),
-                    base44.entities.VisitorVisit.filter({ created_by: user.email }, "-visit_date")
-                ]);
-                setFollowUps(followUpList);
-                setVisitorVisits(visitsList);
-            }
+            // Load related data
+            const [followUpList, visitsList] = await Promise.all([
+                base44.entities.VisitorFollowUp.filter({ created_by: user.email }),
+                base44.entities.VisitorVisit.filter({ created_by: user.email }, "-visit_date")
+            ]);
+            setFollowUps(followUpList);
+            setVisitorVisits(visitsList);
         } catch (error) {
             console.error("Error loading data:", error);
             if (error.message?.includes('Rate limit')) {
