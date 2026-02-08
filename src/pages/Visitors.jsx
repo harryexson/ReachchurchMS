@@ -126,27 +126,41 @@ export default function VisitorsPage() {
             const user = await base44.auth.me();
             setCurrentUser(user);
             
-            // CRITICAL: Filter by current user to ensure data isolation
-            const [visitorList, followUpList, visitsList] = await Promise.all([
-                base44.entities.Visitor.filter({ 'data.created_by': user.email }, "-visit_date"),
-                base44.entities.VisitorFollowUp.filter({ 'data.created_by': user.email }),
-                base44.entities.VisitorVisit.filter({ 'data.created_by': user.email }, "-visit_date")
-            ]);
+            // Load visitors only - reduce API calls
+            const visitorList = await base44.entities.Visitor.filter({ 
+                created_by: user.email 
+            }, "-visit_date");
+            
             setVisitors(visitorList);
-            setFollowUps(followUpList);
-            setVisitorVisits(visitsList);
+            
+            // Load related data only when needed
+            if (visitorList.length > 0) {
+                const [followUpList, visitsList] = await Promise.all([
+                    base44.entities.VisitorFollowUp.filter({ created_by: user.email }),
+                    base44.entities.VisitorVisit.filter({ created_by: user.email }, "-visit_date")
+                ]);
+                setFollowUps(followUpList);
+                setVisitorVisits(visitsList);
+            }
         } catch (error) {
             console.error("Error loading data:", error);
+            if (error.message?.includes('Rate limit')) {
+                alert('Too many requests. Please wait a moment and refresh the page.');
+            }
         }
         setIsLoading(false);
     }, []);
 
     useEffect(() => {
         loadData();
+    }, [loadData]);
+
+    useEffect(() => {
+        if (!currentUser) return;
 
         // Real-time subscriptions for instant updates
         const unsubscribeVisitor = base44.entities.Visitor.subscribe((event) => {
-            if (currentUser && event.data?.data?.created_by === currentUser.email) {
+            if (event.data?.created_by === currentUser.email) {
                 if (event.type === 'create') {
                     setVisitors(prev => [event.data, ...prev]);
                 } else if (event.type === 'update') {
@@ -160,7 +174,7 @@ export default function VisitorsPage() {
         return () => {
             unsubscribeVisitor();
         };
-    }, [loadData, currentUser]);
+    }, [currentUser]);
 
     const handleFormSubmit = async (data) => {
         try {
