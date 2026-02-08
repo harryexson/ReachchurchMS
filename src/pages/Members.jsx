@@ -60,23 +60,13 @@ export default function MembersPage() {
 
     const loadMembers = async () => {
         setIsLoading(true);
-        // Load all members and filter by the created_by field stored in member data during registration
+        // Load all members - SDK auto-flattens the data object
         const allMembers = await base44.entities.Member.list("-created_date");
         
-        console.log('🔍 Debug - Current user email:', user.email);
-        console.log('🔍 Debug - Total members loaded:', allMembers.length);
-        console.log('🔍 Debug - Sample member data:', allMembers[0]);
-        
-        // CRITICAL: Filter by data.created_by (not top-level created_by) since registration stores church admin there
-        const memberList = allMembers.filter(member => {
-            const matches = member.data?.created_by === user.email;
-            if (member.data?.created_by) {
-                console.log(`🔍 Member ${member.data.first_name} ${member.data.last_name} - created_by: ${member.data.created_by}, matches: ${matches}`);
-            }
-            return matches;
-        });
-        
-        console.log('🔍 Debug - Filtered members count:', memberList.length);
+        // Filter by created_by which is at the top level after SDK flattening
+        const memberList = allMembers.filter(member => 
+            member.created_by === user.email
+        );
         
         // Flatten member data structure and merge with user profile pictures
         const membersWithPhotos = memberList.map(member => {
