@@ -121,13 +121,11 @@ Deno.serve(async (req) => {
             }, { status: 400 });
         }
 
-        // Create visitor record with data nested properly
+        // Create visitor record - SDK handles data wrapping automatically
         const newVisitor = await base44.asServiceRole.entities.Visitor.create({
-            data: {
-                ...visitorData,
-                follow_up_status: "new",
-                created_by: orgAdminEmail
-            }
+            ...visitorData,
+            follow_up_status: "new",
+            created_by: orgAdminEmail
         });
 
         // Auto-enroll in interest-based workflows
