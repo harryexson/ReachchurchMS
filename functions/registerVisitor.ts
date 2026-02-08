@@ -14,10 +14,10 @@ Deno.serve(async (req) => {
 
         // Check for duplicate visitor in this organization
         const existingVisitors = await base44.asServiceRole.entities.Visitor.filter({
-            created_by: orgAdminEmail,
+            'data.created_by': orgAdminEmail,
             $or: [
-                { email: visitorData.email },
-                { phone: visitorData.phone }
+                { 'data.email': visitorData.email },
+                { 'data.phone': visitorData.phone }
             ]
         });
 

@@ -128,9 +128,9 @@ export default function VisitorsPage() {
             
             // CRITICAL: Filter by current user to ensure data isolation
             const [visitorList, followUpList, visitsList] = await Promise.all([
-                base44.entities.Visitor.filter({ created_by: user.email }, "-visit_date"),
-                base44.entities.VisitorFollowUp.filter({ created_by: user.email }),
-                base44.entities.VisitorVisit.filter({ created_by: user.email }, "-visit_date")
+                base44.entities.Visitor.filter({ 'data.created_by': user.email }, "-visit_date"),
+                base44.entities.VisitorFollowUp.filter({ 'data.created_by': user.email }),
+                base44.entities.VisitorVisit.filter({ 'data.created_by': user.email }, "-visit_date")
             ]);
             setVisitors(visitorList);
             setFollowUps(followUpList);
@@ -143,7 +143,24 @@ export default function VisitorsPage() {
 
     useEffect(() => {
         loadData();
-    }, [loadData]);
+
+        // Real-time subscriptions for instant updates
+        const unsubscribeVisitor = base44.entities.Visitor.subscribe((event) => {
+            if (currentUser && event.data?.data?.created_by === currentUser.email) {
+                if (event.type === 'create') {
+                    setVisitors(prev => [event.data, ...prev]);
+                } else if (event.type === 'update') {
+                    setVisitors(prev => prev.map(v => v.id === event.id ? event.data : v));
+                } else if (event.type === 'delete') {
+                    setVisitors(prev => prev.filter(v => v.id !== event.id));
+                }
+            }
+        });
+
+        return () => {
+            unsubscribeVisitor();
+        };
+    }, [loadData, currentUser]);
 
     const handleFormSubmit = async (data) => {
         try {
