@@ -60,10 +60,10 @@ export default function MembersPage() {
 
     const loadMembers = async () => {
         setIsLoading(true);
-        // Filter members by current user (created_by) - check both top-level and data.created_by
-        const allMembers = await base44.entities.Member.list("-created_date");
-        const memberList = allMembers.filter(member => 
-            member.created_by === user.email || member.created_by?.includes(user.email)
+        // Filter members by created_by field (stored in member data during registration)
+        const memberList = await base44.entities.Member.filter(
+            { created_by: user.email },
+            "-created_date"
         );
         
         // Merge with user profile pictures
