@@ -68,12 +68,14 @@ export default function MembersPage() {
             member.data?.created_by === user.email
         );
         
-        // Merge with user profile pictures
+        // Flatten member data structure and merge with user profile pictures
         const membersWithPhotos = memberList.map(member => {
-            const linkedUser = users.find(u => u.email === member.email);
+            const linkedUser = users.find(u => u.email === member.data?.email);
             return {
-                ...member,
-                profile_picture_url: linkedUser?.profile_picture_url || member.profile_picture_url
+                ...member.data,  // Flatten the nested data object
+                id: member.id,
+                created_date: member.created_date,
+                profile_picture_url: linkedUser?.profile_picture_url || member.data?.profile_picture_url
             };
         });
         
