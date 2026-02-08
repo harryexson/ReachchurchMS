@@ -60,13 +60,10 @@ export default function MembersPage() {
 
     const loadMembers = async () => {
         setIsLoading(true);
-        // Load all members - SDK auto-flattens the data object
-        const allMembers = await base44.entities.Member.list("-created_date");
-        
-        // Filter by created_by which is at the top level after SDK flattening
-        const memberList = allMembers.filter(member => 
-            member.created_by === user.email
-        );
+        // Use filter query to get members by church organization using nested data.created_by field
+        const memberList = await base44.entities.Member.filter({
+            'data.created_by': user.email
+        });
         
         // Merge with user profile pictures (data is already flattened by SDK)
         const membersWithPhotos = memberList.map(member => {
