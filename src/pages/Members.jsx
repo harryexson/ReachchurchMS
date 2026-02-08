@@ -60,10 +60,12 @@ export default function MembersPage() {
 
     const loadMembers = async () => {
         setIsLoading(true);
-        // Filter members by created_by field (stored in member data during registration)
-        const memberList = await base44.entities.Member.filter(
-            { created_by: user.email },
-            "-created_date"
+        // Load all members and filter by the created_by field stored during registration
+        const allMembers = await base44.entities.Member.list("-created_date");
+        
+        // Filter by checking if member.created_by matches the church admin's email
+        const memberList = allMembers.filter(member => 
+            member.created_by === user.email
         );
         
         // Merge with user profile pictures
