@@ -14,10 +14,10 @@ Deno.serve(async (req) => {
 
         // Check for duplicate visitor in this organization
         const existingVisitors = await base44.asServiceRole.entities.Visitor.filter({
-            'data.created_by': orgAdminEmail,
+            created_by: orgAdminEmail,
             $or: [
-                { 'data.email': visitorData.email },
-                { 'data.phone': visitorData.phone }
+                { email: visitorData.email },
+                { phone: visitorData.phone }
             ]
         });
 
@@ -29,11 +29,13 @@ Deno.serve(async (req) => {
             }, { status: 400 });
         }
 
-        // Create visitor record
+        // Create visitor record with data nested properly
         const newVisitor = await base44.asServiceRole.entities.Visitor.create({
-            ...visitorData,
-            follow_up_status: "new",
-            created_by: orgAdminEmail
+            data: {
+                ...visitorData,
+                follow_up_status: "new",
+                created_by: orgAdminEmail
+            }
         });
         
         return Response.json({ 
