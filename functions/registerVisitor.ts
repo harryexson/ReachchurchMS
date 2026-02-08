@@ -104,21 +104,25 @@ Deno.serve(async (req) => {
             }, { status: 400 });
         }
 
-        // Check for duplicate visitor in this organization
-        const existingVisitors = await base44.asServiceRole.entities.Visitor.filter({
-            created_by: orgAdminEmail,
-            $or: [
-                { email: visitorData.email },
-                { phone: visitorData.phone }
-            ]
-        });
+        // Check for duplicate visitor in this organization (only if email/phone provided)
+        if (visitorData.email || visitorData.phone) {
+            const allVisitors = await base44.asServiceRole.entities.Visitor.filter({
+                created_by: orgAdminEmail
+            });
 
-        if (existingVisitors.length > 0) {
-            return Response.json({ 
-                success: false,
-                error: 'duplicate_visitor',
-                message: 'A visitor with this email or phone number is already registered at this church.'
-            }, { status: 400 });
+            const duplicate = allVisitors.find(v => {
+                if (visitorData.email && v.email === visitorData.email) return true;
+                if (visitorData.phone && v.phone === visitorData.phone) return true;
+                return false;
+            });
+
+            if (duplicate) {
+                return Response.json({ 
+                    success: false,
+                    error: 'duplicate_visitor',
+                    message: 'A visitor with this email or phone number is already registered at this church.'
+                }, { status: 400 });
+            }
         }
 
         // Create visitor record - SDK handles data wrapping automatically
