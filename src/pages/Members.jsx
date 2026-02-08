@@ -411,9 +411,7 @@ export default function MembersPage() {
                                                                    <LinkIcon className="w-3 h-3 text-green-600" title="Has user account" />
                                                                )}
                                                            </div>
-                                                           <div className="text-xs text-slate-400">
-                                                               Church: {member.created_by || 'N/A'}
-                                                           </div>
+
                                                             {member.gender && (
                                                                 <span className="text-xs text-slate-400 capitalize">
                                                                     {member.gender}
