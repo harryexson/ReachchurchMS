@@ -132,6 +132,22 @@ Deno.serve(async (req) => {
             created_by: orgAdminEmail
         });
 
+        // Send welcome email to visitor
+        if (visitorData.email && !visitorData.email.includes('@temp.')) {
+            try {
+                await base44.integrations.Core.SendEmail({
+                    from_name: 'Church Welcome Team',
+                    to: visitorData.email,
+                    subject: "Thank You for Visiting!",
+                    body: `Hi ${visitorData.name},\n\nThank you so much for visiting our church! We're so glad you joined us.\n\nWe'll be in touch soon with ways to get connected and feel at home in our community.\n\nIf you have any questions, feel free to reply to this email.\n\nBlessings,\nChurch Team`
+                });
+                console.log('✅ Welcome email sent to:', visitorData.email);
+            } catch (emailError) {
+                console.error('Failed to send welcome email:', emailError);
+                // Continue - visitor is created, email is optional
+            }
+        }
+
         // Auto-enroll in interest-based workflows
         if (visitorData.interests && visitorData.interests.length > 0) {
             try {
