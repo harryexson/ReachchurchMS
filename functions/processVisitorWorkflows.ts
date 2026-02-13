@@ -98,6 +98,7 @@ Deno.serve(async (req) => {
                 // Personalize message
                 const churchSettings = await base44.asServiceRole.entities.ChurchSettings.list();
                 const churchName = churchSettings.length > 0 ? churchSettings[0].church_name : 'Our Church';
+                const replyToEmail = churchSettings.length > 0 ? churchSettings[0].visitor_reply_email : null;
                 
                 let personalizedMessage = step.message_body
                     .replace(/{visitor_name}/g, visitor.name)
@@ -119,14 +120,23 @@ Deno.serve(async (req) => {
                 if (step.channel === 'email' || step.channel === 'both') {
                     if (visitor.email && !visitor.email.includes('@temp.') && !visitor.email.includes('@visitor.temp')) {
                         try {
-                            await base44.asServiceRole.integrations.Core.SendEmail({
+                            const emailPayload = {
                                 to: visitor.email,
                                 from_name: churchName,
                                 subject: personalizedSubject,
                                 body: personalizedMessage
-                            });
+                            };
                             
-                            console.log(`✅ Email sent to ${visitor.email}`);
+                            // Add reply-to if visitor follow-up leader is assigned
+                            if (replyToEmail) {
+                                emailPayload.reply_to = replyToEmail;
+                                personalizedMessage += `\n\n---\nReplies to this email will go to your follow-up coordinator.`;
+                                emailPayload.body = personalizedMessage;
+                            }
+                            
+                            await base44.asServiceRole.integrations.Core.SendEmail(emailPayload);
+                            
+                            console.log(`✅ Email sent to ${visitor.email}${replyToEmail ? ` (Reply-To: ${replyToEmail})` : ''}`);
                             messageSent = true;
                             sent++;
                         } catch (emailError) {
