@@ -41,6 +41,33 @@ export default function RoleManagement() {
         }
     };
 
+    const handleDeleteUserFromRole = async (role) => {
+        try {
+            // Get all users assigned to this role
+            const userRoles = await base44.entities.UserRole.filter({ role_id: role.id });
+            
+            if (userRoles.length === 0) {
+                alert('No users are assigned to this role');
+                return;
+            }
+
+            // Show users and let admin select who to remove
+            const userList = userRoles.map(ur => ur.user_name).join('\n');
+            if (!confirm(`This role is assigned to:\n\n${userList}\n\nDelete all these user assignments?`)) return;
+
+            // Delete all user role assignments
+            for (const ur of userRoles) {
+                await base44.entities.UserRole.delete(ur.id);
+            }
+
+            alert('All user assignments removed from this role');
+            await loadRoles();
+        } catch (error) {
+            console.error('Error removing users from role:', error);
+            alert('Failed to remove users from role');
+        }
+    };
+
     const handleSave = async () => {
         try {
             if (editingRole) {
@@ -265,6 +292,15 @@ export default function RoleManagement() {
                                 <div className="flex gap-2">
                                     <Button variant="outline" size="sm" onClick={() => handleEdit(role)}>
                                         <Edit2 className="w-4 h-4" />
+                                    </Button>
+                                    <Button 
+                                        variant="outline" 
+                                        size="sm" 
+                                        onClick={() => handleDeleteUserFromRole(role)}
+                                        className="text-orange-600 hover:bg-orange-50"
+                                    >
+                                        <Users className="w-4 h-4 mr-1" />
+                                        Remove Users
                                     </Button>
                                     {!role.is_system_role && (
                                         <Button variant="outline" size="sm" onClick={() => handleDelete(role)} className="text-red-600">

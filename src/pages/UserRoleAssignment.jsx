@@ -96,6 +96,27 @@ export default function UserRoleAssignment() {
         }
     };
 
+    const handleDeleteUser = async (member) => {
+        if (!confirm(`Delete ${member.first_name} ${member.last_name} from the system? This will remove their profile and all role assignments.`)) return;
+
+        try {
+            // Delete all user roles for this member
+            const userRolesToDelete = userRoles.filter(ur => ur.user_email === member.email);
+            for (const ur of userRolesToDelete) {
+                await base44.entities.UserRole.delete(ur.id);
+            }
+            
+            // Delete the member record
+            await base44.entities.Member.delete(member.id);
+            
+            await loadData();
+            alert('User profile deleted successfully');
+        } catch (error) {
+            console.error('Error deleting user:', error);
+            alert('Failed to delete user profile');
+        }
+    };
+
     if (loading || permLoading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
@@ -236,7 +257,7 @@ export default function UserRoleAssignment() {
                                     <Card key={member.email || member.id} className="border-slate-200">
                                         <CardContent className="p-4">
                                             <div className="flex justify-between items-start">
-                                                <div className="flex items-start gap-3">
+                                                <div className="flex items-start gap-3 flex-1">
                                                     <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
                                                         <Users className="w-6 h-6 text-blue-600" />
                                                     </div>
@@ -275,6 +296,15 @@ export default function UserRoleAssignment() {
                                                         </div>
                                                     </div>
                                                 </div>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="text-red-600 hover:bg-red-50 hover:text-red-700"
+                                                    onClick={() => handleDeleteUser(member)}
+                                                >
+                                                    <Trash2 className="w-4 h-4 mr-2" />
+                                                    Delete User
+                                                </Button>
                                             </div>
                                         </CardContent>
                                     </Card>
