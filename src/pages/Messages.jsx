@@ -305,14 +305,14 @@ export default function MessagesPage() {
     }
 
     return (
-        <div className="min-h-screen bg-white">
+        <div className="min-h-screen bg-white md:bg-gradient-to-br md:from-slate-50 md:to-blue-50/30">
             <div className="h-screen flex flex-col">
-                {/* Email-style Header */}
-                <div className="bg-white border-b px-6 py-4">
+                {/* Email-style Header - Native Mobile */}
+                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 md:bg-white md:border-b px-4 md:px-6 py-3 md:py-4 text-white md:text-slate-900 shadow-md md:shadow-none safe-area-inset-top">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <Mail className="w-6 h-6 text-blue-600" />
-                            <h1 className="text-2xl font-bold text-slate-900">Reach Messenger</h1>
+                            <Mail className="w-6 h-6 md:text-blue-600" />
+                            <h1 className="text-xl md:text-2xl font-bold">Reach Messenger</h1>
                         </div>
                         <div className="flex items-center gap-2">
                             <Button 
@@ -352,8 +352,8 @@ export default function MessagesPage() {
                 </div>
 
                 <div className="flex-1 flex overflow-hidden">
-                    {/* Sidebar */}
-                    <div className="w-64 border-r bg-slate-50 flex flex-col">
+                    {/* Sidebar - Hidden on mobile */}
+                    <div className="hidden md:flex w-64 border-r bg-slate-50 flex-col">
                         {/* Filter Tabs */}
                         <div className="p-4 space-y-1">
                             <button
@@ -407,8 +407,8 @@ export default function MessagesPage() {
                         </div>
                     </div>
 
-                    {/* Messages List */}
-                    <div className="flex-1 flex flex-col border-r bg-white">
+                    {/* Messages List - Full width on mobile */}
+                    <div className={`flex-1 flex flex-col md:border-r bg-white ${selectedThread ? 'hidden md:flex' : ''}`}>
                         <div className="p-4 border-b">
                             <div className="relative">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -483,27 +483,27 @@ export default function MessagesPage() {
                         </div>
                     </div>
 
-                    {/* Message View Panel */}
-                    <div className="flex-1 flex flex-col bg-white">
+                    {/* Message View Panel - Full width on mobile */}
+                    <div className={`flex-1 flex flex-col bg-white ${!selectedThread ? 'hidden md:flex' : ''}`}>
                         {selectedThread ? (
                             <>
-                                {/* Thread Header */}
-                                <div className="border-b px-6 py-4">
+                                {/* Thread Header - Native Mobile */}
+                                <div className="border-b px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 md:bg-white text-white md:text-slate-900 shadow-sm md:shadow-none">
                                     <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-4">
+                                        <div className="flex items-center gap-3">
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
                                                 onClick={() => setSelectedThread(null)}
-                                                className="lg:hidden"
+                                                className="md:hidden h-9 w-9 text-white hover:bg-white/10"
                                             >
                                                 <ArrowLeft className="w-5 h-5" />
                                             </Button>
                                             <div>
-                                                <h2 className="text-xl font-semibold text-slate-900">
+                                                <h2 className="text-lg md:text-xl font-semibold">
                                                     {getThreadTitle(selectedThread)}
                                                 </h2>
-                                                <p className="text-sm text-slate-500 mt-0.5">
+                                                <p className="text-xs md:text-sm opacity-80 md:opacity-100 md:text-slate-500 mt-0.5">
                                                     {selectedThread.participant_emails.length} participants
                                                 </p>
                                             </div>
@@ -529,8 +529,8 @@ export default function MessagesPage() {
                                     </div>
                                 </div>
 
-                                {/* Messages Container */}
-                                <div className="flex-1 overflow-y-auto px-6 py-4 bg-slate-50">
+                                {/* Messages Container - Native Mobile */}
+                                <div className="flex-1 overflow-y-auto px-4 py-4 bg-slate-50 overscroll-contain ios-scroll">
                                     <div className="space-y-6">
                                         {messages.map(message => (
                                             <div key={message.id} className="bg-white rounded-lg shadow-sm border p-5">
@@ -601,8 +601,8 @@ export default function MessagesPage() {
                                         ))}
                                     </div>
 
-                                    {/* Compose Reply */}
-                                    <div className="bg-white rounded-lg shadow-sm border p-4">
+                                    {/* Compose Reply - Native Mobile */}
+                                    <div className="bg-white rounded-2xl md:rounded-lg shadow-md md:shadow-sm border-0 md:border p-4 mt-4">
                                         <div className="flex items-start gap-3">
                                             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold">
                                                 {currentUser.full_name?.[0] || 'U'}
