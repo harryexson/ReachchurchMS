@@ -7,7 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { usePermissions } from '@/components/rbac/usePermissions';
-import { Users, Plus, Trash2, Search, Shield, Loader2 } from 'lucide-react';
+import { Users, Plus, Trash2, Search, Shield, Loader2, CheckSquare, Square } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function UserRoleAssignment() {
@@ -19,6 +20,7 @@ export default function UserRoleAssignment() {
     const [showAssignForm, setShowAssignForm] = useState(false);
     const [selectedMember, setSelectedMember] = useState('');
     const [selectedRole, setSelectedRole] = useState('');
+    const [selectedUsers, setSelectedUsers] = useState([]);
     const { canAccessPage, currentUser: permUser, loading: permLoading } = usePermissions();
 
     useEffect(() => {
@@ -117,6 +119,54 @@ export default function UserRoleAssignment() {
         }
     };
 
+    const toggleUserSelection = (email) => {
+        setSelectedUsers(prev => 
+            prev.includes(email) 
+                ? prev.filter(e => e !== email)
+                : [...prev, email]
+        );
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedUsers.length === filteredMembers.length) {
+            setSelectedUsers([]);
+        } else {
+            setSelectedUsers(filteredMembers.map(m => m.email));
+        }
+    };
+
+    const handleBulkDelete = async () => {
+        if (selectedUsers.length === 0) {
+            alert('Please select users to delete');
+            return;
+        }
+
+        if (!confirm(`Delete ${selectedUsers.length} selected user(s) from the system? This will remove their profiles and all role assignments.`)) return;
+
+        try {
+            for (const email of selectedUsers) {
+                const member = members.find(m => m.email === email);
+                if (!member) continue;
+
+                // Delete all user roles for this member
+                const userRolesToDelete = userRoles.filter(ur => ur.user_email === email);
+                for (const ur of userRolesToDelete) {
+                    await base44.entities.UserRole.delete(ur.id);
+                }
+                
+                // Delete the member record
+                await base44.entities.Member.delete(member.id);
+            }
+            
+            setSelectedUsers([]);
+            await loadData();
+            alert('Selected users deleted successfully');
+        } catch (error) {
+            console.error('Error deleting users:', error);
+            alert('Failed to delete selected users');
+        }
+    };
+
     if (loading || permLoading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
@@ -145,6 +195,11 @@ export default function UserRoleAssignment() {
                     <h1 className="text-3xl font-bold text-slate-900">User Role Assignment</h1>
                     <p className="text-slate-600 mt-1">
                         Assign custom roles to members ({members.length} members loaded)
+                        {selectedUsers.length > 0 && (
+                            <span className="ml-2 text-blue-600 font-semibold">
+                                ({selectedUsers.length} selected)
+                            </span>
+                        )}
                     </p>
                     {members.length === 0 && (
                         <Alert className="mt-2 border-yellow-200 bg-yellow-50">
@@ -154,10 +209,18 @@ export default function UserRoleAssignment() {
                         </Alert>
                     )}
                 </div>
-                <Button onClick={() => setShowAssignForm(!showAssignForm)} className="bg-blue-600">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Assign Role
-                </Button>
+                <div className="flex gap-2">
+                    {selectedUsers.length > 0 && (
+                        <Button onClick={handleBulkDelete} variant="outline" className="text-red-600 hover:bg-red-50">
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Delete Selected ({selectedUsers.length})
+                        </Button>
+                    )}
+                    <Button onClick={() => setShowAssignForm(!showAssignForm)} className="bg-blue-600">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Assign Role
+                    </Button>
+                </div>
             </div>
 
             {showAssignForm && (
@@ -233,7 +296,7 @@ export default function UserRoleAssignment() {
 
             <Card>
                 <CardHeader>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-4 mb-3">
                         <Search className="w-5 h-5 text-slate-400" />
                         <Input
                             placeholder="Search by name, email, or phone..."
@@ -242,6 +305,18 @@ export default function UserRoleAssignment() {
                             className="flex-1"
                         />
                     </div>
+                    {filteredMembers.length > 0 && (
+                        <div className="flex items-center gap-2 pt-2 border-t">
+                            <Checkbox
+                                checked={selectedUsers.length === filteredMembers.length && filteredMembers.length > 0}
+                                onCheckedChange={toggleSelectAll}
+                                id="select-all"
+                            />
+                            <Label htmlFor="select-all" className="cursor-pointer text-sm font-medium">
+                                Select All ({filteredMembers.length})
+                            </Label>
+                        </div>
+                    )}
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-4">
@@ -256,7 +331,12 @@ export default function UserRoleAssignment() {
                                 return (
                                     <Card key={member.email || member.id} className="border-slate-200">
                                         <CardContent className="p-4">
-                                            <div className="flex justify-between items-start">
+                                            <div className="flex justify-between items-start gap-3">
+                                                <Checkbox
+                                                    checked={selectedUsers.includes(member.email)}
+                                                    onCheckedChange={() => toggleUserSelection(member.email)}
+                                                    className="mt-4"
+                                                />
                                                 <div className="flex items-start gap-3 flex-1">
                                                     <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
                                                         <Users className="w-6 h-6 text-blue-600" />
