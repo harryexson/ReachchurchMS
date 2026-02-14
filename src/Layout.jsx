@@ -924,7 +924,7 @@ export default function Layout({ children, currentPageName }) {
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="p-6 border-b border-slate-200">
+          <div className="p-6 border-b border-slate-200 flex-shrink-0">
             <Link
               to={currentUser?.role === 'admin' ? createPageUrl("Dashboard") : createPageUrl("MemberDashboard")}
               className="flex items-center gap-3 group"
@@ -938,7 +938,7 @@ export default function Layout({ children, currentPageName }) {
             </Link>
           </div>
 
-          <nav className="flex-1 overflow-y-auto p-4 space-y-1">
+          <nav className="flex-1 overflow-y-auto p-4 space-y-1 pb-0">
             {currentUser.role !== 'admin' && (
               <Button
                 onClick={() => {
@@ -977,16 +977,16 @@ export default function Layout({ children, currentPageName }) {
             })}
           </nav>
 
-          <div className="p-4 border-t border-slate-200">
+          <div className="sticky bottom-0 p-4 border-t border-slate-200 bg-white flex-shrink-0">
             <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-3 flex-1">
-                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
                   <span className="text-blue-600 font-semibold">
                     {currentUser.full_name ? currentUser.full_name[0].toUpperCase() : "U"}
                   </span>
                 </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-slate-900">{currentUser.full_name}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-slate-900 truncate">{currentUser.full_name}</p>
                   <p className="text-xs text-slate-500">
                     {currentUser.role === 'admin' ? 'Administrator' : 'Member'}
                   </p>
