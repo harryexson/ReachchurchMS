@@ -8,7 +8,7 @@ import {
     MessageSquare, X, Send, Minimize2, Maximize2, 
     Search, User, Clock, Check, CheckCheck, Users, Mic, Image, Smile, Camera
 } from "lucide-react";
-import { motion, AnimatePresence, useMotionValue, useTransform, PanInfo } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function FloatingChat() {
     const [isOpen, setIsOpen] = useState(false);
