@@ -130,7 +130,7 @@ export default function VisitorsPage() {
             
             // Load all visitors for this organization
             const visitorList = await base44.entities.Visitor.filter({ 
-                created_by: user.email 
+                "data.created_by": user.email 
             }, "-visit_date");
             
             console.log('Loaded visitors:', visitorList.length);
@@ -138,8 +138,8 @@ export default function VisitorsPage() {
             
             // Load related data
             const [followUpList, visitsList] = await Promise.all([
-                base44.entities.VisitorFollowUp.filter({ created_by: user.email }),
-                base44.entities.VisitorVisit.filter({ created_by: user.email }, "-visit_date")
+                base44.entities.VisitorFollowUp.filter({ "data.created_by": user.email }),
+                base44.entities.VisitorVisit.filter({ "data.created_by": user.email }, "-visit_date")
             ]);
             setFollowUps(followUpList);
             setVisitorVisits(visitsList);
@@ -161,7 +161,7 @@ export default function VisitorsPage() {
 
         // Real-time subscriptions for instant updates
         const unsubscribeVisitor = base44.entities.Visitor.subscribe((event) => {
-            if (event.data?.created_by === currentUser.email) {
+            if (event.data?.data?.created_by === currentUser.email) {
                 if (event.type === 'create') {
                     setVisitors(prev => [event.data, ...prev]);
                 } else if (event.type === 'update') {

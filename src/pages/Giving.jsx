@@ -42,8 +42,8 @@ export default function GivingPage() {
         const user = await base44.auth.me();
         
         const [donationsList, membersList] = await Promise.all([
-            base44.entities.Donation.filter({ created_by: user.email }, "-donation_date"),
-            base44.entities.Member.filter({ created_by: user.email })
+            base44.entities.Donation.filter({ "data.created_by": user.email }, "-donation_date"),
+            base44.entities.Member.filter({ "data.created_by": user.email })
         ]);
         setDonations(donationsList);
         setMembers(membersList);
