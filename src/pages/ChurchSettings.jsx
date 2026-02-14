@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Church, MapPin, Phone, Mail, Users, Upload, Loader2, Save, Shield, Palette, AlertCircle } from "lucide-react";
+import { Church, MapPin, Phone, Mail, Users, Upload, Loader2, Save, Shield, Palette, AlertCircle, CreditCard, CheckCircle, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 
 export default function ChurchSettingsPage() {
@@ -19,6 +19,7 @@ export default function ChurchSettingsPage() {
     const [churchSettings, setChurchSettings] = useState(null);
     const [uploadingLogo, setUploadingLogo] = useState(false);
     const [uploadingHero, setUploadingHero] = useState(false);
+    const [isCreatingStripeAccount, setIsCreatingStripeAccount] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -150,6 +151,29 @@ export default function ChurchSettingsPage() {
         setUploadingHero(false);
     };
 
+    const handleStripeOnboarding = async () => {
+        setIsCreatingStripeAccount(true);
+        try {
+            const { createStripeConnectAccount } = await import("@/functions/createStripeConnectAccount");
+            const response = await createStripeConnectAccount({
+                church_name: churchSettings?.church_name || "Church",
+                return_url: window.location.href,
+                refresh_url: window.location.href
+            });
+
+            if (response.data.success && response.data.onboarding_url) {
+                // Redirect to Stripe onboarding
+                window.location.href = response.data.onboarding_url;
+            } else {
+                toast.error('Failed to start Stripe onboarding');
+            }
+        } catch (error) {
+            console.error('Stripe onboarding error:', error);
+            toast.error('Failed to connect to Stripe');
+        }
+        setIsCreatingStripeAccount(false);
+    };
+
     if (isLoading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
@@ -181,6 +205,53 @@ export default function ChurchSettingsPage() {
                     </h1>
                     <p className="text-slate-600 mt-1">Manage your church's information and branding</p>
                 </div>
+
+                {/* Stripe Onboarding Banner - Show if not connected */}
+                {(!churchSettings?.stripe_account_id || !churchSettings?.payouts_enabled) && (
+                    <Alert className="border-green-200 bg-gradient-to-r from-green-50 to-emerald-50">
+                        <CreditCard className="w-5 h-5 text-green-600" />
+                        <AlertDescription className="flex items-center justify-between">
+                            <div className="flex-1">
+                                <h3 className="font-semibold text-green-900 mb-1">Accept Online Donations with Stripe</h3>
+                                <p className="text-sm text-green-800">
+                                    {!churchSettings?.stripe_account_id 
+                                        ? "Connect your bank account to receive donations directly. Takes 5 minutes to complete."
+                                        : "Complete your Stripe onboarding to start receiving donations."}
+                                </p>
+                            </div>
+                            <Button 
+                                onClick={handleStripeOnboarding}
+                                disabled={isCreatingStripeAccount}
+                                className="bg-green-600 hover:bg-green-700 ml-4"
+                            >
+                                {isCreatingStripeAccount ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                        Connecting...
+                                    </>
+                                ) : (
+                                    <>
+                                        <ExternalLink className="w-4 h-4 mr-2" />
+                                        {!churchSettings?.stripe_account_id ? "Connect Stripe" : "Complete Setup"}
+                                    </>
+                                )}
+                            </Button>
+                        </AlertDescription>
+                    </Alert>
+                )}
+
+                {/* Stripe Connected Success Banner */}
+                {churchSettings?.stripe_account_id && churchSettings?.payouts_enabled && (
+                    <Alert className="border-green-200 bg-gradient-to-r from-green-50 to-emerald-50">
+                        <CheckCircle className="w-5 h-5 text-green-600" />
+                        <AlertDescription>
+                            <h3 className="font-semibold text-green-900">✅ Stripe Connected & Active</h3>
+                            <p className="text-sm text-green-800 mt-1">
+                                Your church is ready to accept online donations. Donations will be deposited directly to your bank account.
+                            </p>
+                        </AlertDescription>
+                    </Alert>
+                )}
 
                 <Tabs defaultValue="info" className="w-full">
                     <TabsList className="grid w-full grid-cols-4">
