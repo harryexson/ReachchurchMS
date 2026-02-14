@@ -58,9 +58,9 @@ export default function MembersPage() {
 
             // Real-time subscription for instant updates
             const unsubscribe = base44.entities.Member.subscribe((event) => {
-                if (event.type === 'create' && event.data?.data?.created_by === user.email) {
+                if (event.type === 'create' && event.data?.created_by === user.email) {
                     setMembers(prev => [event.data, ...prev]);
-                } else if (event.type === 'update' && event.data?.data?.created_by === user.email) {
+                } else if (event.type === 'update' && event.data?.created_by === user.email) {
                     setMembers(prev => prev.map(m => m.id === event.id ? event.data : m));
                 } else if (event.type === 'delete') {
                     setMembers(prev => prev.filter(m => m.id !== event.id));
@@ -73,9 +73,9 @@ export default function MembersPage() {
 
     const loadMembers = async () => {
         setIsLoading(true);
-        // Use filter query to get members by church organization using nested data.created_by field
+        // Filter members by church organization using created_by field
         const memberList = await base44.entities.Member.filter({
-            'data.created_by': user.email
+            created_by: user.email
         });
         
         // Merge with user profile pictures (data is already flattened by SDK)
