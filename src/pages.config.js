@@ -109,6 +109,7 @@ import MemberAnnouncements from './pages/MemberAnnouncements';
 import MemberContacts from './pages/MemberContacts';
 import MemberDashboard from './pages/MemberDashboard';
 import MemberGroups from './pages/MemberGroups';
+import MemberOnboarding from './pages/MemberOnboarding';
 import MemberRegistrationQR from './pages/MemberRegistrationQR';
 import MemberSermons from './pages/MemberSermons';
 import MemberSignup from './pages/MemberSignup';
@@ -165,8 +166,8 @@ import SongLibrary from './pages/SongLibrary';
 import StreamScheduler from './pages/StreamScheduler';
 import SubscriptionPlans from './pages/SubscriptionPlans';
 import Support from './pages/Support';
-import TermsOfService from './pages/TermsOfService';
 import SystemDiagnostics from './pages/SystemDiagnostics';
+import TermsOfService from './pages/TermsOfService';
 import TestingTasks from './pages/TestingTasks';
 import TextMessaging from './pages/TextMessaging';
 import ThemeSettings from './pages/ThemeSettings';
@@ -190,7 +191,6 @@ import Volunteers from './pages/Volunteers';
 import WhyReach from './pages/WhyReach';
 import WorkflowBuilder from './pages/WorkflowBuilder';
 import backoffice from './pages/backoffice';
-import MemberOnboarding from './pages/MemberOnboarding';
 import __Layout from './Layout.jsx';
 
 
@@ -257,6 +257,7 @@ export const PAGES = {
     "MemberContacts": MemberContacts,
     "MemberDashboard": MemberDashboard,
     "MemberGroups": MemberGroups,
+    "MemberOnboarding": MemberOnboarding,
     "MemberRegistrationQR": MemberRegistrationQR,
     "MemberSermons": MemberSermons,
     "MemberSignup": MemberSignup,
@@ -313,8 +314,8 @@ export const PAGES = {
     "StreamScheduler": StreamScheduler,
     "SubscriptionPlans": SubscriptionPlans,
     "Support": Support,
-    "TermsOfService": TermsOfService,
     "SystemDiagnostics": SystemDiagnostics,
+    "TermsOfService": TermsOfService,
     "TestingTasks": TestingTasks,
     "TextMessaging": TextMessaging,
     "ThemeSettings": ThemeSettings,
@@ -338,7 +339,6 @@ export const PAGES = {
     "WhyReach": WhyReach,
     "WorkflowBuilder": WorkflowBuilder,
     "backoffice": backoffice,
-    "MemberOnboarding": MemberOnboarding,
 }
 
 export const pagesConfig = {

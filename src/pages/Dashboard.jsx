@@ -75,7 +75,7 @@ export default function Dashboard() {
       try {
         // Filter members by current user's organization
         members = await base44.entities.Member.filter(
-          { created_by: user.email },
+          { "data.created_by": user.email },
           "-created_date"
         );
       } catch (error) {
@@ -89,7 +89,7 @@ export default function Dashboard() {
       try {
         // Filter donations by current user's organization
         donations = await base44.entities.Donation.filter(
-          { created_by: user.email },
+          { "data.created_by": user.email },
           "-donation_date",
           200
         );
@@ -106,7 +106,7 @@ export default function Dashboard() {
       try {
         // Filter events by current user's organization
         events = await base44.entities.Event.filter(
-          { created_by: user.email },
+          { "data.created_by": user.email },
           "-start_datetime",
           20
         );
@@ -122,7 +122,7 @@ export default function Dashboard() {
         // Filter volunteers by current user's organization
         volunteers = await base44.entities.Volunteer.filter({ 
           status: 'active',
-          created_by: user.email
+          "data.created_by": user.email
         });
       } catch (error) {
         if (!signal?.aborted) {
@@ -135,7 +135,7 @@ export default function Dashboard() {
       try {
         // Filter visitors by current user's organization
         visitors = await base44.entities.Visitor.filter(
-          { created_by: user.email },
+          { "data.created_by": user.email },
           "-visit_date"
         );
       } catch (error) {
