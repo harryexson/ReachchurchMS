@@ -1,13 +1,18 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Users, Phone, Mail, Calendar } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Users, Phone, Mail, Calendar, Brain } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
+import AIInsightsPanel from "./AIInsightsPanel";
 
 export default function CRMDashboard({ interactions, subscriptions, isLoading, onRefresh }) {
+    const [selectedSubscription, setSelectedSubscription] = useState(null);
+    const [showInsightsModal, setShowInsightsModal] = useState(false);
+
     const outcomeColors = {
         positive: "bg-green-100 text-green-800",
         neutral: "bg-yellow-100 text-yellow-800",
@@ -23,6 +28,14 @@ export default function CRMDashboard({ interactions, subscriptions, isLoading, o
         negotiation: "bg-amber-100 text-amber-800",
         closed_won: "bg-green-100 text-green-800",
         closed_lost: "bg-red-100 text-red-800"
+    };
+
+    const handleViewInsights = (churchName) => {
+        const subscription = subscriptions.find(s => s.church_name === churchName);
+        if (subscription) {
+            setSelectedSubscription(subscription);
+            setShowInsightsModal(true);
+        }
     };
 
     return (
@@ -47,6 +60,7 @@ export default function CRMDashboard({ interactions, subscriptions, isLoading, o
                                 <TableHead>Outcome</TableHead>
                                 <TableHead>Sales Stage</TableHead>
                                 <TableHead>Date</TableHead>
+                                <TableHead>AI Insights</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -95,6 +109,16 @@ export default function CRMDashboard({ interactions, subscriptions, isLoading, o
                                         <TableCell className="text-sm">
                                             {format(new Date(interaction.created_date), 'MMM d')}
                                         </TableCell>
+                                        <TableCell>
+                                            <Button 
+                                                size="sm" 
+                                                variant="outline"
+                                                onClick={() => handleViewInsights(interaction.church_name)}
+                                            >
+                                                <Brain className="w-4 h-4 mr-1" />
+                                                View
+                                            </Button>
+                                        </TableCell>
                                     </TableRow>
                                 ))
                             )}
@@ -102,6 +126,18 @@ export default function CRMDashboard({ interactions, subscriptions, isLoading, o
                     </Table>
                 </div>
             </CardContent>
+
+            {/* AI Insights Modal */}
+            <Dialog open={showInsightsModal} onOpenChange={setShowInsightsModal}>
+                <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>AI Insights - {selectedSubscription?.church_name}</DialogTitle>
+                    </DialogHeader>
+                    {selectedSubscription && (
+                        <AIInsightsPanel subscription={selectedSubscription} />
+                    )}
+                </DialogContent>
+            </Dialog>
         </Card>
     );
 }
