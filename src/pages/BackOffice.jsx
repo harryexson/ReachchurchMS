@@ -114,13 +114,13 @@ export default function BackOfficePage() {
         setIsLoading(true);
         try {
             const [subscriptionsList, ticketsList, interactionsList, usersList, invoicesList, refundsList, expensesList] = await Promise.all([
-                base44.entities.Subscription.list("-created_date"),
-                base44.entities.SupportTicket.list("-created_date"),
-                base44.entities.CustomerInteraction.list("-created_date"),
-                base44.entities.User.list("-created_date"),
-                base44.entities.Invoice.list("-created_date"),
-                base44.entities.Refund.list("-created_date"),
-                base44.entities.PlatformExpense.list("-created_date")
+                base44.entities.Subscription.list("-created_date", 200),
+                base44.entities.SupportTicket.list("-created_date", 200),
+                base44.entities.CustomerInteraction.list("-created_date", 200),
+                base44.entities.User.list("-created_date", 200),
+                base44.entities.Invoice.list("-created_date", 200),
+                base44.entities.Refund.list("-created_date", 200),
+                base44.entities.PlatformExpense.list("-created_date", 200)
             ]);
             setSubscriptions(subscriptionsList);
             setSupportTickets(ticketsList);

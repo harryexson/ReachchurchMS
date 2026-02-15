@@ -136,6 +136,12 @@ export default function SubscriptionDashboard({ subscriptions, isLoading, onRefr
                                         <TableCell><Skeleton className="h-8 w-20" /></TableCell>
                                     </TableRow>
                                 ))
+                            ) : subscriptions.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={7} className="text-center py-8 text-slate-500">
+                                        No subscriptions found. Click "Refresh Data" to reload.
+                                    </TableCell>
+                                </TableRow>
                             ) : (
                                 subscriptions.map(subscription => (
                                     <TableRow key={subscription.id}>
