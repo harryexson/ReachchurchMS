@@ -80,7 +80,10 @@ export default function SettingsPage() {
     const loadSettings = async () => {
         setIsLoading(true);
         try {
-            const settingsList = await base44.entities.ChurchSettings.list();
+            const user = await base44.auth.me();
+            const settingsList = await base44.entities.ChurchSettings.filter({
+                church_admin_email: user?.email
+            });
             if (settingsList.length > 0) {
                 setSettings(prevSettings => ({
                     ...prevSettings,
@@ -130,11 +133,17 @@ export default function SettingsPage() {
         };
 
         try {
-            const settingsList = await base44.entities.ChurchSettings.list();
+            const user = await base44.auth.me();
+            const settingsList = await base44.entities.ChurchSettings.filter({
+                church_admin_email: user?.email
+            });
             if (settingsList.length > 0) {
                 await base44.entities.ChurchSettings.update(settingsList[0].id, payload);
             } else {
-                await base44.entities.ChurchSettings.create(payload);
+                await base44.entities.ChurchSettings.create({
+                    ...payload,
+                    church_admin_email: user?.email
+                });
             }
             return true;
         } catch (error) {
@@ -207,7 +216,10 @@ export default function SettingsPage() {
             };
             setSettings(updatedSettings);
             
-            const settingsList = await base44.entities.ChurchSettings.list();
+            const user = await base44.auth.me();
+            const settingsList = await base44.entities.ChurchSettings.filter({
+                church_admin_email: user?.email
+            });
             if (settingsList.length > 0) {
                 await base44.entities.ChurchSettings.update(settingsList[0].id, updatedSettings);
             }
@@ -256,7 +268,10 @@ export default function SettingsPage() {
                 setSettings(updatedSettings);
                 
                 // Save configured status to database
-                const settingsList = await base44.entities.ChurchSettings.list();
+                const user = await base44.auth.me();
+                const settingsList = await base44.entities.ChurchSettings.filter({
+                    church_admin_email: user?.email
+                });
                 if (settingsList.length > 0) {
                     await base44.entities.ChurchSettings.update(settingsList[0].id, { sinch_configured: true });
                 }
@@ -270,7 +285,10 @@ export default function SettingsPage() {
                 });
                 
                 // Update configured status
-                const settingsList = await base44.entities.ChurchSettings.list();
+                const user = await base44.auth.me();
+                const settingsList = await base44.entities.ChurchSettings.filter({
+                    church_admin_email: user?.email
+                });
                 if (settingsList.length > 0) {
                     await base44.entities.ChurchSettings.update(settingsList[0].id, { sinch_configured: false });
                 }
@@ -283,7 +301,10 @@ export default function SettingsPage() {
                 message: error.message || 'Failed to validate Sinch credentials. Please check your Service Plan ID and API Token.' 
             });
             
-            const settingsList = await base44.entities.ChurchSettings.list();
+            const user = await base44.auth.me();
+            const settingsList = await base44.entities.ChurchSettings.filter({
+                church_admin_email: user?.email
+            });
             if (settingsList.length > 0) {
                 await base44.entities.ChurchSettings.update(settingsList[0].id, { sinch_configured: false });
             }
