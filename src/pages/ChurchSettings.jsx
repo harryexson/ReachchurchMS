@@ -154,22 +154,21 @@ export default function ChurchSettingsPage() {
     const handleStripeOnboarding = async () => {
         setIsCreatingStripeAccount(true);
         try {
-            const { createStripeConnectAccount } = await import("@/functions/createStripeConnectAccount");
-            const response = await createStripeConnectAccount({
+            const response = await base44.functions.invoke('createStripeConnectAccount', {
                 church_name: churchSettings?.church_name || "Church",
                 return_url: window.location.href,
                 refresh_url: window.location.href
             });
 
-            if (response.data.success && response.data.onboarding_url) {
+            if (response.data?.success && response.data?.onboarding_url) {
                 // Redirect to Stripe onboarding
                 window.location.href = response.data.onboarding_url;
             } else {
-                toast.error('Failed to start Stripe onboarding');
+                toast.error(response.data?.error || 'Failed to start Stripe onboarding');
             }
         } catch (error) {
             console.error('Stripe onboarding error:', error);
-            toast.error('Failed to connect to Stripe');
+            toast.error(error.response?.data?.error || error.message || 'Failed to connect to Stripe');
         }
         setIsCreatingStripeAccount(false);
     };
