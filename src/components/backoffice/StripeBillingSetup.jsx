@@ -28,8 +28,8 @@ export default function StripeBillingSetup({ subscription, onUpdate }) {
 
             const plan = pricingPlans[0];
             const priceId = subscription.billing_cycle === 'monthly' 
-                ? plan.stripe_price_id_monthly 
-                : plan.stripe_price_id_annual;
+                ? plan.stripe_monthly_price_id 
+                : plan.stripe_annual_price_id;
             
             if (!priceId) {
                 throw new Error(`No Stripe price ID configured for ${subscription.subscription_tier} - ${subscription.billing_cycle}. Please configure pricing in the Back Office.`);
