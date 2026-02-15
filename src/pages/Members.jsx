@@ -74,10 +74,10 @@ export default function MembersPage() {
     const loadMembers = async () => {
         setIsLoading(true);
         try {
-            // Load members created by the current user (their church)
-            const memberList = await base44.entities.Member.list();
+            // Load members created by the current user (their church only)
+            const memberList = await base44.entities.Member.filter({ "data.created_by": user.email });
             
-            // Merge with user profile pictures (data is already flattened by SDK)
+            // Merge with user profile pictures
             const membersWithPhotos = memberList.map(member => {
                 const linkedUser = users.find(u => u.email === member.email);
                 return {
