@@ -54,11 +54,52 @@ Deno.serve(async (req) => {
         }
 
         if (!priceId) {
-            console.error(`[${requestId}] No priceId provided`);
-            return Response.json({
-                error: 'Invalid request',
-                message: 'A valid Stripe price ID is required'
-            }, { status: 400 });
+            console.error(`[${requestId}] No priceId provided. Attempting to fetch from PricingPlan entity...`);
+            
+            // Try to fetch pricing plan if not provided
+            if (metadata.plan_tier) {
+                try {
+                    const pricingPlans = await base44.entities.PricingPlan.filter({
+                        plan_name: metadata.plan_tier
+                    });
+                    
+                    if (pricingPlans.length === 0) {
+                        console.error(`[${requestId}] No pricing plan found for tier: ${metadata.plan_tier}`);
+                        return Response.json({
+                            error: 'Invalid request',
+                            message: `No pricing plan found for the tier ${metadata.plan_tier}. Please ensure the pricing plan is set up in the Back Office.`
+                        }, { status: 400 });
+                    }
+                    
+                    const plan = pricingPlans[0];
+                    const fetchedPriceId = metadata.billing_cycle === 'annual' 
+                        ? plan.stripe_annual_price_id 
+                        : plan.stripe_monthly_price_id;
+                    
+                    if (!fetchedPriceId) {
+                        console.error(`[${requestId}] No Stripe price ID for ${metadata.plan_tier} - ${metadata.billing_cycle}`);
+                        return Response.json({
+                            error: 'Invalid request',
+                            message: `No Stripe price ID configured for ${metadata.plan_tier} - ${metadata.billing_cycle}. Please run setupSubscriptionProducts.`
+                        }, { status: 400 });
+                    }
+                    
+                    console.log(`[${requestId}] Using fetched price ID: ${fetchedPriceId}`);
+                    // Continue with fetched priceId
+                    body.priceId = fetchedPriceId;
+                } catch (err) {
+                    console.error(`[${requestId}] Error fetching pricing plan:`, err.message);
+                    return Response.json({
+                        error: 'Invalid request',
+                        message: 'A valid Stripe price ID is required'
+                    }, { status: 400 });
+                }
+            } else {
+                return Response.json({
+                    error: 'Invalid request',
+                    message: 'A valid Stripe price ID is required'
+                }, { status: 400 });
+            }
         }
 
         console.log(`[${requestId}] Creating checkout with price: ${priceId}`);
