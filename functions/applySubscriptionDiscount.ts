@@ -48,8 +48,20 @@ Deno.serve(async (req) => {
             }, { status: 400 });
         }
 
+        console.log('Subscription data:', JSON.stringify({
+            id: subscription.id,
+            church_name: subscription.church_name,
+            status: subscription.status,
+            stripe_subscription_id: subscription.stripe_subscription_id,
+            stripe_customer_id: subscription.stripe_customer_id
+        }, null, 2));
+
         if (!subscription.stripe_subscription_id) {
-            return Response.json({ error: 'No Stripe subscription found' }, { status: 400 });
+            return Response.json({ 
+                error: 'No Stripe subscription found',
+                details: 'This subscription has not been connected to Stripe yet. The customer must complete checkout first.',
+                subscription_status: subscription.status
+            }, { status: 400 });
         }
 
         console.log('Applying discount to subscription:', subscription.church_name);
