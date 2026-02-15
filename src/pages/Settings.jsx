@@ -165,6 +165,17 @@ export default function SettingsPage() {
         setConnectResult(null);
 
         try {
+            // First save settings to ensure church_admin_email is stored
+            const saved = await handleSave();
+            if (!saved) {
+                alert("Failed to save settings. Please try again.");
+                setIsConnecting(false);
+                return;
+            }
+
+            // Small delay to ensure database is updated
+            await new Promise(resolve => setTimeout(resolve, 500));
+
             const response = await base44.functions.invoke('createStripeConnectAccount', {
                 church_name: settings.church_name,
                 return_url: `${window.location.origin}${window.location.pathname}?connected=true`,
