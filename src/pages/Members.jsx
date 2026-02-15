@@ -73,19 +73,24 @@ export default function MembersPage() {
 
     const loadMembers = async () => {
         setIsLoading(true);
-        // Load all members (no filter - all members belong to the church)
-        const memberList = await base44.entities.Member.list();
-        
-        // Merge with user profile pictures (data is already flattened by SDK)
-        const membersWithPhotos = memberList.map(member => {
-            const linkedUser = users.find(u => u.email === member.email);
-            return {
-                ...member,
-                profile_picture_url: linkedUser?.profile_picture_url || member.profile_picture_url
-            };
-        });
-        
-        setMembers(membersWithPhotos);
+        try {
+            // Load members created by the current user (their church)
+            const memberList = await base44.entities.Member.list();
+            
+            // Merge with user profile pictures (data is already flattened by SDK)
+            const membersWithPhotos = memberList.map(member => {
+                const linkedUser = users.find(u => u.email === member.email);
+                return {
+                    ...member,
+                    profile_picture_url: linkedUser?.profile_picture_url || member.profile_picture_url
+                };
+            });
+            
+            setMembers(membersWithPhotos);
+        } catch (error) {
+            console.error('Error loading members:', error);
+            setMembers([]);
+        }
         setIsLoading(false);
     };
 
