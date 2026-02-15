@@ -15,10 +15,20 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Admin access required' }, { status: 403 });
         }
 
-        const { subscription_id, discount_type, discount_value, duration, duration_months, reason } = await req.json();
+        const body = await req.json();
+        const { subscription_id, discount_type, discount_value, duration, duration_months, reason } = body;
 
-        if (!subscription_id || !discount_type || !discount_value || !duration || !reason) {
-            return Response.json({ error: 'Missing required fields' }, { status: 400 });
+        console.log('Received discount request:', { subscription_id, discount_type, discount_value, duration, duration_months, reason });
+
+        if (!subscription_id || !discount_type || discount_value === undefined || !duration || !reason) {
+            return Response.json({ 
+                error: 'Missing required fields',
+                received: { subscription_id, discount_type, discount_value, duration, reason }
+            }, { status: 400 });
+        }
+
+        if (duration === 'repeating' && !duration_months) {
+            return Response.json({ error: 'Duration months required for repeating discounts' }, { status: 400 });
         }
 
         // Get subscription
@@ -34,18 +44,18 @@ Deno.serve(async (req) => {
         console.log('Applying discount to subscription:', subscription.church_name);
 
         // Create coupon in Stripe
-        const couponId = `custom_${subscription_id}_${Date.now()}`;
+        const couponId = `custom_${subscription_id.substring(0, 8)}_${Date.now()}`;
         let couponParams;
 
         if (discount_type === 'percentage') {
             couponParams = {
-                percent_off: discount_value,
+                percent_off: parseFloat(discount_value),
                 duration: duration,
                 name: `Custom discount for ${subscription.church_name}`,
             };
         } else {
             couponParams = {
-                amount_off: Math.round(discount_value * 100), // Convert to cents
+                amount_off: Math.round(parseFloat(discount_value) * 100), // Convert to cents
                 currency: 'usd',
                 duration: duration,
                 name: `Custom discount for ${subscription.church_name}`,
@@ -53,8 +63,10 @@ Deno.serve(async (req) => {
         }
 
         if (duration === 'repeating' && duration_months) {
-            couponParams.duration_in_months = duration_months;
+            couponParams.duration_in_months = parseInt(duration_months);
         }
+
+        console.log('Creating Stripe coupon with params:', couponParams);
 
         const coupon = await stripe.coupons.create({
             id: couponId,

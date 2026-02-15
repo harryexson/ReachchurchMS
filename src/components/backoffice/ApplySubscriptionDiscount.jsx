@@ -22,9 +22,14 @@ export default function ApplySubscriptionDiscount({ subscription, open, onClose,
             return;
         }
 
+        if (duration === 'repeating' && !durationMonths) {
+            alert('Please specify number of months for repeating discount');
+            return;
+        }
+
         setSaving(true);
         try {
-            await base44.functions.invoke('applySubscriptionDiscount', {
+            const response = await base44.functions.invoke('applySubscriptionDiscount', {
                 subscription_id: subscription.id,
                 discount_type: discountType,
                 discount_value: parseFloat(discountValue),
@@ -32,6 +37,8 @@ export default function ApplySubscriptionDiscount({ subscription, open, onClose,
                 duration_months: duration === 'repeating' ? parseInt(durationMonths) : null,
                 reason: reason
             });
+
+            console.log('Discount response:', response);
 
             alert('Discount applied successfully!');
             onSuccess();
