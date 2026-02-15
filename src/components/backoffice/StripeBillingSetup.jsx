@@ -17,26 +17,22 @@ export default function StripeBillingSetup({ subscription, onUpdate }) {
         setError(null);
 
         try {
-            // Determine the Stripe price ID based on tier and billing cycle
-            const priceIds = {
-                starter: {
-                    monthly: 'price_starter_monthly',
-                    annually: 'price_starter_annual'
-                },
-                growth: {
-                    monthly: 'price_growth_monthly', 
-                    annually: 'price_growth_annual'
-                },
-                premium: {
-                    monthly: 'price_premium_monthly',
-                    annually: 'price_premium_annual'
-                }
-            };
+            // Fetch Stripe price IDs from PricingPlan entity
+            const pricingPlans = await base44.entities.PricingPlan.filter({
+                tier: subscription.subscription_tier
+            });
 
-            const priceId = priceIds[subscription.subscription_tier]?.[subscription.billing_cycle];
+            if (pricingPlans.length === 0) {
+                throw new Error(`No pricing plan found for tier: ${subscription.subscription_tier}`);
+            }
+
+            const plan = pricingPlans[0];
+            const priceId = subscription.billing_cycle === 'monthly' 
+                ? plan.stripe_price_id_monthly 
+                : plan.stripe_price_id_annual;
             
             if (!priceId) {
-                throw new Error('Invalid subscription tier or billing cycle');
+                throw new Error(`No Stripe price ID configured for ${subscription.subscription_tier} - ${subscription.billing_cycle}. Please configure pricing in the Back Office.`);
             }
 
             const host = window.location.origin;
