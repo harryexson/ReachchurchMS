@@ -73,9 +73,11 @@ Deno.serve(async (req) => {
 
         console.log('✅ Success! Returning onboarding URL');
         return Response.json({
-            success: true,
-            account_id: account.id,
-            onboarding_url: accountLink.url
+            data: {
+                success: true,
+                account_id: account.id,
+                onboarding_url: accountLink.url
+            }
         });
 
     } catch (error) {
