@@ -52,7 +52,9 @@ Deno.serve(async (req) => {
 
         // Save the Stripe account ID to church settings
         console.log('💾 Saving account ID to settings...');
-        const settings = await base44.asServiceRole.entities.ChurchSettings.list();
+        const settings = await base44.asServiceRole.entities.ChurchSettings.filter({
+            church_admin_email: user.email
+        });
         if (settings.length > 0) {
             await base44.asServiceRole.entities.ChurchSettings.update(settings[0].id, {
                 stripe_account_id: account.id,
@@ -62,6 +64,7 @@ Deno.serve(async (req) => {
         } else {
             await base44.asServiceRole.entities.ChurchSettings.create({
                 church_name: church_name,
+                church_admin_email: user.email,
                 stripe_account_id: account.id,
                 bank_account_connected: false,
                 payouts_enabled: false
