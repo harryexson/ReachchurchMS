@@ -19,7 +19,7 @@ export default function StripeBillingSetup({ subscription, onUpdate }) {
         try {
             // Fetch Stripe price IDs from PricingPlan entity
             const pricingPlans = await base44.entities.PricingPlan.filter({
-                tier: subscription.subscription_tier
+                plan_name: subscription.subscription_tier
             });
 
             if (pricingPlans.length === 0) {
