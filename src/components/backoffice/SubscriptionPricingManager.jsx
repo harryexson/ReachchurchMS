@@ -8,7 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { DollarSign, Edit, Plus, Trash2, Percent, Tag, Calendar } from 'lucide-react';
+import { DollarSign, Edit, Plus, Trash2, Percent, Tag, Calendar, Ticket } from 'lucide-react';
+import PromoCodeManager from './PromoCodeManager';
 
 export default function SubscriptionPricingManager() {
     const [pricingPlans, setPricingPlans] = useState([]);
@@ -187,6 +188,9 @@ export default function SubscriptionPricingManager() {
 
     return (
         <div className="space-y-6">
+            {/* Promo Codes Section */}
+            <PromoCodeManager />
+
             {/* Pricing Plans Management */}
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between">

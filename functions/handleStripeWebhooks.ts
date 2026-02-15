@@ -261,18 +261,49 @@ async function createOrUpdateSubscription(base44, session) {
 
     console.log(`📊 Computed status: ${dbStatus} (Stripe: ${subscription.status})`);
 
+    // Apply promo code discount if present
+    let finalMonthlyPrice = monthlyPrice;
+    let finalAnnualPrice = annualPrice;
+    let appliedPromoCode = null;
+
+    if (metadata.promo_code) {
+        try {
+            const promoCodes = await base44.asServiceRole.entities.PromoCode.filter({
+                code: metadata.promo_code
+            });
+            
+            if (promoCodes.length > 0) {
+                const promo = promoCodes[0];
+                appliedPromoCode = promo.code;
+                
+                if (promo.code_type === 'percentage') {
+                    finalMonthlyPrice = monthlyPrice * (1 - promo.discount_value / 100);
+                    finalAnnualPrice = annualPrice * (1 - promo.discount_value / 100);
+                } else if (promo.code_type === 'fixed_amount') {
+                    finalMonthlyPrice = Math.max(0, monthlyPrice - promo.discount_value);
+                    finalAnnualPrice = Math.max(0, annualPrice - (promo.discount_value * 12));
+                }
+                
+                console.log(`💰 Applied promo code ${promo.code}: $${monthlyPrice} → $${finalMonthlyPrice}`);
+            }
+        } catch (error) {
+            console.warn('⚠️ Could not apply promo code:', error.message);
+        }
+    }
+
     const subscriptionData = {
         church_admin_email: customerEmail,
         church_name: metadata.church_name || customerEmail.split('@')[0],
         subscription_tier: tier,
         billing_cycle: metadata.billing_cycle || 'monthly',
-        monthly_price: monthlyPrice,
-        annual_price: annualPrice,
+        monthly_price: finalMonthlyPrice,
+        annual_price: finalAnnualPrice,
         status: dbStatus,
         stripe_subscription_id: subscription.id,
         stripe_customer_id: session.customer,
         trial_end_date: subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString().split('T')[0] : null,
         next_billing_date: subscription.current_period_end ? new Date(subscription.current_period_end * 1000).toISOString().split('T')[0] : null,
+        notes: appliedPromoCode ? `Applied promo code: ${appliedPromoCode}` : null,
         features: {
             member_limit: limits.member_limit || 150,
             sms_enabled: limits.sms_enabled !== undefined ? limits.sms_enabled : tier !== 'starter',

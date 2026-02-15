@@ -41,7 +41,8 @@ Deno.serve(async (req) => {
             cancelUrl, 
             metadata = {},
             isAddon = false,
-            addonId = null
+            addonId = null,
+            promoCode = null
         } = body;
 
         if (!successUrl || !cancelUrl) {
@@ -61,6 +62,22 @@ Deno.serve(async (req) => {
         }
 
         console.log(`[${requestId}] Creating checkout with price: ${priceId}`);
+        
+        // Validate promo code if provided
+        let promoCodeData = null;
+        if (promoCode) {
+            const validateResponse = await base44.functions.invoke('validatePromoCode', {
+                code: promoCode,
+                tier: metadata.plan_tier
+            });
+            
+            if (validateResponse.data?.valid) {
+                promoCodeData = validateResponse.data.promoCode;
+                console.log(`[${requestId}] Valid promo code applied:`, promoCodeData.code);
+            } else {
+                console.log(`[${requestId}] Invalid promo code:`, validateResponse.data?.message);
+            }
+        }
         
         // Get or create Stripe customer
         let customer;
@@ -84,7 +101,8 @@ Deno.serve(async (req) => {
             console.log(`[${requestId}] Created new customer:`, customer.id);
         }
         
-        const session = await stripe.checkout.sessions.create({
+        // Build session parameters
+        const sessionParams = {
             customer: customer.id,
             payment_method_types: ['card'],
             mode: 'subscription',
@@ -98,6 +116,7 @@ Deno.serve(async (req) => {
                 plan_name: planName || 'subscription',
                 user_email: user.email,
                 user_id: user.id,
+                promo_code: promoCodeData?.code || null,
                 ...metadata
             },
             subscription_data: isAddon ? {
@@ -106,18 +125,31 @@ Deno.serve(async (req) => {
                     user_id: user.id,
                     addon_id: addonId,
                     is_addon: 'true',
+                    promo_code: promoCodeData?.code || null,
                     ...metadata
                 }
             } : {
-                trial_period_days: 14,
+                trial_period_days: promoCodeData?.code_type === 'free_trial_extension' 
+                    ? 14 + (promoCodeData.trial_extension_days || 0)
+                    : 14,
                 metadata: {
                     user_email: user.email,
                     user_id: user.id,
                     plan_name: planName || 'subscription',
+                    promo_code: promoCodeData?.code || null,
                     ...metadata
                 }
             }
-        });
+        };
+
+        // Apply discount if promo code provides one
+        if (promoCodeData && (promoCodeData.code_type === 'percentage' || promoCodeData.code_type === 'fixed_amount')) {
+            sessionParams.discounts = [{
+                coupon: await createStripeCoupon(stripe, promoCodeData)
+            }];
+        }
+
+        const session = await stripe.checkout.sessions.create(sessionParams);
         
         console.log(`[${requestId}] ✅ Session created with 14-day trial:`, session.id);
 
@@ -136,3 +168,36 @@ Deno.serve(async (req) => {
         }, { status: 500 });
     }
 });
+
+async function createStripeCoupon(stripe, promoCodeData) {
+    try {
+        // Check if coupon already exists
+        const couponId = `PROMO_${promoCodeData.code}`;
+        
+        try {
+            const existingCoupon = await stripe.coupons.retrieve(couponId);
+            return existingCoupon.id;
+        } catch (e) {
+            // Coupon doesn't exist, create it
+        }
+
+        const couponParams = {
+            id: couponId,
+            name: promoCodeData.public_description || promoCodeData.code,
+            duration: 'forever'
+        };
+
+        if (promoCodeData.code_type === 'percentage') {
+            couponParams.percent_off = promoCodeData.discount_value;
+        } else if (promoCodeData.code_type === 'fixed_amount') {
+            couponParams.amount_off = Math.round(promoCodeData.discount_value * 100);
+            couponParams.currency = 'usd';
+        }
+
+        const coupon = await stripe.coupons.create(couponParams);
+        return coupon.id;
+    } catch (error) {
+        console.error('Error creating Stripe coupon:', error);
+        return null;
+    }
+}
