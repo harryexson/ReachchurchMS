@@ -7,15 +7,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { CreditCard, Pause, Play, Trash2, MessageSquare, FileText, Phone, Mail, Eye, Percent } from "lucide-react";
+import { CreditCard, Pause, Play, Trash2, MessageSquare, FileText, Phone, Mail, Eye, Percent, AlertCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import ApplySubscriptionDiscount from "./ApplySubscriptionDiscount";
+import StripeBillingSetup from "./StripeBillingSetup";
 
 export default function SubscriptionDashboard({ subscriptions, isLoading, onRefresh, canManage }) {
     const [selectedSubscription, setSelectedSubscription] = useState(null);
     const [showActionsDialog, setShowActionsDialog] = useState(false);
     const [showDiscountDialog, setShowDiscountDialog] = useState(false);
+    const [showBillingSetup, setShowBillingSetup] = useState(false);
     const [actionType, setActionType] = useState(null);
     const [actionNote, setActionNote] = useState("");
     const [isSaving, setIsSaving] = useState(false);
@@ -186,6 +188,20 @@ export default function SubscriptionDashboard({ subscriptions, isLoading, onRefr
                                         </TableCell>
                                         <TableCell>
                                             <div className="flex gap-1 flex-wrap">
+                                                {!subscription.stripe_customer_id && (
+                                                    <Button 
+                                                        size="sm" 
+                                                        variant="outline"
+                                                        className="border-orange-300 text-orange-700 hover:bg-orange-50"
+                                                        onClick={() => {
+                                                            setSelectedSubscription(subscription);
+                                                            setShowBillingSetup(true);
+                                                        }}
+                                                        title="Set up Stripe billing"
+                                                    >
+                                                        <AlertCircle className="w-3 h-3" />
+                                                    </Button>
+                                                )}
                                                 <Button 
                                                     size="sm" 
                                                     variant="outline"
@@ -338,6 +354,21 @@ export default function SubscriptionDashboard({ subscriptions, isLoading, onRefr
                     }}
                     onSuccess={onRefresh}
                 />
+
+                {/* Stripe Billing Setup Dialog */}
+                <Dialog open={showBillingSetup} onOpenChange={setShowBillingSetup}>
+                    <DialogContent className="max-w-2xl">
+                        <DialogHeader>
+                            <DialogTitle>Stripe Billing Setup</DialogTitle>
+                        </DialogHeader>
+                        {selectedSubscription && (
+                            <StripeBillingSetup 
+                                subscription={selectedSubscription}
+                                onUpdate={onRefresh}
+                            />
+                        )}
+                    </DialogContent>
+                </Dialog>
             </CardContent>
         </Card>
     );
