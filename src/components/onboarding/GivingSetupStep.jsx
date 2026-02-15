@@ -1,222 +1,135 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { AlertCircle, HelpCircle } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { DollarSign, CheckCircle2, ExternalLink, CreditCard, Info } from "lucide-react";
+import { motion } from "framer-motion";
+import { toast } from "sonner";
+import { createPageUrl } from "@/utils";
 
-export default function GivingSetupStep({ onComplete }) {
-  const [setupMethod, setSetupMethod] = useState("later");
-  const [formData, setFormData] = useState({
-    donation_goal_title: "Monthly Operations",
-    donation_goal_description: "Help us continue our ministry",
-    donation_goal_monthly: 5000,
-  });
-  const [isLoading, setIsLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
+export default function GivingSetupStep({ onComplete, stepData }) {
+  const [stripeConnected, setStripeConnected] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: name === "donation_goal_monthly" ? parseFloat(value) || 0 : value,
-    }));
-  };
+  useEffect(() => {
+    checkStripeConnection();
+  }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-
+  const checkStripeConnection = async () => {
     try {
-      const settings = await base44.entities.ChurchSettings.list();
+      const settings = await base44.entities.ChurchSettings.filter({});
       if (settings.length > 0) {
-        await base44.entities.ChurchSettings.update(settings[0].id, {
-          ...formData,
-          show_goal_on_public_page: true,
-        });
+        setStripeConnected(!!settings[0].stripe_account_id);
       }
-
-      setSuccess(true);
-      setTimeout(() => {
-        onComplete();
-      }, 1500);
-    } catch (err) {
-      console.error("Error setting up giving:", err);
-      onComplete();
+    } catch (error) {
+      console.error("Error checking Stripe:", error);
     } finally {
-      setIsLoading(false);
+      setIsChecking(false);
     }
   };
 
-  if (success) {
-    return (
-      <div className="text-center py-8">
-        <div className="text-6xl mb-4">💰</div>
-        <h3 className="text-2xl font-bold text-slate-900 mb-2">Giving Setup Complete!</h3>
-        <p className="text-slate-600">Your giving page is ready for donations.</p>
-      </div>
-    );
-  }
+  const handleConnectStripe = () => {
+    window.open(createPageUrl("ChurchSettings") + "#stripe", "_blank");
+    toast.success("Church settings opened - navigate to Giving section to connect Stripe");
+  };
+
+  const handleUpdateProgress = async () => {
+    if (stepData?.onboardingData && stripeConnected) {
+      await base44.entities.OnboardingProgress.update(stepData.onboardingData.id, {
+        stripe_connected: true,
+      });
+    }
+    onComplete();
+  };
 
   return (
     <div className="space-y-6">
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <div className="flex gap-3">
-          <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-blue-900">
-            Enable online giving so your congregation can give anytime, anywhere. REACH connects to Stripe for secure payments.
+      <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+        <div>
+          <p className="font-medium text-blue-900">Enable online giving</p>
+          <p className="text-sm text-blue-800 mt-1">
+            Connect your Stripe account to accept online donations securely.
           </p>
         </div>
       </div>
 
-      <div className="space-y-3">
-        <Label className="font-semibold text-slate-900">How would you like to set up giving?</Label>
-        <div className="grid gap-3">
-          <div
-            onClick={() => setSetupMethod("goal")}
-            className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-              setupMethod === "goal"
-                ? "border-blue-600 bg-blue-50"
-                : "border-slate-200 hover:border-slate-300"
-            }`}
-          >
-            <p className="font-semibold text-slate-900">🎯 Set Giving Goal</p>
-            <p className="text-sm text-slate-600">Display a progress bar with your monthly goal</p>
-          </div>
-
-          <div
-            onClick={() => setSetupMethod("later")}
-            className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-              setupMethod === "later"
-                ? "border-blue-600 bg-blue-50"
-                : "border-slate-200 hover:border-slate-300"
-            }`}
-          >
-            <p className="font-semibold text-slate-900">⏭️ Do This Later</p>
-            <p className="text-sm text-slate-600">Configure giving settings in Church Settings</p>
-          </div>
-        </div>
-      </div>
-
-      {setupMethod === "goal" && (
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Label htmlFor="goal_title" className="font-semibold text-slate-900">
-                Goal Title
-              </Label>
-              <div className="relative group cursor-help">
-                <HelpCircle className="w-4 h-4 text-blue-600" />
-                <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block bg-slate-900 text-white text-xs rounded px-3 py-2 whitespace-nowrap z-10">
-                  What are you fundraising for?
-                </div>
+      <Card className="border-2 border-blue-200">
+        <CardContent className="p-6">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+              <CreditCard className="w-8 h-8 text-blue-600" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-xl font-bold text-slate-900">Stripe Integration</h3>
+              <p className="text-sm text-slate-600 mt-1">
+                Accept credit cards, debit cards, and digital wallets
+              </p>
+            </div>
+            {stripeConnected && (
+              <div className="flex items-center gap-2 text-green-600">
+                <CheckCircle2 className="w-6 h-6" />
+                <span className="font-semibold">Connected</span>
               </div>
-            </div>
-            <Input
-              id="goal_title"
-              name="donation_goal_title"
-              placeholder="e.g., Building Fund, Ministry Expansion"
-              value={formData.donation_goal_title}
-              onChange={handleChange}
-              className="h-11"
-            />
+            )}
           </div>
 
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Label htmlFor="goal_description" className="font-semibold text-slate-900">
-                Description
-              </Label>
-              <div className="relative group cursor-help">
-                <HelpCircle className="w-4 h-4 text-blue-600" />
-                <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block bg-slate-900 text-white text-xs rounded px-3 py-2 whitespace-nowrap z-10">
-                  Explain the purpose
-                </div>
-              </div>
+          <div className="space-y-3 mb-6">
+            <div className="flex items-center gap-3 text-sm text-slate-700">
+              <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />
+              <span>Accept donations 24/7 from anywhere</span>
             </div>
-            <Input
-              id="goal_description"
-              name="donation_goal_description"
-              placeholder="e.g., Help us expand our community outreach programs"
-              value={formData.donation_goal_description}
-              onChange={handleChange}
-              className="h-11"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Label htmlFor="goal_amount" className="font-semibold text-slate-900">
-                Monthly Goal Amount
-              </Label>
-              <div className="relative group cursor-help">
-                <HelpCircle className="w-4 h-4 text-blue-600" />
-                <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block bg-slate-900 text-white text-xs rounded px-3 py-2 whitespace-nowrap z-10">
-                  Your target monthly giving
-                </div>
-              </div>
+            <div className="flex items-center gap-3 text-sm text-slate-700">
+              <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />
+              <span>Recurring giving with automatic receipts</span>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl font-semibold text-slate-900">$</span>
-              <Input
-                id="goal_amount"
-                name="donation_goal_monthly"
-                type="number"
-                placeholder="5000"
-                value={formData.donation_goal_monthly}
-                onChange={handleChange}
-                className="h-11 text-2xl font-bold"
-              />
+            <div className="flex items-center gap-3 text-sm text-slate-700">
+              <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />
+              <span>PCI-compliant secure payment processing</span>
             </div>
-            <p className="text-xs text-slate-500">Update this anytime in your Church Settings</p>
-          </div>
-
-          <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
-            <p className="text-xs font-medium text-slate-600 mb-3">PREVIEW</p>
-            <div className="bg-white rounded border border-slate-200 p-4 space-y-3">
-              <h3 className="font-bold text-slate-900">{formData.donation_goal_title}</h3>
-              <p className="text-sm text-slate-700">{formData.donation_goal_description}</p>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-600">Progress</span>
-                  <span className="font-semibold text-slate-900">$0 / ${formData.donation_goal_monthly}</span>
-                </div>
-                <div className="w-full bg-slate-200 rounded-full h-2">
-                  <div className="bg-green-500 h-2 rounded-full" style={{ width: "0%" }} />
-                </div>
-              </div>
+            <div className="flex items-center gap-3 text-sm text-slate-700">
+              <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />
+              <span>Automatic year-end tax statements</span>
             </div>
           </div>
 
-          <Button
-            type="submit"
-            disabled={isLoading}
-            className="w-full bg-blue-600 hover:bg-blue-700 h-11"
-          >
-            {isLoading ? "Setting Up..." : "Configure Giving"}
-          </Button>
-        </form>
-      )}
+          {!stripeConnected ? (
+            <Button
+              onClick={handleConnectStripe}
+              className="w-full bg-blue-600 hover:bg-blue-700 h-12"
+            >
+              <ExternalLink className="w-5 h-5 mr-2" />
+              Connect Stripe Account
+            </Button>
+          ) : (
+            <Button
+              onClick={() => window.open(createPageUrl("PublicGiving"), "_blank")}
+              variant="outline"
+              className="w-full h-12"
+            >
+              <DollarSign className="w-5 h-5 mr-2" />
+              View Giving Page
+            </Button>
+          )}
+        </CardContent>
+      </Card>
 
-      {setupMethod === "later" && (
-        <div className="text-center py-8">
-          <div className="text-5xl mb-4">⏭️</div>
-          <p className="text-slate-600 mb-4">You can set up giving goals anytime from Church Settings.</p>
-          <Button
-            onClick={onComplete}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            Continue to Next Step
-          </Button>
-        </div>
-      )}
-
-      <div className="bg-slate-50 rounded-lg p-4">
-        <h4 className="font-semibold text-slate-900 mb-2">💡 Pro Tip</h4>
-        <p className="text-sm text-slate-700">
-          Displaying a giving goal motivates generosity and shows transparency about your ministry needs. Update it monthly based on your actual needs.
+      <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+        <p className="text-sm text-amber-900">
+          <strong>Note:</strong> You can set this up later. Stripe connection takes 2-3 minutes
+          and requires your bank information for receiving donations.
         </p>
       </div>
+
+      <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+        <Button
+          onClick={handleUpdateProgress}
+          className="w-full h-12 text-base bg-blue-600 hover:bg-blue-700"
+        >
+          <CheckCircle2 className="w-5 h-5 mr-2" />
+          {stripeConnected ? "Continue" : "Skip for Now"}
+        </Button>
+      </motion.div>
     </div>
   );
 }

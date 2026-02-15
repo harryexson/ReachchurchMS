@@ -3,189 +3,190 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AlertCircle, Plus, Trash2, HelpCircle } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
+import { UserPlus, CheckCircle2, X, Info, Mail } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
 
 export default function InviteTeamStep({ onComplete }) {
   const [invites, setInvites] = useState([{ email: "", role: "user" }]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
+  const [isSending, setIsSending] = useState(false);
 
-  const handleAddInvite = () => {
+  const addInvite = () => {
     setInvites([...invites, { email: "", role: "user" }]);
   };
 
-  const handleRemoveInvite = (index) => {
+  const removeInvite = (index) => {
     setInvites(invites.filter((_, i) => i !== index));
   };
 
-  const handleInviteChange = (index, field, value) => {
-    const updated = [...invites];
-    updated[index][field] = value;
-    setInvites(updated);
+  const updateInvite = (index, field, value) => {
+    const newInvites = [...invites];
+    newInvites[index][field] = value;
+    setInvites(newInvites);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
+  const handleSendInvites = async () => {
+    const validInvites = invites.filter((inv) => inv.email.trim());
+    
+    if (validInvites.length === 0) {
+      toast.error("Please add at least one email address");
+      return;
+    }
 
+    setIsSending(true);
     try {
-      const validInvites = invites.filter((inv) => inv.email.trim());
-
-      if (validInvites.length === 0) {
-        setSuccess(true);
-        setTimeout(() => {
-          onComplete();
-        }, 1500);
-        return;
-      }
-
+      let successCount = 0;
+      
       for (const invite of validInvites) {
         try {
           await base44.users.inviteUser(invite.email, invite.role);
-        } catch (inviteError) {
-          console.warn(`Could not invite ${invite.email}:`, inviteError);
+          successCount++;
+        } catch (error) {
+          console.error(`Failed to invite ${invite.email}:`, error);
         }
       }
 
-      setSuccess(true);
-      setTimeout(() => {
+      if (successCount > 0) {
+        toast.success(`Successfully sent ${successCount} invitation${successCount > 1 ? 's' : ''}!`);
         onComplete();
-      }, 1500);
-    } catch (err) {
-      setError(err.message);
+      } else {
+        toast.error("Failed to send invitations");
+      }
+    } catch (error) {
+      console.error("Error sending invites:", error);
+      toast.error("Failed to send invitations");
     } finally {
-      setIsLoading(false);
+      setIsSending(false);
     }
   };
 
-  if (success) {
-    return (
-      <div className="text-center py-8">
-        <div className="text-6xl mb-4">👋</div>
-        <h3 className="text-2xl font-bold text-slate-900 mb-2">Invitations Sent!</h3>
-        <p className="text-slate-600">Your team members will receive invitation emails to join REACH Church Connect.</p>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <div className="flex gap-3">
-          <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-blue-900">
-            Invite your team members to collaborate on church management. They'll receive an email invitation to join.
+      <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+        <div>
+          <p className="font-medium text-blue-900">Build your team</p>
+          <p className="text-sm text-blue-800 mt-1">
+            Invite staff members and volunteers to help manage your church operations.
           </p>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-4">
-          {invites.map((invite, index) => (
-            <div key={index} className="p-4 border border-slate-200 rounded-lg">
-              <div className="flex items-start justify-between mb-3">
-                <p className="text-sm font-medium text-slate-700">Team Member {index + 1}</p>
-                {invites.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveInvite(index)}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-
-              <div className="space-y-3">
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Label className="text-xs font-semibold text-slate-900">Email</Label>
-                    <div className="relative group cursor-help">
-                      <HelpCircle className="w-3 h-3 text-blue-600" />
-                      <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block bg-slate-900 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
-                        Their work email
-                      </div>
-                    </div>
+      <Card className="border-2 border-blue-200">
+        <CardContent className="p-6">
+          <div className="space-y-4">
+            <AnimatePresence>
+              {invites.map((invite, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="flex gap-3"
+                >
+                  <div className="flex-1">
+                    <Label htmlFor={`email-${index}`} className="sr-only">
+                      Email Address
+                    </Label>
+                    <Input
+                      id={`email-${index}`}
+                      type="email"
+                      placeholder="team.member@church.com"
+                      value={invite.email}
+                      onChange={(e) => updateInvite(index, "email", e.target.value)}
+                    />
                   </div>
-                  <Input
-                    type="email"
-                    placeholder="team@church.com"
-                    value={invite.email}
-                    onChange={(e) => handleInviteChange(index, "email", e.target.value)}
-                    className="h-10"
-                  />
-                </div>
-
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Label className="text-xs font-semibold text-slate-900">Role</Label>
-                    <div className="relative group cursor-help">
-                      <HelpCircle className="w-3 h-3 text-blue-600" />
-                      <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block bg-slate-900 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
-                        Admin or Member
-                      </div>
-                    </div>
+                  <div className="w-32">
+                    <Select
+                      value={invite.role}
+                      onValueChange={(value) => updateInvite(index, "role", value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="admin">Admin</SelectItem>
+                        <SelectItem value="user">Member</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <select
-                    value={invite.role}
-                    onChange={(e) => handleInviteChange(index, "role", e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
-                  >
-                    <option value="user">Member (Limited Access)</option>
-                    <option value="admin">Administrator (Full Access)</option>
-                  </select>
-                  <p className="text-xs text-slate-500 mt-1">
-                    {invite.role === "admin"
-                      ? "Can access all features and manage settings"
-                      : "Can view and participate in activities"}
-                  </p>
-                </div>
-              </div>
+                  {invites.length > 1 && (
+                    <Button
+                      onClick={() => removeInvite(index)}
+                      variant="ghost"
+                      size="icon"
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  )}
+                </motion.div>
+              ))}
+            </AnimatePresence>
+
+            <Button
+              onClick={addInvite}
+              variant="outline"
+              className="w-full"
+              disabled={invites.length >= 10}
+            >
+              <UserPlus className="w-4 h-4 mr-2" />
+              Add Another Person
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid md:grid-cols-2 gap-4">
+        <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0">
+              <CheckCircle2 className="w-4 h-4 text-white" />
             </div>
-          ))}
+            <div>
+              <p className="font-semibold text-green-900 text-sm">Admin Role</p>
+              <p className="text-xs text-green-800 mt-1">
+                Full access to all features, settings, and member data
+              </p>
+            </div>
+          </div>
         </div>
 
-        <Button
-          type="button"
-          variant="outline"
-          onClick={handleAddInvite}
-          className="w-full"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Another Team Member
-        </Button>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-sm text-red-800">{error}</p>
+        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
+              <CheckCircle2 className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <p className="font-semibold text-blue-900 text-sm">Member Role</p>
+              <p className="text-xs text-blue-800 mt-1">
+                Limited access to view information and self-serve features
+              </p>
+            </div>
           </div>
-        )}
+        </div>
+      </div>
 
+      <div className="flex gap-3">
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-1">
+          <Button
+            onClick={handleSendInvites}
+            disabled={isSending}
+            className="w-full h-12 text-base bg-green-600 hover:bg-green-700"
+          >
+            <Mail className="w-5 h-5 mr-2" />
+            {isSending ? "Sending Invites..." : "Send Invitations"}
+          </Button>
+        </motion.div>
         <Button
-          type="submit"
-          disabled={isLoading}
-          className="w-full bg-blue-600 hover:bg-blue-700 h-11"
-        >
-          {isLoading ? "Sending Invitations..." : "Send Team Invitations"}
-        </Button>
-
-        <Button
-          type="button"
           onClick={onComplete}
-          variant="ghost"
-          className="w-full text-slate-600"
+          variant="outline"
+          className="h-12"
         >
-          Skip This Step
+          Skip for Now
         </Button>
-      </form>
-
-      <div className="bg-slate-50 rounded-lg p-4">
-        <h4 className="font-semibold text-slate-900 mb-2">💡 Pro Tip</h4>
-        <p className="text-sm text-slate-700">
-          Start with key leaders like your pastor and communication coordinator. You can always add more people later from the User Management section.
-        </p>
       </div>
     </div>
   );

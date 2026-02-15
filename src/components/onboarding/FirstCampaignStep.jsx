@@ -4,188 +4,136 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { AlertCircle, HelpCircle } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Mail, Send, CheckCircle2, Info, Sparkles } from "lucide-react";
+import { motion } from "framer-motion";
+import { toast } from "sonner";
 
 export default function FirstCampaignStep({ onComplete }) {
-  const [campaignType, setCampaignType] = useState("email");
-  const [formData, setFormData] = useState({
-    title: "",
-    message: "",
-  });
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
+  const [subject, setSubject] = useState("Welcome to Our Church Family! 🎉");
+  const [message, setMessage] = useState(
+    "Dear Church Family,\n\nWe're excited to stay connected with you through our new church management system! You'll now receive:\n\n• Weekly service updates\n• Event invitations\n• Prayer requests\n• Important announcements\n\nBlessings,\nYour Church Leadership"
+  );
+  const [isSending, setIsSending] = useState(false);
+  const [useAI, setUseAI] = useState(false);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
-
+  const handleGenerateAI = async () => {
+    setUseAI(true);
     try {
-      if (!formData.title.trim() || !formData.message.trim()) {
-        throw new Error("Title and message are required");
-      }
-
-      await base44.entities.Announcement.create({
-        title: formData.title,
-        message: formData.message,
-        category: "general",
-        target_audience: "all_members",
-        priority: "medium",
-        status: "draft",
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Write a warm, friendly welcome email for a church announcing their new church management system. Keep it under 200 words. Include mentions of staying connected, upcoming features like events and prayer requests. Make it personal and welcoming.`,
       });
-
-      setSuccess(true);
-      setTimeout(() => {
-        onComplete();
-      }, 1500);
-    } catch (err) {
-      setError(err.message);
+      setMessage(result);
+      toast.success("AI-generated message created!");
+    } catch (error) {
+      console.error("Error generating message:", error);
+      toast.error("Failed to generate AI message");
     } finally {
-      setIsLoading(false);
+      setUseAI(false);
     }
   };
 
-  if (success) {
-    return (
-      <div className="text-center py-8">
-        <div className="text-6xl mb-4">📧</div>
-        <h3 className="text-2xl font-bold text-slate-900 mb-2">Campaign Created!</h3>
-        <p className="text-slate-600">Your first announcement has been saved as a draft. You can publish it anytime!</p>
-      </div>
-    );
-  }
+  const handleSendTest = async () => {
+    setIsSending(true);
+    try {
+      const user = await base44.auth.me();
+      
+      await base44.integrations.Core.SendEmail({
+        to: user.email,
+        subject: `[TEST] ${subject}`,
+        body: message,
+      });
+
+      toast.success("Test email sent to your inbox!");
+    } catch (error) {
+      console.error("Error sending test:", error);
+      toast.error("Failed to send test email");
+    } finally {
+      setIsSending(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <div className="flex gap-3">
-          <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-blue-900">
-            Create your first announcement to welcome your congregation. This will be saved as a draft so you can review and publish it when ready.
+      <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+        <div>
+          <p className="font-medium text-blue-900">Send your first message</p>
+          <p className="text-sm text-blue-800 mt-1">
+            Let your congregation know about your new communication system with a welcome message.
           </p>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="space-y-3">
-          <Label className="font-semibold text-slate-900">Communication Type</Label>
-          <div className="grid grid-cols-2 gap-3">
-            <div
-              onClick={() => setCampaignType("email")}
-              className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                campaignType === "email"
-                  ? "border-blue-600 bg-blue-50"
-                  : "border-slate-200 hover:border-slate-300"
-              }`}
-            >
-              <p className="font-semibold text-slate-900">📧 Email</p>
-              <p className="text-xs text-slate-600">Send to all members</p>
-            </div>
-            <div
-              onClick={() => setCampaignType("sms")}
-              className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                campaignType === "sms"
-                  ? "border-blue-600 bg-blue-50"
-                  : "border-slate-200 hover:border-slate-300"
-              }`}
-            >
-              <p className="font-semibold text-slate-900">💬 SMS</p>
-              <p className="text-xs text-slate-600">Text messages</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <Label htmlFor="title" className="font-semibold text-slate-900">
-              {campaignType === "email" ? "Subject" : "Message Title"} *
+      <Card className="border-2 border-blue-200">
+        <CardContent className="p-6 space-y-4">
+          <div>
+            <Label htmlFor="subject" className="text-base font-semibold">
+              Email Subject
             </Label>
-            <div className="relative group cursor-help">
-              <HelpCircle className="w-4 h-4 text-blue-600" />
-              <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block bg-slate-900 text-white text-xs rounded px-3 py-2 whitespace-nowrap z-10">
-                What's the main purpose of this message?
-              </div>
+            <Input
+              id="subject"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              className="mt-2"
+            />
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <Label htmlFor="message" className="text-base font-semibold">
+                Message
+              </Label>
+              <Button
+                onClick={handleGenerateAI}
+                disabled={useAI}
+                variant="outline"
+                size="sm"
+                className="gap-2"
+              >
+                <Sparkles className="w-4 h-4" />
+                {useAI ? "Generating..." : "Generate with AI"}
+              </Button>
             </div>
+            <Textarea
+              id="message"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              rows={10}
+              className="mt-2"
+            />
           </div>
-          <Input
-            id="title"
-            name="title"
-            placeholder={
-              campaignType === "email"
-                ? "e.g., Welcome to our church community!"
-                : "e.g., Summer events are coming!"
-            }
-            value={formData.title}
-            onChange={handleChange}
-            className="h-11"
-          />
-        </div>
 
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <Label htmlFor="message" className="font-semibold text-slate-900">
-              Message *
-            </Label>
-            <div className="relative group cursor-help">
-              <HelpCircle className="w-4 h-4 text-blue-600" />
-              <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block bg-slate-900 text-white text-xs rounded px-3 py-2 whitespace-nowrap z-10">
-                Keep it clear and concise
-              </div>
-            </div>
+          <div className="flex gap-3">
+            <Button
+              onClick={handleSendTest}
+              disabled={isSending}
+              variant="outline"
+              className="flex-1"
+            >
+              <Mail className="w-4 h-4 mr-2" />
+              {isSending ? "Sending..." : "Send Test to Me"}
+            </Button>
           </div>
-          <Textarea
-            id="message"
-            name="message"
-            placeholder="Write your message here. Keep it warm and welcoming!"
-            value={formData.message}
-            onChange={handleChange}
-            rows={6}
-          />
-          <p className="text-xs text-slate-500">
-            {campaignType === "sms" && "SMS messages work best under 160 characters"}
-          </p>
-        </div>
+        </CardContent>
+      </Card>
 
-        <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
-          <p className="text-xs font-medium text-slate-600 mb-3">PREVIEW</p>
-          <div className="bg-white rounded border border-slate-200 p-4">
-            <p className="font-semibold text-slate-900 text-sm mb-2">{formData.title || "Your subject here"}</p>
-            <p className="text-sm text-slate-700 whitespace-pre-wrap">
-              {formData.message || "Your message will appear here"}
-            </p>
-          </div>
-        </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-sm text-red-800">{error}</p>
-          </div>
-        )}
-
-        <Button
-          type="submit"
-          disabled={isLoading}
-          className="w-full bg-blue-600 hover:bg-blue-700 h-11"
-        >
-          {isLoading ? "Creating Campaign..." : "Create Campaign Draft"}
-        </Button>
-      </form>
-
-      <div className="bg-slate-50 rounded-lg p-4">
-        <h4 className="font-semibold text-slate-900 mb-2">💡 Pro Tip</h4>
-        <p className="text-sm text-slate-700">
-          Start with a warm welcome message. This helps set the tone and shows your congregation you're excited to connect with them.
+      <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+        <p className="text-sm text-amber-900">
+          <strong>Pro tip:</strong> Send a test email to yourself first to preview how it looks.
+          You can send the full campaign to your members from the Communication Hub later.
         </p>
       </div>
+
+      <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+        <Button
+          onClick={onComplete}
+          className="w-full h-12 text-base bg-blue-600 hover:bg-blue-700"
+        >
+          <CheckCircle2 className="w-5 h-5 mr-2" />
+          Continue
+        </Button>
+      </motion.div>
     </div>
   );
 }

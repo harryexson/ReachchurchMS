@@ -3,208 +3,165 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AlertCircle, Upload, Plus } from "lucide-react";
+import { Users, Upload, Plus, CheckCircle2, Info, FileSpreadsheet } from "lucide-react";
+import { motion } from "framer-motion";
+import { toast } from "sonner";
+import { createPageUrl } from "@/utils";
 
 export default function MembersSetupStep({ onComplete }) {
-  const [importMethod, setImportMethod] = useState("manual");
-  const [manualMembers, setManualMembers] = useState([
-    { first_name: "", last_name: "", email: "" },
-  ]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [memberCount, setMemberCount] = useState(0);
 
-  const handleAddMember = () => {
-    setManualMembers([...manualMembers, { first_name: "", last_name: "", email: "" }]);
-  };
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-  const handleMemberChange = (index, field, value) => {
-    const updated = [...manualMembers];
-    updated[index][field] = value;
-    setManualMembers(updated);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
-
+    setIsUploading(true);
     try {
-      const validMembers = manualMembers.filter(
-        (m) => m.first_name && m.last_name && m.email
-      );
+      // Upload file
+      const uploadResult = await base44.integrations.Core.UploadFile({ file });
 
-      if (validMembers.length === 0) {
-        setSuccess(true);
+      // Extract member data from CSV/Excel
+      const extractResult = await base44.integrations.Core.ExtractDataFromUploadedFile({
+        file_url: uploadResult.file_url,
+        json_schema: {
+          type: "object",
+          properties: {
+            first_name: { type: "string" },
+            last_name: { type: "string" },
+            email: { type: "string" },
+            phone: { type: "string" },
+          },
+        },
+      });
+
+      if (extractResult.status === "success" && extractResult.output) {
+        const members = Array.isArray(extractResult.output) ? extractResult.output : [extractResult.output];
+        
+        // Bulk create members
+        await base44.entities.Member.bulkCreate(
+          members.map((m) => ({
+            first_name: m.first_name,
+            last_name: m.last_name,
+            email: m.email,
+            phone: m.phone,
+            member_status: "member",
+          }))
+        );
+
+        setMemberCount(members.length);
+        toast.success(`Successfully imported ${members.length} members!`);
         onComplete();
-        return;
+      } else {
+        toast.error("Failed to extract member data from file");
       }
-
-      const membersToCreate = validMembers.map((m) => ({
-        first_name: m.first_name,
-        last_name: m.last_name,
-        email: m.email,
-        member_status: "member",
-      }));
-
-      await base44.entities.Member.bulkCreate(membersToCreate);
-
-      setSuccess(true);
-      setTimeout(() => {
-        onComplete();
-      }, 1500);
-    } catch (err) {
-      setError(err.message);
+    } catch (error) {
+      console.error("Error uploading members:", error);
+      toast.error("Failed to import members");
     } finally {
-      setIsLoading(false);
+      setIsUploading(false);
     }
   };
 
-  if (success) {
-    return (
-      <div className="text-center py-8">
-        <div className="text-6xl mb-4">✅</div>
-        <h3 className="text-2xl font-bold text-slate-900 mb-2">Members Added!</h3>
-        <p className="text-slate-600">Your members have been successfully added to the system.</p>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <div className="flex gap-3">
-          <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-blue-900">
-            You can add members now or skip this step. You can always import members later in the Members section.
+      <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+        <div>
+          <p className="font-medium text-blue-900">Import your congregation</p>
+          <p className="text-sm text-blue-800 mt-1">
+            Upload a CSV or Excel file with member information, or add them manually later.
           </p>
         </div>
       </div>
 
-      <div className="space-y-3">
-        <Label className="font-semibold text-slate-900">How would you like to add members?</Label>
-        <div className="grid gap-3">
-          <div
-            onClick={() => setImportMethod("manual")}
-            className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-              importMethod === "manual"
-                ? "border-blue-600 bg-blue-50"
-                : "border-slate-200 hover:border-slate-300"
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <Plus className="w-5 h-5" />
+      <div className="grid md:grid-cols-2 gap-4">
+        {/* Upload Members */}
+        <motion.div
+          whileHover={{ scale: 1.02 }}
+          className="p-6 border-2 border-dashed border-blue-300 rounded-lg bg-blue-50 cursor-pointer hover:bg-blue-100 transition-colors"
+        >
+          <Label htmlFor="member-upload" className="cursor-pointer">
+            <div className="text-center space-y-3">
+              <FileSpreadsheet className="w-12 h-12 text-blue-600 mx-auto" />
               <div>
-                <p className="font-semibold text-slate-900">Add Manually</p>
-                <p className="text-sm text-slate-600">Add members one by one</p>
+                <p className="font-semibold text-blue-900">Upload Member List</p>
+                <p className="text-sm text-blue-700 mt-1">CSV or Excel file</p>
               </div>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isUploading}
+                className="w-full"
+              >
+                {isUploading ? "Uploading..." : "Choose File"}
+              </Button>
             </div>
-          </div>
+          </Label>
+          <Input
+            id="member-upload"
+            type="file"
+            accept=".csv,.xlsx,.xls"
+            onChange={handleFileUpload}
+            className="hidden"
+          />
+        </motion.div>
 
-          <div
-            onClick={() => setImportMethod("later")}
-            className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-              importMethod === "later"
-                ? "border-blue-600 bg-blue-50"
-                : "border-slate-200 hover:border-slate-300"
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <Upload className="w-5 h-5" />
-              <div>
-                <p className="font-semibold text-slate-900">Do This Later</p>
-                <p className="text-sm text-slate-600">Skip for now and import in bulk later</p>
-              </div>
+        {/* Add Manually */}
+        <motion.div
+          whileHover={{ scale: 1.02 }}
+          onClick={() => {
+            window.open(createPageUrl("Members"), "_blank");
+            toast.success("Members page opened in new tab");
+          }}
+          className="p-6 border-2 border-dashed border-green-300 rounded-lg bg-green-50 cursor-pointer hover:bg-green-100 transition-colors"
+        >
+          <div className="text-center space-y-3">
+            <Plus className="w-12 h-12 text-green-600 mx-auto" />
+            <div>
+              <p className="font-semibold text-green-900">Add Manually</p>
+              <p className="text-sm text-green-700 mt-1">Enter member details one by one</p>
             </div>
+            <Button variant="outline" className="w-full">
+              Open Members Page
+            </Button>
           </div>
-        </div>
+        </motion.div>
       </div>
 
-      {importMethod === "manual" && (
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-4">
-            {manualMembers.map((member, index) => (
-              <div key={index} className="p-4 border border-slate-200 rounded-lg space-y-3">
-                <p className="text-sm font-medium text-slate-700">Member {index + 1}</p>
-                <div className="grid grid-cols-3 gap-3">
-                  <div>
-                    <Label className="text-xs">First Name</Label>
-                    <Input
-                      placeholder="First"
-                      value={member.first_name}
-                      onChange={(e) => handleMemberChange(index, "first_name", e.target.value)}
-                      className="h-9"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-xs">Last Name</Label>
-                    <Input
-                      placeholder="Last"
-                      value={member.last_name}
-                      onChange={(e) => handleMemberChange(index, "last_name", e.target.value)}
-                      className="h-9"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-xs">Email</Label>
-                    <Input
-                      type="email"
-                      placeholder="Email"
-                      value={member.email}
-                      onChange={(e) => handleMemberChange(index, "email", e.target.value)}
-                      className="h-9"
-                    />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleAddMember}
-            className="w-full"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Another Member
-          </Button>
-
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-              <p className="text-sm text-red-800">{error}</p>
-            </div>
-          )}
-
-          <Button
-            type="submit"
-            disabled={isLoading}
-            className="w-full bg-blue-600 hover:bg-blue-700"
-          >
-            {isLoading ? "Adding Members..." : "Add Members"}
-          </Button>
-        </form>
-      )}
-
-      {importMethod === "later" && (
-        <div className="text-center py-8">
-          <div className="text-5xl mb-4">⏭️</div>
-          <p className="text-slate-600 mb-4">No problem! You can import members anytime from the Members page.</p>
-          <Button
-            onClick={onComplete}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            Continue to Next Step
-          </Button>
-        </div>
-      )}
-
-      <div className="bg-slate-50 rounded-lg p-4">
-        <h4 className="font-semibold text-slate-900 mb-2">💡 Pro Tip</h4>
-        <p className="text-sm text-slate-700">
-          You can bulk import members later using a CSV file. This makes it easy to import your entire congregation at once.
+      {/* Download Template */}
+      <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg">
+        <p className="text-sm font-medium text-slate-700 mb-2">
+          Need a template?
         </p>
+        <p className="text-xs text-slate-600 mb-3">
+          Download our sample CSV template with the correct column format:
+        </p>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            const csv = "first_name,last_name,email,phone\nJohn,Doe,john@example.com,(555) 123-4567\nJane,Smith,jane@example.com,(555) 987-6543";
+            const blob = new Blob([csv], { type: "text/csv" });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "member_template.csv";
+            a.click();
+          }}
+        >
+          <Upload className="w-4 h-4 mr-2" />
+          Download Template
+        </Button>
       </div>
+
+      <Button
+        onClick={onComplete}
+        className="w-full h-12 text-base bg-blue-600 hover:bg-blue-700"
+      >
+        <CheckCircle2 className="w-5 h-5 mr-2" />
+        {memberCount > 0 ? `Continue (${memberCount} members imported)` : "Skip for Now"}
+      </Button>
     </div>
   );
 }
