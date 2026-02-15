@@ -38,9 +38,9 @@ export default function ChurchSettingsPage() {
                 return;
             }
 
-            // Load church settings - CRITICAL: Filter by current admin
+            // Load church settings - CRITICAL: Filter by current admin to ensure proper isolation
             const settings = await base44.entities.ChurchSettings.filter({
-                created_by: user.email
+                'data.created_by': user.email
             });
             if (settings.length > 0) {
                 setChurchSettings(settings[0]);

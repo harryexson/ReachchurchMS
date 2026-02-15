@@ -106,6 +106,7 @@ export default function Layout({ children, currentPageName }) {
   const [isLoadingUser, setIsLoadingUser] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [authError, setAuthError] = useState(null);
+  const [churchBranding, setChurchBranding] = useState(null);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -273,6 +274,23 @@ export default function Layout({ children, currentPageName }) {
           // User is authenticated - set them as current user
           setCurrentUser(user);
           setAuthError(null);
+
+          // Load church branding for authenticated users
+          try {
+            const settings = await base44.entities.ChurchSettings.filter({
+              'data.created_by': user.email
+            });
+            if (settings.length > 0) {
+              setChurchBranding({
+                logo_url: settings[0].logo_url,
+                church_name: settings[0].church_name,
+                primary_color: settings[0].primary_color || "#3b82f6",
+                secondary_color: settings[0].secondary_color || "#10b981"
+              });
+            }
+          } catch (brandingError) {
+            console.log('Could not load church branding:', brandingError);
+          }
         }
       } catch (error) {
         // Ignore aborted requests and WebSocket errors (transient connection issues)
@@ -930,11 +948,19 @@ export default function Layout({ children, currentPageName }) {
               className="flex items-center gap-3 group"
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              <img 
-                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68d38ad0f4d6d5d05900d129/e2e85f6c7_REACHLOGOGIFF.png"
-                alt="REACH Church Connect Logo"
-                className="w-full max-w-[384px] h-auto group-hover:scale-105 transition-transform"
-              />
+              {churchBranding?.logo_url ? (
+                <img 
+                  src={churchBranding.logo_url}
+                  alt={churchBranding.church_name || "Church Logo"}
+                  className="w-full max-w-[384px] h-auto max-h-32 object-contain group-hover:scale-105 transition-transform"
+                />
+              ) : (
+                <img 
+                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68d38ad0f4d6d5d05900d129/e2e85f6c7_REACHLOGOGIFF.png"
+                  alt="REACH Church Connect Logo"
+                  className="w-full max-w-[384px] h-auto group-hover:scale-105 transition-transform"
+                />
+              )}
             </Link>
           </div>
 

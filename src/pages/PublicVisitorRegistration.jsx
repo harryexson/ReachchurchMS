@@ -177,7 +177,7 @@ export default function PublicVisitorRegistration() {
                         <img 
                             src={churchSettings.logo_url} 
                             alt={churchSettings.church_name || "Church Logo"} 
-                            className="w-32 h-32 object-contain mx-auto mb-4"
+                            className="h-24 w-auto max-w-[300px] object-contain mx-auto mb-4"
                         />
                     ) : (
                         <div className="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">

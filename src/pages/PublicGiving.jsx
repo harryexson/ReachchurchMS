@@ -308,8 +308,11 @@ export default function PublicGiving() {
                 setIsAuthenticated(false);
             }
 
+            // CRITICAL: Only load settings for the organization this page belongs to
+            // For public pages, we need to get org from URL or load first available
             const settings = await base44.entities.ChurchSettings.list();
             if (settings.length > 0) {
+                // For public giving page, use the first church (or could be filtered by URL param)
                 const churchSettings = settings[0];
                 if (churchSettings.church_name) {
                     setChurchName(churchSettings.church_name);
