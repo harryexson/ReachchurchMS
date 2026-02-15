@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Megaphone, TrendingUp, Users, Target } from 'lucide-react';
+import EmailCampaignManager from './EmailCampaignManager';
 
 export default function MarketingDashboard({ subscriptions, interactions, onRefresh, canManage }) {
     const totalCustomers = subscriptions.length;
@@ -83,6 +84,9 @@ export default function MarketingDashboard({ subscriptions, interactions, onRefr
                     </div>
                 </CardContent>
             </Card>
+
+            {/* Email Campaign Management */}
+            <EmailCampaignManager />
 
             {!canManage && (
                 <Card className="border-yellow-200 bg-yellow-50">
