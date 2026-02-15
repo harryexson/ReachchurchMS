@@ -168,6 +168,19 @@ export default function SubscriptionPricingManager() {
         }
     };
 
+    const handleDeleteDiscount = async (discountId) => {
+        if (!confirm('Are you sure you want to delete this discount?')) return;
+        
+        try {
+            await base44.entities.SubscriptionDiscount.delete(discountId);
+            await loadData();
+            alert('Discount deleted successfully');
+        } catch (error) {
+            console.error('Error deleting discount:', error);
+            alert('Failed to delete discount');
+        }
+    };
+
     if (loading) {
         return <div className="p-6">Loading...</div>;
     }
@@ -259,7 +272,7 @@ export default function SubscriptionPricingManager() {
                     <div className="space-y-2">
                         {discounts.map(disc => (
                             <div key={disc.id} className="flex items-center justify-between p-3 border rounded-lg">
-                                <div>
+                                <div className="flex-1">
                                     <p className="font-semibold">{disc.church_name}</p>
                                     <p className="text-sm text-slate-600">
                                         {disc.discount_type === 'percentage' 
@@ -271,9 +284,19 @@ export default function SubscriptionPricingManager() {
                                         {disc.reason && ` - ${disc.reason}`}
                                     </p>
                                 </div>
-                                <Badge variant="outline">
-                                    {disc.end_date ? `Until ${new Date(disc.end_date).toLocaleDateString()}` : 'Permanent'}
-                                </Badge>
+                                <div className="flex items-center gap-2">
+                                    <Badge variant="outline">
+                                        {disc.end_date ? `Until ${new Date(disc.end_date).toLocaleDateString()}` : 'Permanent'}
+                                    </Badge>
+                                    <Button 
+                                        size="sm" 
+                                        variant="outline"
+                                        className="text-red-600 hover:text-red-700"
+                                        onClick={() => handleDeleteDiscount(disc.id)}
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                </div>
                             </div>
                         ))}
                     </div>
