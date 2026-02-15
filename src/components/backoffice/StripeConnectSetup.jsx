@@ -41,8 +41,20 @@ export default function StripeConnectSetup({ churchSettings }) {
                 throw new Error(response.data?.error || 'Failed to generate onboarding URL');
             }
         } catch (err) {
-            console.error('Stripe Connect error:', err);
-            setError(err.message || 'Failed to initiate Stripe Connect');
+            console.error('❌ Stripe onboarding error:', err);
+            console.error('Full error details:', {
+                message: err.message,
+                status: err.status,
+                response: err.response,
+                stack: err.stack
+            });
+            
+            const errorMessage = err.response?.data?.error 
+                || err.response?.data?.details
+                || err.message 
+                || 'Failed to initiate Stripe Connect. Please try again.';
+            
+            setError(errorMessage);
         } finally {
             setIsProcessing(false);
         }
