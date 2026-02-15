@@ -218,14 +218,34 @@ async function createOrUpdateSubscription(base44, session) {
         }
     }
 
+    // Get pricing plan from database to ensure sync with back office
+    let pricingPlan;
+    try {
+        const pricingPlans = await base44.asServiceRole.entities.PricingPlan.filter({
+            plan_name: metadata.plan_tier || 'starter',
+            is_active: true
+        });
+        if (pricingPlans.length > 0) {
+            pricingPlan = pricingPlans[0];
+            console.log('📋 Using pricing plan from database:', pricingPlan.plan_name);
+        }
+    } catch (error) {
+        console.warn('⚠️ Could not load pricing plan from database:', error.message);
+    }
+
+    // Fallback tier map if database pricing not available
     const tierMap = {
-        'starter': { member_limit: 100, sms: 0, mms: 0, video: 0 },
-        'growth': { member_limit: 500, sms: 1000, mms: 10, video: 25 },
-        'premium': { member_limit: 999999, sms: 999999, mms: 999999, video: 200 }
+        'starter': { member_limit: 150, sms: 0, mms: 0, video: 0, monthly_price: 49, annual_price: 470 },
+        'growth': { member_limit: 750, sms: 1000, mms: 10, video: 25, monthly_price: 119, annual_price: 1140 },
+        'premium': { member_limit: 999999, sms: 999999, mms: 999999, video: 200, monthly_price: 249, annual_price: 2390 }
     };
 
     const tier = metadata.plan_tier || 'starter';
-    const limits = tierMap[tier];
+    const limits = pricingPlan?.features || tierMap[tier];
+    
+    // Get pricing from database plan or fallback
+    const monthlyPrice = pricingPlan?.monthly_price || tierMap[tier]?.monthly_price || 0;
+    const annualPrice = pricingPlan?.annual_price || tierMap[tier]?.annual_price || 0;
 
     // Map Stripe status to our status enum
     let dbStatus = 'active';
@@ -246,39 +266,54 @@ async function createOrUpdateSubscription(base44, session) {
         church_name: metadata.church_name || customerEmail.split('@')[0],
         subscription_tier: tier,
         billing_cycle: metadata.billing_cycle || 'monthly',
+        monthly_price: monthlyPrice,
+        annual_price: annualPrice,
         status: dbStatus,
         stripe_subscription_id: subscription.id,
         stripe_customer_id: session.customer,
         trial_end_date: subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString().split('T')[0] : null,
         next_billing_date: subscription.current_period_end ? new Date(subscription.current_period_end * 1000).toISOString().split('T')[0] : null,
         features: {
-            member_limit: limits.member_limit,
-            sms_enabled: tier !== 'starter',
-            sms_monthly_limit: limits.sms,
+            member_limit: limits.member_limit || 150,
+            sms_enabled: limits.sms_enabled !== undefined ? limits.sms_enabled : tier !== 'starter',
+            sms_monthly_limit: limits.sms_monthly_limit || limits.sms || 0,
             sms_used_this_month: 0,
-            mms_enabled: tier !== 'starter',
-            mms_monthly_limit: limits.mms,
+            mms_enabled: limits.mms_enabled !== undefined ? limits.mms_enabled : tier !== 'starter',
+            mms_monthly_limit: limits.mms_monthly_limit || limits.mms || 0,
             mms_used_this_month: 0,
-            video_enabled: tier !== 'starter',
-            video_max_participants: limits.video,
-            kids_checkin_enabled: tier !== 'starter',
-            kiosk_giving_enabled: tier !== 'starter',
-            coffee_shop_enabled: tier !== 'starter',
-            bookstore_enabled: tier !== 'starter',
-            automated_workflows_enabled: tier !== 'starter',
-            visitor_followup_enabled: tier !== 'starter',
-            giving_thankyou_enabled: tier !== 'starter',
-            tax_statements_enabled: tier !== 'starter',
-            advanced_analytics_enabled: tier === 'premium',
-            financial_management_enabled: tier !== 'starter',
-            breakout_rooms_enabled: tier === 'premium',
-            recording_enabled: tier === 'premium',
-            multi_campus: tier === 'premium',
-            white_label: tier === 'premium',
-            api_access: tier === 'premium',
-            custom_branding_enabled: tier !== 'starter',
-            priority_support: tier !== 'starter',
-            dedicated_account_manager: tier === 'premium'
+            video_enabled: limits.video_enabled !== undefined ? limits.video_enabled : tier !== 'starter',
+            video_max_participants: limits.video_max_participants || limits.video || 0,
+            breakout_rooms_enabled: limits.breakout_rooms_enabled !== undefined ? limits.breakout_rooms_enabled : tier === 'premium',
+            recording_enabled: limits.recording_enabled !== undefined ? limits.recording_enabled : tier === 'premium',
+            kids_checkin_enabled: limits.kids_checkin_enabled !== undefined ? limits.kids_checkin_enabled : tier !== 'starter',
+            label_printing_enabled: limits.label_printing_enabled !== undefined ? limits.label_printing_enabled : tier !== 'starter',
+            kiosk_giving_enabled: limits.kiosk_giving_enabled !== undefined ? limits.kiosk_giving_enabled : tier !== 'starter',
+            coffee_shop_enabled: limits.coffee_shop_enabled !== undefined ? limits.coffee_shop_enabled : tier !== 'starter',
+            bookstore_enabled: limits.bookstore_enabled !== undefined ? limits.bookstore_enabled : tier !== 'starter',
+            inventory_management_enabled: limits.inventory_management_enabled !== undefined ? limits.inventory_management_enabled : tier !== 'starter',
+            loyalty_program_enabled: limits.loyalty_program_enabled !== undefined ? limits.loyalty_program_enabled : tier !== 'starter',
+            automated_workflows_enabled: limits.automated_workflows_enabled !== undefined ? limits.automated_workflows_enabled : tier !== 'starter',
+            visitor_followup_enabled: limits.visitor_followup_enabled !== undefined ? limits.visitor_followup_enabled : tier !== 'starter',
+            giving_thankyou_enabled: limits.giving_thankyou_enabled !== undefined ? limits.giving_thankyou_enabled : tier !== 'starter',
+            tax_statements_enabled: limits.tax_statements_enabled !== undefined ? limits.tax_statements_enabled : tier !== 'starter',
+            advanced_analytics_enabled: limits.advanced_analytics_enabled !== undefined ? limits.advanced_analytics_enabled : tier === 'premium',
+            financial_management_enabled: limits.financial_management_enabled !== undefined ? limits.financial_management_enabled : tier !== 'starter',
+            budget_tracking_enabled: limits.budget_tracking_enabled !== undefined ? limits.budget_tracking_enabled : tier !== 'starter',
+            expense_tracking_enabled: limits.expense_tracking_enabled !== undefined ? limits.expense_tracking_enabled : tier !== 'starter',
+            people_engagement_enabled: limits.people_engagement_enabled !== undefined ? limits.people_engagement_enabled : tier !== 'starter',
+            theme_customization_enabled: limits.theme_customization_enabled !== undefined ? limits.theme_customization_enabled : tier !== 'starter',
+            display_management_enabled: limits.display_management_enabled !== undefined ? limits.display_management_enabled : tier !== 'starter',
+            device_management_enabled: limits.device_management_enabled !== undefined ? limits.device_management_enabled : tier !== 'starter',
+            multi_campus: limits.multi_campus !== undefined ? limits.multi_campus : tier === 'premium',
+            white_label: limits.white_label !== undefined ? limits.white_label : tier === 'premium',
+            api_access: limits.api_access !== undefined ? limits.api_access : tier === 'premium',
+            custom_domain: limits.custom_domain !== undefined ? limits.custom_domain : tier === 'premium',
+            advanced_permissions: limits.advanced_permissions !== undefined ? limits.advanced_permissions : tier === 'premium',
+            donor_development_tools: limits.donor_development_tools !== undefined ? limits.donor_development_tools : tier === 'premium',
+            predictive_analytics: limits.predictive_analytics !== undefined ? limits.predictive_analytics : tier === 'premium',
+            priority_support: limits.priority_support !== undefined ? limits.priority_support : tier !== 'starter',
+            phone_support: limits.phone_support !== undefined ? limits.phone_support : tier === 'premium',
+            dedicated_account_manager: limits.dedicated_account_manager !== undefined ? limits.dedicated_account_manager : tier === 'premium'
         }
     };
 
