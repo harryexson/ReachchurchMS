@@ -81,6 +81,14 @@ Deno.serve(async (req) => {
                 await handleAccountUpdated(base44, event.data.object);
                 break;
 
+            case 'customer.updated':
+                await handleCustomerUpdated(base44, event.data.object);
+                break;
+
+            case 'payment_method.attached':
+                await handlePaymentMethodAttached(base44, event.data.object);
+                break;
+
             default:
                 console.log(`Unhandled event type: ${event.type}`);
             }
@@ -574,5 +582,104 @@ async function handleAccountUpdated(base44, account) {
         }
     } catch (error) {
         console.error('Error updating account settings:', error);
+    }
+}
+
+async function handleCustomerUpdated(base44, customer) {
+    console.log('💳 Customer updated:', customer.id);
+
+    try {
+        // Find subscription by Stripe customer ID
+        const subscriptions = await base44.asServiceRole.entities.Subscription.filter({
+            stripe_customer_id: customer.id
+        });
+
+        if (subscriptions.length > 0) {
+            const subscription = subscriptions[0];
+            
+            // Get payment method details if available
+            let paymentMethodInfo = null;
+            if (customer.invoice_settings?.default_payment_method) {
+                try {
+                    const paymentMethod = await stripe.paymentMethods.retrieve(
+                        customer.invoice_settings.default_payment_method
+                    );
+                    
+                    paymentMethodInfo = {
+                        type: paymentMethod.type,
+                        last4: paymentMethod.card?.last4 || null,
+                        brand: paymentMethod.card?.brand || null,
+                        exp_month: paymentMethod.card?.exp_month || null,
+                        exp_year: paymentMethod.card?.exp_year || null
+                    };
+                } catch (err) {
+                    console.warn('Could not retrieve payment method:', err.message);
+                }
+            }
+
+            // Log payment method update to AccountAction for back office tracking
+            await base44.asServiceRole.entities.AccountAction.create({
+                church_name: subscription.church_name,
+                action_type: 'payment_method_updated',
+                action_description: paymentMethodInfo 
+                    ? `Payment method updated to ${paymentMethodInfo.brand} ending in ${paymentMethodInfo.last4}`
+                    : 'Payment method updated',
+                performed_by: 'system',
+                metadata: {
+                    customer_id: customer.id,
+                    subscription_id: subscription.stripe_subscription_id,
+                    payment_method: paymentMethodInfo
+                }
+            });
+
+            console.log('✅ Payment method update logged for back office');
+        }
+    } catch (error) {
+        console.error('Error handling customer update:', error);
+    }
+}
+
+async function handlePaymentMethodAttached(base44, paymentMethod) {
+    console.log('💳 Payment method attached:', paymentMethod.id);
+
+    try {
+        // Find subscription by customer ID
+        if (!paymentMethod.customer) {
+            console.log('No customer associated with payment method');
+            return;
+        }
+
+        const subscriptions = await base44.asServiceRole.entities.Subscription.filter({
+            stripe_customer_id: paymentMethod.customer
+        });
+
+        if (subscriptions.length > 0) {
+            const subscription = subscriptions[0];
+            
+            const paymentMethodInfo = {
+                type: paymentMethod.type,
+                last4: paymentMethod.card?.last4 || null,
+                brand: paymentMethod.card?.brand || null,
+                exp_month: paymentMethod.card?.exp_month || null,
+                exp_year: paymentMethod.card?.exp_year || null
+            };
+
+            // Log to AccountAction for back office
+            await base44.asServiceRole.entities.AccountAction.create({
+                church_name: subscription.church_name,
+                action_type: 'payment_method_added',
+                action_description: `New payment method added: ${paymentMethodInfo.brand} ending in ${paymentMethodInfo.last4}`,
+                performed_by: 'customer',
+                metadata: {
+                    payment_method_id: paymentMethod.id,
+                    customer_id: paymentMethod.customer,
+                    payment_method: paymentMethodInfo
+                }
+            });
+
+            console.log('✅ Payment method addition logged for back office');
+        }
+    } catch (error) {
+        console.error('Error handling payment method attachment:', error);
     }
 }
