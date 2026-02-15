@@ -52,23 +52,33 @@ Deno.serve(async (req) => {
 
         // Save the Stripe account ID to church settings
         console.log('💾 Saving account ID to settings...');
-        const settings = await base44.asServiceRole.entities.ChurchSettings.filter({
-            church_admin_email: user.email
-        });
-        if (settings.length > 0) {
-            await base44.asServiceRole.entities.ChurchSettings.update(settings[0].id, {
-                stripe_account_id: account.id,
-                bank_account_connected: false, // Will be updated via webhook
-                payouts_enabled: false
+        try {
+            const settings = await base44.asServiceRole.entities.ChurchSettings.filter({
+                church_admin_email: user.email
             });
-        } else {
-            await base44.asServiceRole.entities.ChurchSettings.create({
-                church_name: church_name,
-                church_admin_email: user.email,
-                stripe_account_id: account.id,
-                bank_account_connected: false,
-                payouts_enabled: false
-            });
+            
+            if (settings.length > 0) {
+                console.log('📝 Updating existing ChurchSettings:', settings[0].id);
+                await base44.asServiceRole.entities.ChurchSettings.update(settings[0].id, {
+                    stripe_account_id: account.id,
+                    bank_account_connected: false,
+                    payouts_enabled: false
+                });
+                console.log('✅ ChurchSettings updated');
+            } else {
+                console.log('📝 Creating new ChurchSettings record');
+                const created = await base44.asServiceRole.entities.ChurchSettings.create({
+                    church_name: church_name,
+                    church_admin_email: user.email,
+                    stripe_account_id: account.id,
+                    bank_account_connected: false,
+                    payouts_enabled: false
+                });
+                console.log('✅ ChurchSettings created:', created.id);
+            }
+        } catch (settingsError) {
+            console.error('⚠️ Warning: Could not save to ChurchSettings:', settingsError.message);
+            console.log('Proceeding with onboarding URL anyway - settings can be saved later');
         }
 
         console.log('✅ Success! Returning onboarding URL');
