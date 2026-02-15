@@ -399,7 +399,7 @@ export default function Layout({ children, currentPageName }) {
     {
       title: "User Role Assignment",
       url: createPageUrl("UserRoleAssignment"),
-      icon: UserCog,
+      icon: Shield,
     },
     {
       title: "Members",
