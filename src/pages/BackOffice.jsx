@@ -30,6 +30,7 @@ import HRDashboard from "../components/backoffice/HRDashboard";
 import SubscriptionPricingManager from "../components/backoffice/SubscriptionPricingManager";
 import HRManagement from "../components/backoffice/HRManagement";
 import SupportChatDashboard from "../components/backoffice/SupportChatDashboard";
+import SyncUsersToMembers from "../components/backoffice/SyncUsersToMembers";
 
 export default function BackOfficePage() {
     const [subscriptions, setSubscriptions] = useState([]);
@@ -274,6 +275,7 @@ export default function BackOfficePage() {
 
                 <Tabs defaultValue="subscriptions">
                     <TabsList className="grid grid-cols-5 lg:grid-cols-10">
+                        <TabsTrigger value="sync-users">Sync Users</TabsTrigger>
                         <TabsTrigger value="support-chat">Support Chat</TabsTrigger>
                         <TabsTrigger value="subscriptions">Subscriptions</TabsTrigger>
                         <TabsTrigger value="pricing-manager">Pricing Manager</TabsTrigger>
@@ -292,6 +294,10 @@ export default function BackOfficePage() {
                         <TabsTrigger value="bo-users">BO Users</TabsTrigger>
                     </TabsList>
                     
+                    <TabsContent value="sync-users">
+                        <SyncUsersToMembers />
+                    </TabsContent>
+
                     <TabsContent value="support-chat">
                         <SupportChatDashboard />
                     </TabsContent>
