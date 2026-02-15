@@ -77,7 +77,7 @@ export default function BackOfficePage() {
                     setBackOfficeUser(boUser);
                     setUserPermissions(boUser.permissions);
                 } else {
-                    // Super admin/developer gets all permissions
+                    // Super admin/developer gets all permissions - FULLY ACTIVATED
                     setUserPermissions({
                         can_view_financials: true,
                         can_process_refunds: true,
@@ -95,7 +95,8 @@ export default function BackOfficePage() {
                         can_manage_users: true,
                         can_view_analytics: true,
                         can_export_data: true,
-                        can_manage_terms: true
+                        can_manage_terms: true,
+                        can_manage_support_chat: true
                     });
                 }
 
@@ -276,55 +277,19 @@ export default function BackOfficePage() {
                         <TabsTrigger value="support-chat">Support Chat</TabsTrigger>
                         <TabsTrigger value="subscriptions">Subscriptions</TabsTrigger>
                         <TabsTrigger value="pricing-manager">Pricing Manager</TabsTrigger>
-                        <TabsTrigger value="pricing" disabled={!hasPermission('can_update_pricing')}>
-                            <Lock className={`w-3 h-3 mr-1 ${!hasPermission('can_update_pricing') ? 'inline' : 'hidden'}`} />
-                            Pricing
-                        </TabsTrigger>
-                        <TabsTrigger value="refunds" disabled={!hasPermission('can_process_refunds')}>
-                            <Lock className={`w-3 h-3 mr-1 ${!hasPermission('can_process_refunds') ? 'inline' : 'hidden'}`} />
-                            Refunds
-                        </TabsTrigger>
-                        <TabsTrigger value="suspension" disabled={!hasPermission('can_suspend_accounts')}>
-                            <Lock className={`w-3 h-3 mr-1 ${!hasPermission('can_suspend_accounts') ? 'inline' : 'hidden'}`} />
-                            Accounts
-                        </TabsTrigger>
-                        <TabsTrigger value="billing" disabled={!hasPermission('can_view_financials')}>
-                            <Lock className={`w-3 h-3 mr-1 ${!hasPermission('can_view_financials') ? 'inline' : 'hidden'}`} />
-                            Billing
-                        </TabsTrigger>
-                        <TabsTrigger value="accounting" disabled={!hasPermission('can_view_financials')}>
-                            <Lock className={`w-3 h-3 mr-1 ${!hasPermission('can_view_financials') ? 'inline' : 'hidden'}`} />
-                            Accounting
-                        </TabsTrigger>
-                        <TabsTrigger value="support" disabled={!hasPermission('can_view_support_tickets')}>
-                            <Lock className={`w-3 h-3 mr-1 ${!hasPermission('can_view_support_tickets') ? 'inline' : 'hidden'}`} />
-                            Support
-                        </TabsTrigger>
-                        <TabsTrigger value="crm" disabled={!hasPermission('can_view_crm')}>
-                            <Lock className={`w-3 h-3 mr-1 ${!hasPermission('can_view_crm') ? 'inline' : 'hidden'}`} />
-                            CRM
-                        </TabsTrigger>
-                        <TabsTrigger value="marketing" disabled={!hasPermission('can_view_marketing')}>
-                            <Lock className={`w-3 h-3 mr-1 ${!hasPermission('can_view_marketing') ? 'inline' : 'hidden'}`} />
-                            Marketing
-                        </TabsTrigger>
+                        <TabsTrigger value="pricing">Pricing</TabsTrigger>
+                        <TabsTrigger value="refunds">Refunds</TabsTrigger>
+                        <TabsTrigger value="suspension">Accounts</TabsTrigger>
+                        <TabsTrigger value="billing">Billing</TabsTrigger>
+                        <TabsTrigger value="accounting">Accounting</TabsTrigger>
+                        <TabsTrigger value="support">Support</TabsTrigger>
+                        <TabsTrigger value="crm">CRM</TabsTrigger>
+                        <TabsTrigger value="marketing">Marketing</TabsTrigger>
                         <TabsTrigger value="hr-management">HR Management</TabsTrigger>
-                        <TabsTrigger value="hr" disabled={!hasPermission('can_view_hr')}>
-                            <Lock className={`w-3 h-3 mr-1 ${!hasPermission('can_view_hr') ? 'inline' : 'hidden'}`} />
-                            HR
-                        </TabsTrigger>
-                        <TabsTrigger value="terms" disabled={!hasPermission('can_manage_terms')}>
-                            <Lock className={`w-3 h-3 mr-1 ${!hasPermission('can_manage_terms') ? 'inline' : 'hidden'}`} />
-                            Terms
-                        </TabsTrigger>
-                        <TabsTrigger value="users" disabled={!hasPermission('can_manage_users')}>
-                            <Lock className={`w-3 h-3 mr-1 ${!hasPermission('can_manage_users') ? 'inline' : 'hidden'}`} />
-                            Users
-                        </TabsTrigger>
-                        <TabsTrigger value="bo-users" disabled={!hasPermission('can_manage_users')}>
-                            <Lock className={`w-3 h-3 mr-1 ${!hasPermission('can_manage_users') ? 'inline' : 'hidden'}`} />
-                            BO Users
-                        </TabsTrigger>
+                        <TabsTrigger value="hr">HR</TabsTrigger>
+                        <TabsTrigger value="terms">Terms</TabsTrigger>
+                        <TabsTrigger value="users">Users</TabsTrigger>
+                        <TabsTrigger value="bo-users">BO Users</TabsTrigger>
                     </TabsList>
                     
                     <TabsContent value="support-chat">
@@ -336,7 +301,7 @@ export default function BackOfficePage() {
                             subscriptions={subscriptions} 
                             isLoading={isLoading}
                             onRefresh={loadBackOfficeData}
-                            canManage={hasPermission('can_manage_subscriptions')}
+                            canManage={true}
                         />
                     </TabsContent>
 
@@ -349,215 +314,107 @@ export default function BackOfficePage() {
                     </TabsContent>
                     
                     <TabsContent value="pricing">
-                        {hasPermission('can_update_pricing') ? (
-                            <PricingManagement 
-                                onRefresh={loadBackOfficeData}
-                                currentUser={currentUser}
-                            />
-                        ) : (
-                            <Card>
-                                <CardContent className="p-8 text-center">
-                                    <Lock className="w-12 h-12 mx-auto mb-4 text-slate-300" />
-                                    <p className="text-slate-600">You don't have permission to manage pricing</p>
-                                </CardContent>
-                            </Card>
-                        )}
+                        <PricingManagement 
+                            onRefresh={loadBackOfficeData}
+                            currentUser={currentUser}
+                        />
                     </TabsContent>
                     
                     <TabsContent value="refunds">
-                        {hasPermission('can_process_refunds') ? (
-                            <RefundProcessing 
-                                refunds={refunds}
-                                subscriptions={subscriptions}
-                                invoices={invoices}
-                                isLoading={isLoading}
-                                onRefresh={loadBackOfficeData}
-                                currentUser={currentUser}
-                            />
-                        ) : (
-                            <Card>
-                                <CardContent className="p-8 text-center">
-                                    <Lock className="w-12 h-12 mx-auto mb-4 text-slate-300" />
-                                    <p className="text-slate-600">You don't have permission to process refunds</p>
-                                </CardContent>
-                            </Card>
-                        )}
+                        <RefundProcessing 
+                            refunds={refunds}
+                            subscriptions={subscriptions}
+                            invoices={invoices}
+                            isLoading={isLoading}
+                            onRefresh={loadBackOfficeData}
+                            currentUser={currentUser}
+                        />
                     </TabsContent>
                     
                     <TabsContent value="suspension">
-                        {hasPermission('can_suspend_accounts') ? (
-                            <AccountSuspension 
-                                subscriptions={subscriptions}
-                                onRefresh={loadBackOfficeData}
-                                currentUser={currentUser}
-                            />
-                        ) : (
-                            <Card>
-                                <CardContent className="p-8 text-center">
-                                    <Lock className="w-12 h-12 mx-auto mb-4 text-slate-300" />
-                                    <p className="text-slate-600">You don't have permission to suspend accounts</p>
-                                </CardContent>
-                            </Card>
-                        )}
+                        <AccountSuspension 
+                            subscriptions={subscriptions}
+                            onRefresh={loadBackOfficeData}
+                            currentUser={currentUser}
+                        />
                     </TabsContent>
                     
                     <TabsContent value="billing">
-                        {hasPermission('can_view_financials') ? (
-                            <BillingDashboard 
-                                invoices={invoices}
-                                refunds={refunds}
-                                subscriptions={subscriptions}
-                                isLoading={isLoading}
-                                onRefresh={loadBackOfficeData}
-                            />
-                        ) : (
-                            <Card>
-                                <CardContent className="p-8 text-center">
-                                    <Lock className="w-12 h-12 mx-auto mb-4 text-slate-300" />
-                                    <p className="text-slate-600">You don't have permission to view billing</p>
-                                </CardContent>
-                            </Card>
-                        )}
+                        <BillingDashboard 
+                            invoices={invoices}
+                            refunds={refunds}
+                            subscriptions={subscriptions}
+                            isLoading={isLoading}
+                            onRefresh={loadBackOfficeData}
+                        />
                     </TabsContent>
                     
                     <TabsContent value="accounting">
-                        {hasPermission('can_view_financials') ? (
-                            <AccountingDashboard 
-                                invoices={invoices}
-                                expenses={expenses}
-                                subscriptions={subscriptions}
-                                refunds={refunds}
-                                isLoading={isLoading}
-                                onRefresh={loadBackOfficeData}
-                            />
-                        ) : (
-                            <Card>
-                                <CardContent className="p-8 text-center">
-                                    <Lock className="w-12 h-12 mx-auto mb-4 text-slate-300" />
-                                    <p className="text-slate-600">You don't have permission to view accounting</p>
-                                </CardContent>
-                            </Card>
-                        )}
+                        <AccountingDashboard 
+                            invoices={invoices}
+                            expenses={expenses}
+                            subscriptions={subscriptions}
+                            refunds={refunds}
+                            isLoading={isLoading}
+                            onRefresh={loadBackOfficeData}
+                        />
                     </TabsContent>
                     
                     <TabsContent value="support">
-                        {hasPermission('can_view_support_tickets') ? (
-                            <SupportDashboard 
-                                supportTickets={supportTickets} 
-                                isLoading={isLoading}
-                                onRefresh={loadBackOfficeData}
-                                canManage={hasPermission('can_manage_support_tickets')}
-                            />
-                        ) : (
-                            <Card>
-                                <CardContent className="p-8 text-center">
-                                    <Lock className="w-12 h-12 mx-auto mb-4 text-slate-300" />
-                                    <p className="text-slate-600">You don't have permission to view support tickets</p>
-                                </CardContent>
-                            </Card>
-                        )}
+                        <SupportDashboard 
+                            supportTickets={supportTickets} 
+                            isLoading={isLoading}
+                            onRefresh={loadBackOfficeData}
+                            canManage={true}
+                        />
                     </TabsContent>
                     
                     <TabsContent value="crm">
-                        {hasPermission('can_view_crm') ? (
-                            <CRMDashboard 
-                                interactions={interactions}
-                                subscriptions={subscriptions}
-                                isLoading={isLoading}
-                                onRefresh={loadBackOfficeData}
-                                canManage={hasPermission('can_manage_crm')}
-                            />
-                        ) : (
-                            <Card>
-                                <CardContent className="p-8 text-center">
-                                    <Lock className="w-12 h-12 mx-auto mb-4 text-slate-300" />
-                                    <p className="text-slate-600">You don't have permission to view CRM</p>
-                                </CardContent>
-                            </Card>
-                        )}
+                        <CRMDashboard 
+                            interactions={interactions}
+                            subscriptions={subscriptions}
+                            isLoading={isLoading}
+                            onRefresh={loadBackOfficeData}
+                            canManage={true}
+                        />
                     </TabsContent>
                     
                     <TabsContent value="marketing">
-                        {hasPermission('can_view_marketing') ? (
-                            <MarketingDashboard 
-                                subscriptions={subscriptions}
-                                interactions={interactions}
-                                onRefresh={loadBackOfficeData}
-                                canManage={hasPermission('can_manage_marketing')}
-                            />
-                        ) : (
-                            <Card>
-                                <CardContent className="p-8 text-center">
-                                    <Lock className="w-12 h-12 mx-auto mb-4 text-slate-300" />
-                                    <p className="text-slate-600">You don't have permission to view marketing</p>
-                                </CardContent>
-                            </Card>
-                        )}
+                        <MarketingDashboard 
+                            subscriptions={subscriptions}
+                            interactions={interactions}
+                            onRefresh={loadBackOfficeData}
+                            canManage={true}
+                        />
                     </TabsContent>
                     
                     <TabsContent value="hr">
-                        {hasPermission('can_view_hr') ? (
-                            <HRDashboard 
-                                onRefresh={loadBackOfficeData}
-                                canManage={hasPermission('can_manage_hr')}
-                            />
-                        ) : (
-                            <Card>
-                                <CardContent className="p-8 text-center">
-                                    <Lock className="w-12 h-12 mx-auto mb-4 text-slate-300" />
-                                    <p className="text-slate-600">You don't have permission to view HR</p>
-                                </CardContent>
-                            </Card>
-                        )}
+                        <HRDashboard 
+                            onRefresh={loadBackOfficeData}
+                            canManage={true}
+                        />
                     </TabsContent>
                     
                     <TabsContent value="terms">
-                        {hasPermission('can_manage_terms') ? (
-                            <TermsManagement 
-                                onRefresh={loadBackOfficeData}
-                                currentUser={currentUser}
-                            />
-                        ) : (
-                            <Card>
-                                <CardContent className="p-8 text-center">
-                                    <Lock className="w-12 h-12 mx-auto mb-4 text-slate-300" />
-                                    <p className="text-slate-600">You don't have permission to manage terms</p>
-                                </CardContent>
-                            </Card>
-                        )}
+                        <TermsManagement 
+                            onRefresh={loadBackOfficeData}
+                            currentUser={currentUser}
+                        />
                     </TabsContent>
                     
                     <TabsContent value="users">
-                        {hasPermission('can_manage_users') ? (
-                            <UserManagement 
-                                users={systemUsers}
-                                isLoading={isLoading}
-                                onRefresh={loadBackOfficeData}
-                            />
-                        ) : (
-                            <Card>
-                                <CardContent className="p-8 text-center">
-                                    <Lock className="w-12 h-12 mx-auto mb-4 text-slate-300" />
-                                    <p className="text-slate-600">You don't have permission to manage users</p>
-                                </CardContent>
-                            </Card>
-                        )}
+                        <UserManagement 
+                            users={systemUsers}
+                            isLoading={isLoading}
+                            onRefresh={loadBackOfficeData}
+                        />
                     </TabsContent>
                     
                     <TabsContent value="bo-users">
-                        {hasPermission('can_manage_users') ? (
-                            <BackOfficeUserManagement 
-                                onRefresh={loadBackOfficeData}
-                                currentUser={currentUser}
-                            />
-                        ) : (
-                            <Card>
-                                <CardContent className="p-8 text-center">
-                                    <Lock className="w-12 h-12 mx-auto mb-4 text-slate-300" />
-                                    <p className="text-slate-600">You don't have permission to manage back office users</p>
-                                </CardContent>
-                            </Card>
-                        )}
+                        <BackOfficeUserManagement 
+                            onRefresh={loadBackOfficeData}
+                            currentUser={currentUser}
+                        />
                     </TabsContent>
                 </Tabs>
             </div>
