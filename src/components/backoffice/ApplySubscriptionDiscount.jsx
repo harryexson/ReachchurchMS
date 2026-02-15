@@ -45,7 +45,9 @@ export default function ApplySubscriptionDiscount({ subscription, open, onClose,
             onClose();
         } catch (error) {
             console.error('Error applying discount:', error);
-            alert('Failed to apply discount: ' + error.message);
+            const errorMsg = error.response?.data?.error || error.message || 'Unknown error';
+            const errorDetails = error.response?.data?.details || '';
+            alert(`Failed to apply discount: ${errorMsg}${errorDetails ? '\n\nDetails: ' + errorDetails : ''}`);
         } finally {
             setSaving(false);
         }

@@ -33,9 +33,19 @@ Deno.serve(async (req) => {
         }
 
         // Get subscription
-        const subscription = await base44.asServiceRole.entities.Subscription.get(subscription_id);
-        if (!subscription) {
-            return Response.json({ error: 'Subscription not found' }, { status: 404 });
+        let subscription;
+        try {
+            const subscriptions = await base44.asServiceRole.entities.Subscription.filter({ id: subscription_id });
+            if (subscriptions.length === 0) {
+                return Response.json({ error: 'Subscription not found' }, { status: 404 });
+            }
+            subscription = subscriptions[0];
+        } catch (err) {
+            console.error('Error fetching subscription:', err);
+            return Response.json({ 
+                error: 'Failed to fetch subscription',
+                details: err.message
+            }, { status: 400 });
         }
 
         if (!subscription.stripe_subscription_id) {
