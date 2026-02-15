@@ -222,9 +222,26 @@ export default function Layout({ children, currentPageName }) {
                 console.log('⚠️ Unknown subscription status:', subscription.status);
               }
 
-              // If user has valid access, check onboarding status
-              if (hasValidAccess && user.role === 'admin' && !pageLower.includes('onboarding') && !pageLower.includes('adminonboarding')) {
+              // If user has valid access, check onboarding and Stripe Connect setup
+              if (hasValidAccess && user.role === 'admin' && !pageLower.includes('onboarding') && !pageLower.includes('adminonboarding') && !pageLower.includes('stripeconnect')) {
                 try {
+                  // First check Stripe Connect setup
+                  const churchSettings = await base44.entities.ChurchSettings.filter({
+                    church_admin_email: user.email
+                  });
+
+                  if (churchSettings.length > 0) {
+                    const settings = churchSettings[0];
+                    const stripeConnected = settings.stripe_account_id && settings.payouts_enabled;
+                    
+                    if (!stripeConnected) {
+                      console.log('💳 Stripe Connect not set up - redirecting to setup');
+                      window.location.href = createPageUrl('Settings') + '?tab=billing';
+                      return;
+                    }
+                  }
+
+                  // Then check onboarding status
                   const onboardingRecords = await base44.entities.OnboardingProgress.filter({
                     user_email: user.email
                   });
@@ -236,8 +253,8 @@ export default function Layout({ children, currentPageName }) {
                   } else {
                     console.log('✅ Onboarding already completed');
                   }
-                } catch (onboardingError) {
-                  console.log('⚠️ Could not check onboarding status:', onboardingError.message);
+                } catch (setupError) {
+                  console.log('⚠️ Could not check setup status:', setupError.message);
                 }
               }
             } else {
