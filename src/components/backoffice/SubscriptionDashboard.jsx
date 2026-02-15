@@ -143,6 +143,11 @@ export default function SubscriptionDashboard({ subscriptions, isLoading, onRefr
                                             <div>
                                                 <div className="font-semibold">{subscription.church_name}</div>
                                                 <div className="text-sm text-slate-500">{subscription.church_admin_email}</div>
+                                                {subscription.stripe_customer_id && (
+                                                    <div className="text-xs text-slate-400 font-mono mt-1">
+                                                        {subscription.stripe_customer_id}
+                                                    </div>
+                                                )}
                                             </div>
                                         </TableCell>
                                         <TableCell>
@@ -207,6 +212,16 @@ export default function SubscriptionDashboard({ subscriptions, isLoading, onRefr
                                                 >
                                                     <Mail className="w-3 h-3" />
                                                 </Button>
+                                                {subscription.stripe_customer_id && (
+                                                    <Button 
+                                                        size="sm" 
+                                                        variant="outline"
+                                                        onClick={() => window.open(`https://dashboard.stripe.com/customers/${subscription.stripe_customer_id}`, '_blank')}
+                                                        title="View in Stripe"
+                                                    >
+                                                        <CreditCard className="w-3 h-3" />
+                                                    </Button>
+                                                )}
                                                 {canManage && (
                                                     <>
                                                         <Button 
