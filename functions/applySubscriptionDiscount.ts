@@ -6,8 +6,9 @@ const stripe = new Stripe(Deno.env.get('STRIPE_API_KEY'), {
 });
 
 Deno.serve(async (req) => {
+    const base44 = createClientFromRequest(req);
+    
     try {
-        const base44 = createClientFromRequest(req);
         const user = await base44.auth.me();
 
         // Verify admin access
@@ -18,7 +19,7 @@ Deno.serve(async (req) => {
         const body = await req.json();
         const { subscription_id, discount_type, discount_value, duration, duration_months, reason } = body;
 
-        console.log('Received discount request:', { subscription_id, discount_type, discount_value, duration, duration_months, reason });
+        console.log('Discount request:', JSON.stringify({ subscription_id, discount_type, discount_value, duration, duration_months, reason }, null, 2));
 
         if (!subscription_id || !discount_type || discount_value === undefined || !duration || !reason) {
             return Response.json({ 
@@ -66,26 +67,43 @@ Deno.serve(async (req) => {
             couponParams.duration_in_months = parseInt(duration_months);
         }
 
-        console.log('Creating Stripe coupon with params:', couponParams);
+        console.log('Creating Stripe coupon with params:', JSON.stringify(couponParams, null, 2));
 
-        const coupon = await stripe.coupons.create({
-            id: couponId,
-            ...couponParams
-        });
-
-        console.log('Coupon created:', coupon.id);
+        let coupon;
+        try {
+            coupon = await stripe.coupons.create({
+                id: couponId,
+                ...couponParams
+            });
+            console.log('Coupon created:', coupon.id);
+        } catch (stripeError) {
+            console.error('Stripe coupon creation error:', stripeError);
+            return Response.json({ 
+                error: 'Failed to create Stripe coupon',
+                details: stripeError.message,
+                code: stripeError.code
+            }, { status: 400 });
+        }
 
         // Apply coupon to Stripe subscription
-        await stripe.subscriptions.update(subscription.stripe_subscription_id, {
-            coupon: coupon.id,
-            metadata: {
-                discount_reason: reason,
-                discount_applied_by: user.email,
-                discount_applied_date: new Date().toISOString()
-            }
-        });
-
-        console.log('Discount applied to Stripe subscription');
+        try {
+            await stripe.subscriptions.update(subscription.stripe_subscription_id, {
+                coupon: coupon.id,
+                metadata: {
+                    discount_reason: reason,
+                    discount_applied_by: user.email,
+                    discount_applied_date: new Date().toISOString()
+                }
+            });
+            console.log('Discount applied to Stripe subscription');
+        } catch (stripeError) {
+            console.error('Stripe subscription update error:', stripeError);
+            return Response.json({ 
+                error: 'Failed to apply coupon to subscription',
+                details: stripeError.message,
+                code: stripeError.code
+            }, { status: 400 });
+        }
 
         // Update subscription entity with discount info
         await base44.asServiceRole.entities.Subscription.update(subscription_id, {
@@ -112,7 +130,8 @@ Deno.serve(async (req) => {
         console.error('Apply discount error:', error);
         return Response.json({ 
             error: error.message || 'Failed to apply discount',
-            details: error.raw?.message || error.message
+            details: error.raw?.message || error.stack,
+            type: error.constructor.name
         }, { status: 500 });
     }
 });
