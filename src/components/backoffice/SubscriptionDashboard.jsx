@@ -38,6 +38,23 @@ export default function SubscriptionDashboard({ subscriptions, isLoading, onRefr
         setActionNote("");
     };
 
+    const handleDeleteSubscription = async (subscription) => {
+        if (!confirm(`Are you sure you want to delete the subscription for ${subscription.church_name}? This action cannot be undone.`)) {
+            return;
+        }
+
+        setIsSaving(true);
+        try {
+            await base44.entities.Subscription.delete(subscription.id);
+            onRefresh();
+        } catch (error) {
+            console.error('Error deleting subscription:', error);
+            alert('Failed to delete subscription');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
     const handleSaveAction = async () => {
         if (!selectedSubscription || !actionNote.trim()) return;
         
@@ -177,6 +194,17 @@ export default function SubscriptionDashboard({ subscriptions, isLoading, onRefr
                                                 >
                                                     <Mail className="w-3 h-3" />
                                                 </Button>
+                                                {canManage && (
+                                                    <Button 
+                                                        size="sm" 
+                                                        variant="destructive"
+                                                        onClick={() => handleDeleteSubscription(subscription)}
+                                                        disabled={isSaving}
+                                                        title="Delete Subscription"
+                                                    >
+                                                        <Trash2 className="w-3 h-3" />
+                                                    </Button>
+                                                )}
                                             </div>
                                         </TableCell>
                                     </TableRow>
