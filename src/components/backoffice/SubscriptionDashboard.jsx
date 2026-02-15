@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { CreditCard, Pause, Play, Trash2, MessageSquare, FileText, Phone, Mail } from "lucide-react";
+import { CreditCard, Pause, Play, Trash2, MessageSquare, FileText, Phone, Mail, Eye } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 
@@ -118,6 +118,7 @@ export default function SubscriptionDashboard({ subscriptions, isLoading, onRefr
                                 <TableHead>Status</TableHead>
                                 <TableHead>Revenue</TableHead>
                                 <TableHead>Next Billing</TableHead>
+                                <TableHead className="text-center">Details</TableHead>
                                 <TableHead>Actions</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -159,6 +160,16 @@ export default function SubscriptionDashboard({ subscriptions, isLoading, onRefr
                                             {subscription.next_billing_date ? 
                                                 format(new Date(subscription.next_billing_date), 'MMM d, yyyy') : 'N/A'
                                             }
+                                        </TableCell>
+                                        <TableCell className="text-center">
+                                            <Button 
+                                                size="sm" 
+                                                variant="ghost"
+                                                onClick={() => handleOpenActions(subscription, 'details')}
+                                                title="View Details"
+                                            >
+                                                <Eye className="w-4 h-4" />
+                                            </Button>
                                         </TableCell>
                                         <TableCell>
                                             <div className="flex gap-1 flex-wrap">
@@ -221,10 +232,11 @@ export default function SubscriptionDashboard({ subscriptions, isLoading, onRefr
                                 {actionType === 'note' && '📝 Add Note'}
                                 {actionType === 'support' && '🎫 Create Support Ticket'}
                                 {actionType === 'call' && '📞 Log Call'}
+                                {actionType === 'details' && '📋 Subscription Details'}
                             </DialogTitle>
                         </DialogHeader>
                         <div className="space-y-4">
-                            {selectedSubscription && (
+                            {actionType !== 'details' && selectedSubscription && (
                                 <div className="bg-slate-50 p-4 rounded-lg">
                                     <p className="font-semibold">{selectedSubscription.church_name}</p>
                                     <p className="text-sm text-slate-600">{selectedSubscription.church_admin_email}</p>
@@ -232,24 +244,32 @@ export default function SubscriptionDashboard({ subscriptions, isLoading, onRefr
                                 </div>
                             )}
                             
-                            <div>
-                                <Label>
-                                    {actionType === 'note' && 'Note Details'}
-                                    {actionType === 'support' && 'Ticket Description'}
-                                    {actionType === 'call' && 'Call Summary'}
-                                </Label>
-                                <Textarea
-                                    value={actionNote}
-                                    onChange={(e) => setActionNote(e.target.value)}
-                                    placeholder={
-                                        actionType === 'note' ? 'Enter internal note...' :
-                                        actionType === 'support' ? 'Describe the issue...' :
-                                        'Summarize the call...'
-                                    }
-                                    rows={6}
-                                    className="mt-2"
-                                />
-                            </div>
+                            {actionType === 'details' ? (
+                                <div className="bg-slate-50 p-4 rounded-lg overflow-x-auto max-h-[500px] overflow-y-auto">
+                                    <pre className="text-xs text-slate-700 whitespace-pre-wrap">
+                                        {JSON.stringify(selectedSubscription, null, 2)}
+                                    </pre>
+                                </div>
+                            ) : (
+                                <div>
+                                    <Label>
+                                        {actionType === 'note' && 'Note Details'}
+                                        {actionType === 'support' && 'Ticket Description'}
+                                        {actionType === 'call' && 'Call Summary'}
+                                    </Label>
+                                    <Textarea
+                                        value={actionNote}
+                                        onChange={(e) => setActionNote(e.target.value)}
+                                        placeholder={
+                                            actionType === 'note' ? 'Enter internal note...' :
+                                            actionType === 'support' ? 'Describe the issue...' :
+                                            'Summarize the call...'
+                                        }
+                                        rows={6}
+                                        className="mt-2"
+                                    />
+                                </div>
+                            )}
 
                             <div className="flex justify-end gap-2">
                                 <Button
@@ -257,14 +277,16 @@ export default function SubscriptionDashboard({ subscriptions, isLoading, onRefr
                                     onClick={() => setShowActionsDialog(false)}
                                     disabled={isSaving}
                                 >
-                                    Cancel
+                                    {actionType === 'details' ? 'Close' : 'Cancel'}
                                 </Button>
-                                <Button
-                                    onClick={handleSaveAction}
-                                    disabled={isSaving || !actionNote.trim()}
-                                >
-                                    {isSaving ? 'Saving...' : 'Save'}
-                                </Button>
+                                {actionType !== 'details' && (
+                                    <Button
+                                        onClick={handleSaveAction}
+                                        disabled={isSaving || !actionNote.trim()}
+                                    >
+                                        {isSaving ? 'Saving...' : 'Save'}
+                                    </Button>
+                                )}
                             </div>
                         </div>
                     </DialogContent>
