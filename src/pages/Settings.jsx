@@ -1794,6 +1794,22 @@ export default function SettingsPage() {
                                                     Change Plan
                                                 </Button>
                                                 <Button
+                                                    onClick={async () => {
+                                                        try {
+                                                            const response = await base44.functions.invoke('createBillingPortalSession');
+                                                            if (response.data?.url) {
+                                                                window.location.href = response.data.url;
+                                                            }
+                                                        } catch (error) {
+                                                            alert('Failed to open billing portal: ' + error.message);
+                                                        }
+                                                    }}
+                                                    variant="outline"
+                                                    className="bg-green-50 border-green-300 hover:bg-green-100"
+                                                >
+                                                    💳 Update Payment Method
+                                                </Button>
+                                                <Button
                                                     onClick={() => {
                                                         refresh();
                                                         alert('Subscription refreshed! Check your plan above.');
