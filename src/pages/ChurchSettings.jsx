@@ -82,7 +82,20 @@ export default function ChurchSettingsPage() {
             }
         } catch (error) {
             console.error('Failed to load church settings:', error);
-            toast.error('Failed to load settings');
+            
+            // If auth fails when returning from Stripe, try reloading once
+            const urlParams = new URLSearchParams(window.location.search);
+            const isReturningFromStripe = urlParams.get('stripe_return') === 'success' || urlParams.get('stripe_return') === 'refresh';
+            
+            if (isReturningFromStripe && !currentUser) {
+                console.log('Auth issue after Stripe redirect - reloading page');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+                return;
+            }
+            
+            toast.error('Failed to load settings: ' + (error.message || 'Unknown error'));
         }
         setIsLoading(false);
     };
