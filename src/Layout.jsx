@@ -373,15 +373,11 @@ export default function Layout({ children, currentPageName }) {
     window.location.reload();
   };
 
-  // Check if returning from Stripe Connect onboarding
-  const urlParams = new URLSearchParams(location.search);
-  const isStripeReturn = urlParams.get('stripe_return') === 'success' || urlParams.get('stripe_return') === 'refresh';
-
   const isPublicPage = PUBLIC_PATHS.some(path => 
     location.pathname.toLowerCase().includes(path.toLowerCase()) || 
     currentPageName?.toLowerCase().includes(path.toLowerCase()) ||
     currentPageName?.toLowerCase() === 'publicgiving'
-  ) || isStripeReturn;
+  );
 
   const adminPages = [
     {
