@@ -178,22 +178,37 @@ export default function ChurchSettingsPage() {
 
         setUploadingLogo(true);
         try {
+            console.log('📤 Starting logo upload...');
             const result = await base44.integrations.Core.UploadFile({ file });
+            console.log('✅ File uploaded to:', result.file_url);
+            
             const newLogoUrl = result.file_url;
+            
+            // Update local state immediately for UI feedback
             setChurchSettings(prev => ({ ...prev, logo_url: newLogoUrl }));
             
             // Auto-save after upload
             if (churchSettings && churchSettings.id) {
+                console.log('💾 Saving logo URL to ChurchSettings:', churchSettings.id);
                 const { id, created_date, updated_date, created_by, ...editableData } = churchSettings;
-                await base44.entities.ChurchSettings.update(churchSettings.id, {
+                const updatedData = {
                     ...editableData,
                     logo_url: newLogoUrl
-                });
-                console.log('✅ Logo saved successfully');
+                };
+                console.log('📝 Update data:', updatedData);
+                
+                await base44.entities.ChurchSettings.update(churchSettings.id, updatedData);
+                console.log('✅ Logo saved successfully to database');
+                
+                // Reload to confirm save
+                await loadData();
+            } else {
+                console.error('❌ No ChurchSettings record to update:', churchSettings);
             }
             toast.success('Logo uploaded and saved!');
         } catch (error) {
             console.error('❌ Logo upload failed:', error);
+            console.error('Error details:', error.message, error.response, error.stack);
             toast.error('Failed to upload logo: ' + (error.message || 'Unknown error'));
         }
         setUploadingLogo(false);
@@ -215,22 +230,37 @@ export default function ChurchSettingsPage() {
 
         setUploadingHero(true);
         try {
+            console.log('📤 Starting hero image upload...');
             const result = await base44.integrations.Core.UploadFile({ file });
+            console.log('✅ File uploaded to:', result.file_url);
+            
             const newHeroUrl = result.file_url;
+            
+            // Update local state immediately for UI feedback
             setChurchSettings(prev => ({ ...prev, hero_image_url: newHeroUrl }));
             
             // Auto-save after upload
             if (churchSettings && churchSettings.id) {
+                console.log('💾 Saving hero image URL to ChurchSettings:', churchSettings.id);
                 const { id, created_date, updated_date, created_by, ...editableData } = churchSettings;
-                await base44.entities.ChurchSettings.update(churchSettings.id, {
+                const updatedData = {
                     ...editableData,
                     hero_image_url: newHeroUrl
-                });
-                console.log('✅ Hero image saved successfully');
+                };
+                console.log('📝 Update data:', updatedData);
+                
+                await base44.entities.ChurchSettings.update(churchSettings.id, updatedData);
+                console.log('✅ Hero image saved successfully to database');
+                
+                // Reload to confirm save
+                await loadData();
+            } else {
+                console.error('❌ No ChurchSettings record to update:', churchSettings);
             }
             toast.success('Church photo uploaded and saved!');
         } catch (error) {
             console.error('❌ Hero upload failed:', error);
+            console.error('Error details:', error.message, error.response, error.stack);
             toast.error('Failed to upload photo: ' + (error.message || 'Unknown error'));
         }
         setUploadingHero(false);
