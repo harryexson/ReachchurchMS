@@ -132,8 +132,12 @@ export default function Layout({ children, currentPageName }) {
           }).catch(() => {});
 
           // CRITICAL: Check for developer access FIRST before any redirects or checks
-          if (user.email === "david@base44.app" || user.developer_access) {
-            console.log('👨‍💻 Developer account - skipping all subscription and redirect checks');
+          const isDeveloper = user.email === "david@base44.app" || 
+                             user.email === "harryexson@hotmail.com" || 
+                             user.developer_access;
+          
+          if (isDeveloper) {
+            console.log('👨‍💻 Developer account detected:', user.email, '- skipping all subscription and redirect checks');
             
             // Redirect away from landing page only
             if (currentPageName?.toLowerCase() === 'landingpage' || location.pathname === '/') {
@@ -798,7 +802,9 @@ export default function Layout({ children, currentPageName }) {
   if (currentUser) {
     if (currentUser.role === "admin") {
       // Filter out developer-only service planning pages for non-developers
-      const isDeveloper = currentUser.email === "david@base44.app" || currentUser.developer_access;
+      const isDeveloper = currentUser.email === "david@base44.app" || 
+                         currentUser.email === "harryexson@hotmail.com" || 
+                         currentUser.developer_access;
       const developerOnlyPages = [
         "ServicePlanning",
         "ServiceCalendar", 
