@@ -113,11 +113,14 @@ export default function Layout({ children, currentPageName }) {
       const pathLower = location.pathname.toLowerCase();
       const pageLower = currentPageName?.toLowerCase() || '';
 
+      // CRITICAL: Enhanced public page detection for donation pages
       const isPublicPage = PUBLIC_PATHS.some(path => 
         pathLower.includes(path.toLowerCase()) || 
-        pageLower.includes(path.toLowerCase()) ||
-        pageLower === 'publicgiving'
-      );
+        pageLower.includes(path.toLowerCase())
+      ) || 
+      pageLower === 'publicgiving' ||
+      pathLower.includes('publicgiving') ||
+      pathLower === '/publicgiving';
 
       try {
         const user = await base44.auth.me();
@@ -390,11 +393,14 @@ export default function Layout({ children, currentPageName }) {
     window.location.reload();
   };
 
+  // CRITICAL: Enhanced public page detection to ensure donation pages are always accessible
   const isPublicPage = PUBLIC_PATHS.some(path => 
     location.pathname.toLowerCase().includes(path.toLowerCase()) || 
-    currentPageName?.toLowerCase().includes(path.toLowerCase()) ||
-    currentPageName?.toLowerCase() === 'publicgiving'
-  );
+    currentPageName?.toLowerCase().includes(path.toLowerCase())
+  ) || 
+  currentPageName?.toLowerCase() === 'publicgiving' ||
+  location.pathname.toLowerCase().includes('publicgiving') ||
+  location.pathname.toLowerCase() === '/publicgiving';
 
   const adminPages = [
     {
