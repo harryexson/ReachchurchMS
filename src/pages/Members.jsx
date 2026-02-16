@@ -75,7 +75,7 @@ export default function MembersPage() {
         setIsLoading(true);
         try {
             // Load members created by the current user (their church only)
-            const memberList = await base44.entities.Member.filter({ "data.created_by": user.email });
+            const memberList = await base44.entities.Member.filter({ created_by: user.email });
             
             // Merge with user profile pictures
             const membersWithPhotos = memberList.map(member => {
@@ -134,14 +134,24 @@ export default function MembersPage() {
     };
 
     const handleFormSubmit = async (data) => {
-        if (selectedMember) {
-            await base44.entities.Member.update(selectedMember.id, data);
-        } else {
-            await base44.entities.Member.create(data);
+        try {
+            console.log('💾 Saving member:', data);
+            if (selectedMember) {
+                // Extract only editable fields - exclude built-in fields
+                const { id, created_date, updated_date, created_by, ...editableData } = data;
+                await base44.entities.Member.update(selectedMember.id, editableData);
+                console.log('✅ Member updated successfully:', selectedMember.id);
+            } else {
+                const newMember = await base44.entities.Member.create(data);
+                console.log('✅ Member created successfully:', newMember.id);
+            }
+            await loadMembers();
+            setIsFormOpen(false);
+            setSelectedMember(null);
+        } catch (error) {
+            console.error('❌ Failed to save member:', error);
+            alert('Failed to save member: ' + (error.message || 'Unknown error'));
         }
-        await loadMembers();
-        setIsFormOpen(false);
-        setSelectedMember(null);
     };
 
     const handleEdit = (member) => {
