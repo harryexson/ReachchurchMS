@@ -130,7 +130,7 @@ export default function VisitorsPage() {
             
             // Load all visitors for this organization
             const visitorList = await base44.entities.Visitor.filter({ 
-                "data.created_by": user.email 
+                created_by: user.email 
             }, "-visit_date");
             
             console.log('Loaded visitors:', visitorList.length);
@@ -138,8 +138,8 @@ export default function VisitorsPage() {
             
             // Load related data
             const [followUpList, visitsList] = await Promise.all([
-                base44.entities.VisitorFollowUp.filter({ "data.created_by": user.email }),
-                base44.entities.VisitorVisit.filter({ "data.created_by": user.email }, "-visit_date")
+                base44.entities.VisitorFollowUp.filter({ created_by: user.email }),
+                base44.entities.VisitorVisit.filter({ created_by: user.email }, "-visit_date")
             ]);
             setFollowUps(followUpList);
             setVisitorVisits(visitsList);
@@ -161,7 +161,7 @@ export default function VisitorsPage() {
 
         // Real-time subscriptions for instant updates
         const unsubscribeVisitor = base44.entities.Visitor.subscribe((event) => {
-            if (event.data?.data?.created_by === currentUser.email) {
+            if (event.data?.created_by === currentUser.email) {
                 if (event.type === 'create') {
                     setVisitors(prev => [event.data, ...prev]);
                 } else if (event.type === 'update') {
@@ -179,16 +179,21 @@ export default function VisitorsPage() {
 
     const handleFormSubmit = async (data) => {
         try {
+            console.log('💾 Saving visitor:', data);
             let visitorId;
             let isNewVisitor = false;
             
             if (selectedVisitor) {
-                await base44.entities.Visitor.update(selectedVisitor.id, data);
+                // Extract only editable fields - exclude built-in fields
+                const { id, created_date, updated_date, created_by, ...editableData } = data;
+                await base44.entities.Visitor.update(selectedVisitor.id, editableData);
                 visitorId = selectedVisitor.id;
+                console.log('✅ Visitor updated successfully:', selectedVisitor.id);
             } else {
                 const newVisitor = await base44.entities.Visitor.create(data);
                 visitorId = newVisitor.id;
                 isNewVisitor = true;
+                console.log('✅ Visitor created successfully:', newVisitor.id);
             }
             
             if (isNewVisitor) {
@@ -199,8 +204,8 @@ export default function VisitorsPage() {
             setIsFormOpen(false);
             setSelectedVisitor(null);
         } catch (error) {
-            console.error('Error saving visitor:', error);
-            alert('Failed to save visitor');
+            console.error('❌ Failed to save visitor:', error);
+            alert('Failed to save visitor: ' + (error.message || 'Unknown error'));
         }
     };
 
@@ -336,12 +341,14 @@ export default function VisitorsPage() {
                 5: 'engaged'
             };
 
-            await base44.entities.Visitor.update(visitor.id, { 
+            const updateData = { 
                 follow_up_status: statusMap[step] || 'engaged',
                 last_contact_date: new Date().toISOString().split('T')[0],
                 next_follow_up_date: addDays(new Date(), 7).toISOString().split('T')[0],
                 total_follow_ups: (visitor.total_follow_ups || 0) + 1
-            });
+            };
+            await base44.entities.Visitor.update(visitor.id, updateData);
+            console.log('✅ Visitor follow-up status updated:', visitor.id);
 
             await loadData();
             
@@ -392,13 +399,18 @@ export default function VisitorsPage() {
                 notes: `Converted from visitor on ${new Date().toLocaleDateString()}. Original visit date: ${format(new Date(visitor.visit_date), 'MMM d, yyyy')}`
             };
 
-            await base44.entities.Member.create(memberData);
+            const createdMember = await base44.entities.Member.create(memberData);
+            memberData.id = createdMember.id;
+            console.log('✅ Member created from visitor:', createdMember.id);
 
-            await base44.entities.Visitor.update(visitor.id, {
+            const conversionData = {
                 follow_up_status: 'member',
                 converted_to_member: true,
-                conversion_date: new Date().toISOString().split('T')[0]
-            });
+                conversion_date: new Date().toISOString().split('T')[0],
+                member_id: memberData.id
+            };
+            await base44.entities.Visitor.update(visitor.id, conversionData);
+            console.log('✅ Visitor converted to member:', visitor.id);
 
             const activeExecutions = await base44.entities.VisitorWorkflowExecution.filter({
                 visitor_id: visitor.id,
