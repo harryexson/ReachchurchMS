@@ -180,23 +180,9 @@ export default function ChurchSettingsPage() {
             const onboardingUrl = response.data?.data?.onboarding_url;
             
             if (onboardingUrl) {
-                console.log('Opening Stripe in popup:', onboardingUrl);
-                // Open in popup to avoid CSP blocking
-                const popup = window.open(onboardingUrl, 'stripe_connect', 'width=800,height=800');
-                if (popup) {
-                    toast.success('Complete Stripe setup in the popup window');
-                    // Listen for popup close
-                    const checkPopup = setInterval(() => {
-                        if (popup.closed) {
-                            clearInterval(checkPopup);
-                            toast.info('Refreshing to check Stripe status...');
-                            setTimeout(() => loadData(), 2000);
-                        }
-                    }, 1000);
-                } else {
-                    toast.error('Popup blocked. Please allow popups and try again.');
-                }
-                setIsCreatingStripeAccount(false);
+                console.log('Redirecting to Stripe onboarding:', onboardingUrl);
+                // Use top-level navigation for proper redirect
+                window.top.location.href = onboardingUrl;
             } else {
                 toast.error(response.data?.data?.error || response.data?.error || 'Failed to start Stripe onboarding');
                 setIsCreatingStripeAccount(false);
