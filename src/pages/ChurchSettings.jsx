@@ -23,6 +23,16 @@ export default function ChurchSettingsPage() {
 
     useEffect(() => {
         loadData();
+        
+        // Check if returning from Stripe Connect
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('stripe_return') === 'success') {
+            toast.success('Stripe Connect setup complete! Your account is being verified.');
+            // Remove query param
+            window.history.replaceState({}, '', createPageUrl('ChurchSettings'));
+        } else if (urlParams.get('stripe_return') === 'refresh') {
+            toast.info('Please complete your Stripe Connect setup.');
+        }
     }, []);
 
     const loadData = async () => {
@@ -154,10 +164,14 @@ export default function ChurchSettingsPage() {
     const handleStripeOnboarding = async () => {
         setIsCreatingStripeAccount(true);
         try {
+            const host = window.location.origin;
+            const returnUrl = `${host}${createPageUrl('ChurchSettings')}?stripe_return=success`;
+            const refreshUrl = `${host}${createPageUrl('ChurchSettings')}?stripe_return=refresh`;
+
             const response = await base44.functions.invoke('createStripeConnectAccount', {
                 church_name: churchSettings?.church_name || "Church",
-                return_url: window.location.href,
-                refresh_url: window.location.href
+                return_url: returnUrl,
+                refresh_url: refreshUrl
             });
 
             console.log('Stripe response:', response);
@@ -166,11 +180,9 @@ export default function ChurchSettingsPage() {
             const onboardingUrl = response.data?.data?.onboarding_url;
             
             if (onboardingUrl) {
-                console.log('Opening Stripe onboarding in new window:', onboardingUrl);
-                // Open in new window to avoid CSP/iframe blocking
-                window.open(onboardingUrl, '_blank');
-                toast.success('Stripe onboarding opened in new tab. Complete the setup and return here.');
-                setIsCreatingStripeAccount(false);
+                console.log('Redirecting to Stripe onboarding:', onboardingUrl);
+                // Direct redirect in same window for proper auth context
+                window.location.href = onboardingUrl;
             } else {
                 toast.error(response.data?.data?.error || response.data?.error || 'Failed to start Stripe onboarding');
                 setIsCreatingStripeAccount(false);
