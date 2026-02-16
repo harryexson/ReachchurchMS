@@ -196,22 +196,27 @@ export default function ChurchSettingsPage() {
                 refresh_url: refreshUrl
             });
 
-            console.log('Stripe response:', response);
+            console.log('Full Stripe response:', JSON.stringify(response, null, 2));
 
-            // base44.functions.invoke wraps backend response in {data: {...}}
-            const onboardingUrl = response.data?.data?.onboarding_url;
+            // Extract onboarding URL from response
+            // Response structure: { data: { data: { onboarding_url, account_id } } }
+            const onboardingUrl = response?.data?.data?.onboarding_url || response?.data?.onboarding_url;
+            const errorMsg = response?.data?.error || response?.data?.data?.error || response?.error;
             
             if (onboardingUrl) {
-                console.log('Redirecting to Stripe onboarding:', onboardingUrl);
-                // Use top-level navigation for proper redirect
-                window.top.location.href = onboardingUrl;
+                console.log('✅ Redirecting to Stripe onboarding:', onboardingUrl);
+                // Use window.location for reliable redirect
+                window.location.href = onboardingUrl;
             } else {
-                toast.error(response.data?.data?.error || response.data?.error || 'Failed to start Stripe onboarding');
+                console.error('❌ No onboarding URL found in response:', response);
+                toast.error(errorMsg || 'Failed to generate Stripe onboarding link. Please try again.');
                 setIsCreatingStripeAccount(false);
             }
         } catch (error) {
-            console.error('Stripe onboarding error:', error);
-            toast.error(error.response?.data?.error || error.message || 'Failed to connect to Stripe');
+            console.error('❌ Stripe onboarding error:', error);
+            const errorMessage = error?.response?.data?.error || error?.data?.error || error?.message || 'Failed to connect to Stripe';
+            console.error('Error details:', errorMessage);
+            toast.error(errorMessage);
             setIsCreatingStripeAccount(false);
         }
     };
