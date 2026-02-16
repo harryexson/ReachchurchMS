@@ -50,7 +50,6 @@ import OfflineIndicator from "@/components/pwa/OfflineIndicator";
 import MobileNavBar from "@/components/pwa/MobileNavBar";
 import SupportChatWidget from "@/components/support/SupportChatWidget";
 import { Button } from "@/components/ui/button";
-import { useTheme } from "@/components/theme/ThemeProvider";
 
 const publicPages = [
   {
@@ -103,7 +102,11 @@ const PUBLIC_PATHS = [
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
-  const { isDark, toggleTheme } = useTheme();
+  const [isDark, setIsDark] = useState(() => {
+    const saved = localStorage.getItem('theme');
+    if (saved) return saved === 'dark';
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
   const [currentUser, setCurrentUser] = useState(null);
   const [showLogout, setShowLogout] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -111,6 +114,21 @@ export default function Layout({ children, currentPageName }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [authError, setAuthError] = useState(null);
   const [churchBranding, setChurchBranding] = useState(null);
+
+  const toggleTheme = () => setIsDark(!isDark);
+
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (metaThemeColor) {
+      metaThemeColor.setAttribute('content', isDark ? '#1e293b' : '#ffffff');
+    }
+  }, [isDark]);
 
   useEffect(() => {
     const fetchUser = async () => {
