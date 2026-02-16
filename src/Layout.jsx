@@ -123,9 +123,33 @@ export default function Layout({ children, currentPageName }) {
         const user = await base44.auth.me();
 
         if (user) {
-          // CRITICAL: Check if on subscription plans page with upgrade/expired params - ALLOW ACCESS
           const urlParams = new URLSearchParams(location.search);
           const isUpgradeFlow = urlParams.get('upgrade') === 'true' || urlParams.get('expired') === 'true';
+
+          // Update last login silently - don't block on this
+          base44.auth.updateMe({
+            last_login: new Date().toISOString()
+          }).catch(() => {});
+
+          // CRITICAL: Check for developer access FIRST before any redirects or checks
+          if (user.email === "david@base44.app" || user.developer_access) {
+            console.log('👨‍💻 Developer account - skipping all subscription and redirect checks');
+            
+            // Redirect away from landing page only
+            if (currentPageName?.toLowerCase() === 'landingpage' || location.pathname === '/') {
+              const dashboardUrl = user.role === 'admin' 
+                ? createPageUrl('Dashboard') 
+                : createPageUrl('MemberDashboard');
+              console.log('🔀 Developer redirecting to dashboard:', dashboardUrl);
+              window.location.href = dashboardUrl;
+              return;
+            }
+            
+            setCurrentUser(user);
+            setAuthError(null);
+            setIsLoadingUser(false);
+            return;
+          }
 
           // CRITICAL: Redirect authenticated users away from landing/signup pages IMMEDIATELY
           // BUT allow subscription plans page during upgrade flow
@@ -143,20 +167,6 @@ export default function Layout({ children, currentPageName }) {
           if ((currentPageName?.toLowerCase() === 'subscriptionplans' || 
               location.pathname.toLowerCase().includes('subscriptionplans')) && isUpgradeFlow) {
             console.log('✅ Allowing subscription page access during upgrade flow');
-            setCurrentUser(user);
-            setAuthError(null);
-            setIsLoadingUser(false);
-            return;
-          }
-
-          // Update last login silently - don't block on this
-          base44.auth.updateMe({
-            last_login: new Date().toISOString()
-          }).catch(() => {});
-
-          // Skip subscription check for developers
-          if (user.email === "david@base44.app" || user.developer_access) {
-            console.log('👨‍💻 Developer account - skipping subscription checks');
             setCurrentUser(user);
             setAuthError(null);
             setIsLoadingUser(false);
