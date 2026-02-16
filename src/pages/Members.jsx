@@ -74,8 +74,8 @@ export default function MembersPage() {
     const loadMembers = async () => {
         setIsLoading(true);
         try {
-            // Load ALL members (no filter by created_by)
-            const memberList = await base44.entities.Member.list();
+            // Load only members for this church (created by current admin)
+            const memberList = await base44.entities.Member.filter({ created_by: user.email });
             
             // Merge with user profile pictures
             const membersWithPhotos = memberList.map(member => {
