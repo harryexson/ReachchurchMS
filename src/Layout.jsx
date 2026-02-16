@@ -408,12 +408,6 @@ export default function Layout({ children, currentPageName }) {
       url: createPageUrl("Dashboard"),
       icon: Church,
     },
-
-    {
-      title: "User Management",
-      url: createPageUrl("UserManagement"),
-      icon: UserCog,
-    },
     {
       title: "Role Management",
       url: createPageUrl("RoleManagement"),
@@ -711,11 +705,6 @@ export default function Layout({ children, currentPageName }) {
       title: "Back Office",
       url: createPageUrl("BackOffice"),
       icon: Shield,
-    },
-    {
-      title: "User Management",
-      url: createPageUrl("UserManagement"),
-      icon: UserCog,
     },
     {
       title: "Hardware Recommendations",
