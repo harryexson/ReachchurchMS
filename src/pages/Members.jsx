@@ -58,9 +58,9 @@ export default function MembersPage() {
 
             // Real-time subscription for instant updates
             const unsubscribe = base44.entities.Member.subscribe((event) => {
-                if (event.type === 'create') {
+                if (event.type === 'create' && event.data?.created_by === user.email) {
                     setMembers(prev => [event.data, ...prev]);
-                } else if (event.type === 'update') {
+                } else if (event.type === 'update' && event.data?.created_by === user.email) {
                     setMembers(prev => prev.map(m => m.id === event.id ? event.data : m));
                 } else if (event.type === 'delete') {
                     setMembers(prev => prev.filter(m => m.id !== event.id));
