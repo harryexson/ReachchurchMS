@@ -50,7 +50,7 @@ import OfflineIndicator from "@/components/pwa/OfflineIndicator";
 import MobileNavBar from "@/components/pwa/MobileNavBar";
 import SupportChatWidget from "@/components/support/SupportChatWidget";
 import { Button } from "@/components/ui/button";
-import { useTheme } from "@/lib/ThemeContext";
+import { useTheme } from "@/components/theme/ThemeProvider";
 
 const publicPages = [
   {
