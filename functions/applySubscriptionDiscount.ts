@@ -56,12 +56,40 @@ Deno.serve(async (req) => {
             stripe_customer_id: subscription.stripe_customer_id
         }, null, 2));
 
-        if (!subscription.stripe_subscription_id) {
+        // Allow discounts for active/trial subscriptions without Stripe ID
+        // They'll get applied when they do eventually checkout
+        if (!subscription.stripe_subscription_id && subscription.status !== 'active' && subscription.status !== 'trial') {
             return Response.json({ 
-                error: 'No Stripe subscription found',
-                details: 'This subscription has not been connected to Stripe yet. The customer must complete checkout first.',
+                error: 'Cannot apply discount',
+                details: 'This subscription must be active or in trial status to receive discounts.',
                 subscription_status: subscription.status
             }, { status: 400 });
+        }
+
+        // If no Stripe subscription yet, store discount for later application
+        if (!subscription.stripe_subscription_id) {
+            console.log('No Stripe subscription yet - storing discount for future checkout');
+            
+            // Update subscription with pending discount info
+            await base44.asServiceRole.entities.Subscription.update(subscription_id, {
+                notes: `${subscription.notes || ''}\n[${new Date().toISOString()}] PENDING DISCOUNT (to be applied at checkout): ${discount_type === 'percentage' ? `${discount_value}%` : `$${discount_value}`} off (${duration}). Reason: ${reason}. Applied by: ${user.email}`
+            });
+
+            // Log action
+            await base44.asServiceRole.entities.AccountAction.create({
+                subscription_id: subscription_id,
+                church_name: subscription.church_name,
+                action_type: 'discount_scheduled',
+                performed_by: user.email,
+                notes: `Scheduled ${discount_type === 'percentage' ? `${discount_value}%` : `$${discount_value}`} discount (${duration}) to be applied at checkout. Reason: ${reason}`,
+                action_date: new Date().toISOString()
+            });
+
+            return Response.json({
+                success: true,
+                message: 'Discount scheduled for application at checkout',
+                note: 'This discount will be automatically applied when the customer completes their first payment.'
+            });
         }
 
         console.log('Applying discount to subscription:', subscription.church_name);
