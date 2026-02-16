@@ -21,7 +21,7 @@ export default function UserRoleAssignment() {
     const [selectedMember, setSelectedMember] = useState('');
     const [selectedRole, setSelectedRole] = useState('');
     const [selectedUsers, setSelectedUsers] = useState([]);
-    const { canAccessPage, currentUser: permUser, loading: permLoading } = usePermissions();
+    const { canAccessPage, hasPermission, currentUser: permUser, loading: permLoading } = usePermissions();
 
     useEffect(() => {
         if (!permLoading) {
@@ -99,6 +99,12 @@ export default function UserRoleAssignment() {
     };
 
     const handleDeleteUser = async (member) => {
+        // Check if current user has permission to delete users
+        if (!hasPermission('settings', 'manage_users')) {
+            alert('You do not have permission to delete users. Contact an administrator.');
+            return;
+        }
+
         if (!confirm(`Delete ${member.first_name} ${member.last_name} from the system? This will remove their profile and all role assignments.`)) return;
 
         try {
@@ -115,7 +121,7 @@ export default function UserRoleAssignment() {
             alert('User profile deleted successfully');
         } catch (error) {
             console.error('Error deleting user:', error);
-            alert('Failed to delete user profile');
+            alert('Failed to delete user profile: ' + (error.message || 'Unknown error'));
         }
     };
 
@@ -136,6 +142,12 @@ export default function UserRoleAssignment() {
     };
 
     const handleBulkDelete = async () => {
+        // Check if current user has permission to delete users
+        if (!hasPermission('settings', 'manage_users')) {
+            alert('You do not have permission to delete users. Contact an administrator.');
+            return;
+        }
+
         if (selectedUsers.length === 0) {
             alert('Please select users to delete');
             return;
@@ -163,7 +175,7 @@ export default function UserRoleAssignment() {
             alert('Selected users deleted successfully');
         } catch (error) {
             console.error('Error deleting users:', error);
-            alert('Failed to delete selected users');
+            alert('Failed to delete selected users: ' + (error.message || 'Unknown error'));
         }
     };
 
@@ -210,7 +222,7 @@ export default function UserRoleAssignment() {
                     )}
                 </div>
                 <div className="flex gap-2">
-                    {selectedUsers.length > 0 && (
+                    {selectedUsers.length > 0 && hasPermission('settings', 'manage_users') && (
                         <Button onClick={handleBulkDelete} variant="outline" className="text-red-600 hover:bg-red-50">
                             <Trash2 className="w-4 h-4 mr-2" />
                             Delete Selected ({selectedUsers.length})
@@ -376,15 +388,17 @@ export default function UserRoleAssignment() {
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    className="text-red-600 hover:bg-red-50 hover:text-red-700"
-                                                    onClick={() => handleDeleteUser(member)}
-                                                >
-                                                    <Trash2 className="w-4 h-4 mr-2" />
-                                                    Delete User
-                                                </Button>
+                                                {hasPermission('settings', 'manage_users') && (
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="text-red-600 hover:bg-red-50 hover:text-red-700"
+                                                        onClick={() => handleDeleteUser(member)}
+                                                    >
+                                                        <Trash2 className="w-4 h-4 mr-2" />
+                                                        Delete User
+                                                    </Button>
+                                                )}
                                             </div>
                                         </CardContent>
                                     </Card>
