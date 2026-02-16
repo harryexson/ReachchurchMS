@@ -166,9 +166,11 @@ export default function ChurchSettingsPage() {
             const onboardingUrl = response.data?.data?.onboarding_url;
             
             if (onboardingUrl) {
-                console.log('Redirecting to:', onboardingUrl);
-                // Use window.location.replace for immediate redirect without browser blocking
-                window.location.replace(onboardingUrl);
+                console.log('Opening Stripe onboarding in new window:', onboardingUrl);
+                // Open in new window to avoid CSP/iframe blocking
+                window.open(onboardingUrl, '_blank');
+                toast.success('Stripe onboarding opened in new tab. Complete the setup and return here.');
+                setIsCreatingStripeAccount(false);
             } else {
                 toast.error(response.data?.data?.error || response.data?.error || 'Failed to start Stripe onboarding');
                 setIsCreatingStripeAccount(false);
