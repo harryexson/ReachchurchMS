@@ -103,6 +103,9 @@ export default function ChurchSettingsPage() {
     const handleSaveChurchInfo = async () => {
         setIsSaving(true);
         try {
+            if (churchSettings) {
+                await base44.entities.ChurchSettings.update(churchSettings.id, churchSettings);
+            }
             if (onboardingProgress) {
                 await base44.entities.OnboardingProgress.update(onboardingProgress.id, onboardingProgress);
             }
