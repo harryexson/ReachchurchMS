@@ -39,9 +39,12 @@ export default function StripeConnectSetup({ churchSettings }) {
             
             if (onboardingUrl) {
                 console.log('✅ Onboarding URL received:', onboardingUrl);
-                console.log('Redirecting to Stripe...');
-                // Direct redirect in same window for proper auth context
-                window.location.href = onboardingUrl;
+                console.log('Opening Stripe in popup...');
+                // Open in popup to avoid CSP blocking
+                const popup = window.open(onboardingUrl, 'stripe_connect', 'width=800,height=800');
+                if (!popup) {
+                    throw new Error('Popup blocked. Please allow popups and try again.');
+                }
             } else {
                 throw new Error(response.data?.data?.error || response.data?.error || 'Failed to generate onboarding URL');
             }
