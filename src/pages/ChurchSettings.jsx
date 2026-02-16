@@ -79,6 +79,26 @@ export default function ChurchSettingsPage() {
             const progress = await base44.entities.OnboardingProgress.filter({ user_email: user.email });
             if (progress.length > 0) {
                 setOnboardingProgress(progress[0]);
+            } else {
+                // Create default onboarding progress if none exists
+                const defaultProgress = {
+                    user_email: user.email,
+                    onboarding_completed: false,
+                    point_of_contact: "",
+                    church_description: "",
+                    church_size: "",
+                    founded_year: "",
+                    church_phone: "",
+                    church_email: "",
+                    church_address: "",
+                    church_website: "",
+                    facebook_url: "",
+                    instagram_url: "",
+                    youtube_url: ""
+                };
+                const created = await base44.entities.OnboardingProgress.create(defaultProgress);
+                setOnboardingProgress(created);
+                console.log('✅ Created default onboarding progress:', created.id);
             }
         } catch (error) {
             console.error('Failed to load church settings:', error);

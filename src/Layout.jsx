@@ -309,18 +309,21 @@ export default function Layout({ children, currentPageName }) {
           // Load church branding for authenticated users
           try {
             const settings = await base44.entities.ChurchSettings.filter({
-              'data.created_by': user.email
+              created_by: user.email
             });
             if (settings.length > 0) {
+              console.log('✅ Church branding loaded:', settings[0].church_name);
               setChurchBranding({
                 logo_url: settings[0].logo_url,
                 church_name: settings[0].church_name,
                 primary_color: settings[0].primary_color || "#3b82f6",
                 secondary_color: settings[0].secondary_color || "#10b981"
               });
+            } else {
+              console.log('⚠️ No church settings found for:', user.email);
             }
           } catch (brandingError) {
-            console.log('Could not load church branding:', brandingError);
+            console.error('❌ Could not load church branding:', brandingError);
           }
         }
       } catch (error) {
