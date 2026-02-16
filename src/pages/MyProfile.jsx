@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from 'sonner';
 import { createPageUrl } from "@/utils";
 import { Link } from "react-router-dom";
+import AccountDeletion from "@/components/settings/AccountDeletion";
+import NativeHeader from "@/components/mobile/NativeHeader";
 
 export default function MyProfilePage() {
     const [currentUser, setCurrentUser] = useState(null);
@@ -182,12 +184,10 @@ export default function MyProfilePage() {
     }
 
     return (
-        <div className="p-6 bg-gradient-to-br from-slate-50 to-blue-50/30 min-h-screen">
+        <div className="bg-gradient-to-br from-slate-50 to-blue-50/30 dark:from-slate-900 dark:to-slate-800 min-h-screen">
+            <NativeHeader title="My Profile" showBack={false} />
+            <div className="p-6">
             <div className="max-w-4xl mx-auto space-y-8">
-                <div>
-                    <h1 className="text-3xl font-bold text-slate-900">My Profile</h1>
-                    <p className="text-slate-600 mt-1">View and manage your personal information</p>
-                </div>
 
                 {/* Profile Picture */}
                 <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
@@ -735,16 +735,20 @@ export default function MyProfilePage() {
                     </Card>
                 )}
 
-                <Card className="shadow-lg border-0 bg-blue-50">
+                <Card className="shadow-lg border-0 bg-blue-50 dark:bg-blue-950/20">
                     <CardContent className="p-6">
-                        <h3 className="font-semibold text-blue-900 mb-3">📝 Note About Profile Updates</h3>
-                        <div className="space-y-2 text-sm text-blue-800">
+                        <h3 className="font-semibold text-blue-900 dark:text-blue-400 mb-3">📝 Note About Profile Updates</h3>
+                        <div className="space-y-2 text-sm text-blue-800 dark:text-blue-300">
                             <p>• You can update contact info, bio, family members, interests, and skills anytime</p>
                             <p>• To update your name or email, please contact the church office</p>
                             <p>• Ministry involvement is managed by church administrators</p>
                         </div>
                     </CardContent>
                 </Card>
+
+                {/* Account Deletion */}
+                <AccountDeletion />
+            </div>
             </div>
         </div>
     );
