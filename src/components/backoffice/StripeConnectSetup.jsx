@@ -32,13 +32,15 @@ export default function StripeConnectSetup({ churchSettings }) {
             });
 
             console.log('Response:', response);
+            console.log('Response.data:', response.data);
 
-            if (response.data?.onboarding_url) {
+            // base44.functions.invoke returns {data: {...backend response...}}
+            // So response.data IS the backend's returned data object
+            if (response.data?.data?.onboarding_url) {
                 console.log('✅ Onboarding URL received, redirecting...');
-                // Redirect to Stripe onboarding
-                window.location.href = response.data.onboarding_url;
+                window.location.href = response.data.data.onboarding_url;
             } else {
-                throw new Error(response.data?.error || 'Failed to generate onboarding URL');
+                throw new Error(response.data?.data?.error || response.data?.error || 'Failed to generate onboarding URL');
             }
         } catch (err) {
             console.error('❌ Stripe onboarding error:', err);

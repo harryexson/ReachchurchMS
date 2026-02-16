@@ -160,11 +160,13 @@ export default function ChurchSettingsPage() {
                 refresh_url: window.location.href
             });
 
-            if (response.data?.success && response.data?.onboarding_url) {
-                // Redirect to Stripe onboarding
-                window.location.href = response.data.onboarding_url;
+            console.log('Stripe response:', response);
+
+            // base44.functions.invoke wraps backend response in {data: {...}}
+            if (response.data?.data?.onboarding_url) {
+                window.location.href = response.data.data.onboarding_url;
             } else {
-                toast.error(response.data?.error || 'Failed to start Stripe onboarding');
+                toast.error(response.data?.data?.error || response.data?.error || 'Failed to start Stripe onboarding');
             }
         } catch (error) {
             console.error('Stripe onboarding error:', error);
