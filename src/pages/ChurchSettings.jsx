@@ -56,7 +56,7 @@ export default function ChurchSettingsPage() {
 
             // Load church settings - CRITICAL: Filter by current admin to ensure proper isolation
             const settings = await base44.entities.ChurchSettings.filter({
-                'data.created_by': user.email
+                created_by: user.email
             });
             if (settings.length > 0) {
                 setChurchSettings(settings[0]);
@@ -103,16 +103,23 @@ export default function ChurchSettingsPage() {
     const handleSaveChurchInfo = async () => {
         setIsSaving(true);
         try {
-            if (churchSettings) {
-                await base44.entities.ChurchSettings.update(churchSettings.id, churchSettings);
+            // Extract only editable fields - exclude built-in fields
+            if (churchSettings && churchSettings.id) {
+                const { id, created_date, updated_date, created_by, ...editableData } = churchSettings;
+                await base44.entities.ChurchSettings.update(churchSettings.id, editableData);
+                console.log('✅ ChurchSettings saved successfully');
             }
-            if (onboardingProgress) {
-                await base44.entities.OnboardingProgress.update(onboardingProgress.id, onboardingProgress);
+            if (onboardingProgress && onboardingProgress.id) {
+                const { id, created_date, updated_date, created_by, ...editableData } = onboardingProgress;
+                await base44.entities.OnboardingProgress.update(onboardingProgress.id, editableData);
+                console.log('✅ OnboardingProgress saved successfully');
             }
             toast.success('Church information saved!');
+            // Reload to verify save
+            await loadData();
         } catch (error) {
-            console.error('Save failed:', error);
-            toast.error('Failed to save church information');
+            console.error('❌ Save failed:', error);
+            toast.error('Failed to save: ' + (error.message || 'Unknown error'));
         }
         setIsSaving(false);
     };
@@ -120,13 +127,17 @@ export default function ChurchSettingsPage() {
     const handleSaveBranding = async () => {
         setIsSaving(true);
         try {
-            if (churchSettings) {
-                await base44.entities.ChurchSettings.update(churchSettings.id, churchSettings);
+            if (churchSettings && churchSettings.id) {
+                const { id, created_date, updated_date, created_by, ...editableData } = churchSettings;
+                await base44.entities.ChurchSettings.update(churchSettings.id, editableData);
+                console.log('✅ Branding saved successfully');
             }
             toast.success('Branding settings saved!');
+            // Reload to verify save
+            await loadData();
         } catch (error) {
-            console.error('Save failed:', error);
-            toast.error('Failed to save branding');
+            console.error('❌ Save failed:', error);
+            toast.error('Failed to save: ' + (error.message || 'Unknown error'));
         }
         setIsSaving(false);
     };
@@ -148,11 +159,22 @@ export default function ChurchSettingsPage() {
         setUploadingLogo(true);
         try {
             const result = await base44.integrations.Core.UploadFile({ file });
-            setChurchSettings(prev => ({ ...prev, logo_url: result.file_url }));
-            toast.success('Logo uploaded!');
+            const newLogoUrl = result.file_url;
+            setChurchSettings(prev => ({ ...prev, logo_url: newLogoUrl }));
+            
+            // Auto-save after upload
+            if (churchSettings && churchSettings.id) {
+                const { id, created_date, updated_date, created_by, ...editableData } = churchSettings;
+                await base44.entities.ChurchSettings.update(churchSettings.id, {
+                    ...editableData,
+                    logo_url: newLogoUrl
+                });
+                console.log('✅ Logo saved successfully');
+            }
+            toast.success('Logo uploaded and saved!');
         } catch (error) {
-            console.error('Logo upload failed:', error);
-            toast.error('Failed to upload logo');
+            console.error('❌ Logo upload failed:', error);
+            toast.error('Failed to upload logo: ' + (error.message || 'Unknown error'));
         }
         setUploadingLogo(false);
     };
@@ -174,11 +196,22 @@ export default function ChurchSettingsPage() {
         setUploadingHero(true);
         try {
             const result = await base44.integrations.Core.UploadFile({ file });
-            setChurchSettings(prev => ({ ...prev, hero_image_url: result.file_url }));
-            toast.success('Church photo uploaded!');
+            const newHeroUrl = result.file_url;
+            setChurchSettings(prev => ({ ...prev, hero_image_url: newHeroUrl }));
+            
+            // Auto-save after upload
+            if (churchSettings && churchSettings.id) {
+                const { id, created_date, updated_date, created_by, ...editableData } = churchSettings;
+                await base44.entities.ChurchSettings.update(churchSettings.id, {
+                    ...editableData,
+                    hero_image_url: newHeroUrl
+                });
+                console.log('✅ Hero image saved successfully');
+            }
+            toast.success('Church photo uploaded and saved!');
         } catch (error) {
-            console.error('Hero upload failed:', error);
-            toast.error('Failed to upload photo');
+            console.error('❌ Hero upload failed:', error);
+            toast.error('Failed to upload photo: ' + (error.message || 'Unknown error'));
         }
         setUploadingHero(false);
     };
@@ -680,16 +713,22 @@ export default function ChurchSettingsPage() {
                                 <Button onClick={async () => {
                                     setIsSaving(true);
                                     try {
-                                        if (churchSettings) {
-                                            await base44.entities.ChurchSettings.update(churchSettings.id, churchSettings);
+                                        if (churchSettings && churchSettings.id) {
+                                            const { id, created_date, updated_date, created_by, ...editableData } = churchSettings;
+                                            await base44.entities.ChurchSettings.update(churchSettings.id, editableData);
+                                            console.log('✅ ChurchSettings saved successfully');
                                         }
-                                        if (onboardingProgress) {
-                                            await base44.entities.OnboardingProgress.update(onboardingProgress.id, onboardingProgress);
+                                        if (onboardingProgress && onboardingProgress.id) {
+                                            const { id, created_date, updated_date, created_by, ...editableData } = onboardingProgress;
+                                            await base44.entities.OnboardingProgress.update(onboardingProgress.id, editableData);
+                                            console.log('✅ OnboardingProgress saved successfully');
                                         }
                                         toast.success('Contact information saved!');
+                                        // Reload to verify save
+                                        await loadData();
                                     } catch (error) {
-                                        console.error('Save failed:', error);
-                                        toast.error('Failed to save contact information');
+                                        console.error('❌ Save failed:', error);
+                                        toast.error('Failed to save: ' + (error.message || 'Unknown error'));
                                     }
                                     setIsSaving(false);
                                 }} disabled={isSaving} className="w-full bg-green-600">
