@@ -73,11 +73,8 @@ export default function Dashboard() {
       let visitors = [];
 
       try {
-        // Filter members by current user's organization
-        members = await base44.entities.Member.filter(
-          { "data.created_by": user.email },
-          "-created_date"
-        );
+        // Load ALL members (no filter)
+        members = await base44.entities.Member.list();
       } catch (error) {
         if (!signal?.aborted) {
           console.error("Error loading members:", error);
