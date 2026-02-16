@@ -38,7 +38,9 @@ import {
                                 Bell,
                                 Loader2,
                                 Palette,
-                                Zap
+                                Zap,
+                                Moon,
+                                Sun
                               } from "lucide-react";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import FloatingChat from "@/components/messaging/FloatingChat";
@@ -48,6 +50,7 @@ import OfflineIndicator from "@/components/pwa/OfflineIndicator";
 import MobileNavBar from "@/components/pwa/MobileNavBar";
 import SupportChatWidget from "@/components/support/SupportChatWidget";
 import { Button } from "@/components/ui/button";
+import { useTheme } from "@/lib/ThemeContext";
 
 const publicPages = [
   {
@@ -100,6 +103,7 @@ const PUBLIC_PATHS = [
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
+  const { isDark, toggleTheme } = useTheme();
   const [currentUser, setCurrentUser] = useState(null);
   const [showLogout, setShowLogout] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -964,7 +968,7 @@ export default function Layout({ children, currentPageName }) {
 
       <aside
         className={`
-          fixed top-0 left-0 h-full bg-white border-r border-slate-200 shadow-xl
+          fixed top-0 left-0 h-full bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 shadow-xl
           transition-transform duration-300 ease-in-out z-40
           w-64
           ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}
@@ -973,7 +977,7 @@ export default function Layout({ children, currentPageName }) {
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="p-6 border-b border-slate-200 flex-shrink-0">
+          <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex-shrink-0">
             <Link
               to={currentUser?.role === 'admin' ? createPageUrl("Dashboard") : createPageUrl("MemberDashboard")}
               className="flex items-center gap-3 group"
@@ -1022,8 +1026,8 @@ export default function Layout({ children, currentPageName }) {
                     flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200
                     ${
                       isActive
-                        ? "bg-blue-50 text-blue-600 font-medium shadow-sm"
-                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                        ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium shadow-sm"
+                        : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100"
                     }
                   `}
                 >
@@ -1034,28 +1038,38 @@ export default function Layout({ children, currentPageName }) {
             })}
           </nav>
 
-          <div className="sticky bottom-0 p-4 border-t border-slate-200 bg-white flex-shrink-0">
-            <div className="flex items-center justify-between mb-2">
+          <div className="sticky bottom-0 p-4 border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 flex-shrink-0">
+            <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                  <span className="text-blue-600 font-semibold">
+                <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center flex-shrink-0">
+                  <span className="text-blue-600 dark:text-blue-300 font-semibold">
                     {currentUser.full_name ? currentUser.full_name[0].toUpperCase() : "U"}
                   </span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-slate-900 truncate">{currentUser.full_name}</p>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">{currentUser.full_name}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
                     {currentUser.role === 'admin' ? 'Administrator' : 'Member'}
                   </p>
                 </div>
               </div>
-              <NotificationBell />
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={toggleTheme}
+                  className="text-slate-600 dark:text-slate-300"
+                >
+                  {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                </Button>
+                <NotificationBell />
+              </div>
             </div>
             <Button
               variant="ghost"
               size="sm"
               onClick={confirmLogout}
-              className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+              className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950"
             >
               <LogOut className="w-4 h-4 mr-2" />
               Logout
@@ -1064,15 +1078,17 @@ export default function Layout({ children, currentPageName }) {
         </div>
       </aside>
 
-      <main className="lg:ml-64 min-h-screen">
-        {children}
+      <main className="lg:ml-64 min-h-screen transition-colors duration-200">
+        <div className="page-enter-active">
+          {children}
+        </div>
       </main>
 
       {showLogoutConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">Confirm Logout</h3>
-            <p className="text-slate-600 mb-6">Are you sure you want to logout?</p>
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-lg shadow-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">Confirm Logout</h3>
+            <p className="text-slate-600 dark:text-slate-400 mb-6">Are you sure you want to logout?</p>
             <div className="flex gap-3 justify-end">
               <Button variant="outline" onClick={cancelLogout}>
                 Cancel
