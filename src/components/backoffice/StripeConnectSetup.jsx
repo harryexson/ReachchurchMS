@@ -35,10 +35,13 @@ export default function StripeConnectSetup({ churchSettings }) {
             console.log('Response.data:', response.data);
 
             // base44.functions.invoke returns {data: {...backend response...}}
-            // So response.data IS the backend's returned data object
-            if (response.data?.data?.onboarding_url) {
-                console.log('✅ Onboarding URL received, redirecting...');
-                window.location.href = response.data.data.onboarding_url;
+            const onboardingUrl = response.data?.data?.onboarding_url;
+            
+            if (onboardingUrl) {
+                console.log('✅ Onboarding URL received:', onboardingUrl);
+                console.log('Redirecting now...');
+                // Use window.location.replace for immediate redirect
+                window.location.replace(onboardingUrl);
             } else {
                 throw new Error(response.data?.data?.error || response.data?.error || 'Failed to generate onboarding URL');
             }

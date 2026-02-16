@@ -163,16 +163,21 @@ export default function ChurchSettingsPage() {
             console.log('Stripe response:', response);
 
             // base44.functions.invoke wraps backend response in {data: {...}}
-            if (response.data?.data?.onboarding_url) {
-                window.location.href = response.data.data.onboarding_url;
+            const onboardingUrl = response.data?.data?.onboarding_url;
+            
+            if (onboardingUrl) {
+                console.log('Redirecting to:', onboardingUrl);
+                // Use window.location.replace for immediate redirect without browser blocking
+                window.location.replace(onboardingUrl);
             } else {
                 toast.error(response.data?.data?.error || response.data?.error || 'Failed to start Stripe onboarding');
+                setIsCreatingStripeAccount(false);
             }
         } catch (error) {
             console.error('Stripe onboarding error:', error);
             toast.error(error.response?.data?.error || error.message || 'Failed to connect to Stripe');
+            setIsCreatingStripeAccount(false);
         }
-        setIsCreatingStripeAccount(false);
     };
 
     if (isLoading) {
