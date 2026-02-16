@@ -39,6 +39,12 @@ export default function ChurchSettingsPage() {
         setIsLoading(true);
         try {
             const user = await base44.auth.me();
+            
+            if (!user) {
+                console.error('No user returned from auth.me()');
+                throw new Error('Authentication required');
+            }
+            
             setCurrentUser(user);
 
             // Check admin access
