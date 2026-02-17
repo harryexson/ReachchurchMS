@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -5,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // NEW IMPORT
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Settings as SettingsIcon, Youtube, Facebook, Loader2, CheckCircle, MessageSquare, AlertCircle, RefreshCw, Video, ExternalLink, Eye, Users } from "lucide-react";
 import { syncSocialVideos } from "@/functions/syncSocialVideos";
 import { Badge } from "@/components/ui/badge";
@@ -29,26 +30,26 @@ export default function SettingsPage() {
         youtube_channel_id: "",
         facebook_page_id: "",
         live_stream_url: "",
-        primary_streaming_platform: "youtube", // NEW
-        restream_enabled: false, // NEW
-        restream_stream_url: "", // NEW
-        restream_stream_key: "", // NEW
-        youtube_stream_url: "", // NEW
-        youtube_stream_key: "", // NEW
-        facebook_stream_url: "", // NEW
-        facebook_stream_key: "", // NEW
-        custom_rtmp_url: "", // NEW
-        custom_rtmp_key: "", // NEW
-        stream_status: "offline", // NEW
-        last_stream_check: null, // NEW
+        primary_streaming_platform: "youtube",
+        restream_enabled: false,
+        restream_stream_url: "",
+        restream_stream_key: "",
+        youtube_stream_url: "",
+        youtube_stream_key: "",
+        facebook_stream_url: "",
+        facebook_stream_key: "",
+        custom_rtmp_url: "",
+        custom_rtmp_key: "",
+        stream_status: "offline",
+        last_stream_check: null,
         donation_goal_monthly: "",
         auto_sync_enabled: true,
         bank_account_connected: false,
         payouts_enabled: false,
-        sinch_service_plan_id: "",
-        sinch_api_token: "",
-        sinch_phone_number: "",
-        sinch_configured: false
+        signalhouse_api_key: "", // NEW
+        signalhouse_account_id: "", // NEW
+        signalhouse_phone_number: "", // NEW
+        signalhouse_configured: false // NEW
     });
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
@@ -56,7 +57,7 @@ export default function SettingsPage() {
     const [syncResult, setSyncResult] = useState(null);
     const [isConnecting, setIsConnecting] = useState(false);
     const [connectResult, setConnectResult] = useState(null);
-    const [sinchTestResult, setSinchTestResult] = useState(null);
+    const [signalhouseTestResult, setSignalhouseTestResult] = useState(null); // CHANGED
     const [uploadingLogo, setUploadingLogo] = useState(false);
     const [uploadingHero, setUploadingHero] = useState(false);
 
@@ -91,10 +92,10 @@ export default function SettingsPage() {
                     bank_account_connected: settingsList[0].bank_account_connected ?? false,
                     payouts_enabled: settingsList[0].payouts_enabled ?? false,
                     donation_goal_monthly: settingsList[0].donation_goal_monthly != null ? String(settingsList[0].donation_goal_monthly) : "",
-                    sinch_service_plan_id: settingsList[0].sinch_service_plan_id ?? "",
-                    sinch_api_token: settingsList[0].sinch_api_token ?? "",
-                    sinch_phone_number: settingsList[0].sinch_phone_number ?? "",
-                    sinch_configured: settingsList[0].sinch_configured ?? false,
+                    signalhouse_api_key: settingsList[0].signalhouse_api_key ?? "", // CHANGED
+                    signalhouse_account_id: settingsList[0].signalhouse_account_id ?? "", // CHANGED
+                    signalhouse_phone_number: settingsList[0].signalhouse_phone_number ?? "", // CHANGED
+                    signalhouse_configured: settingsList[0].signalhouse_configured ?? false, // CHANGED
                     logo_url: settingsList[0].logo_url ?? "",
                     hero_image_url: settingsList[0].hero_image_url ?? "",
                     primary_color: settingsList[0].primary_color ?? "#3b82f6",
@@ -242,16 +243,16 @@ export default function SettingsPage() {
         setIsSyncing(false);
     };
 
-    const testSinchConnection = async () => {
-        setSinchTestResult({ status: 'testing' });
+    const testSignalhouseConnection = async () => { // RENAMED from testSinchConnection
+        setSignalhouseTestResult({ status: 'testing' }); // CHANGED
         
         // First save the credentials to the database
         const saved = await handleSave();
         
         if (!saved) {
-            setSinchTestResult({ 
+            setSignalhouseTestResult({ // CHANGED
                 status: 'error', 
-                message: 'Failed to save Sinch credentials. Please check for errors and try again.' 
+                message: 'Failed to save SignalHouse credentials. Please check for errors and try again.' // CHANGED
             });
             return;
         }
@@ -260,21 +261,21 @@ export default function SettingsPage() {
         await new Promise(resolve => setTimeout(resolve, 500));
 
         try {
-            const testResponse = await base44.functions.invoke('testSinchSetup', {});
+            const testResponse = await base44.functions.invoke('testSignalhouseSetup', {}); // CHANGED
             
             console.log('Test response:', testResponse.data);
             
             if (testResponse.data.all_configured) {
-                setSinchTestResult({ 
+                setSignalhouseTestResult({ // CHANGED
                     status: 'success', 
-                    message: 'Sinch credentials verified! Your SMS system is ready to use.',
+                    message: 'SignalHouse credentials verified! Your messaging system is ready to use.', // CHANGED
                     details: testResponse.data
                 });
                 
                 // Update local state to mark as configured
                 const updatedSettings = {
                     ...settings,
-                    sinch_configured: true
+                    signalhouse_configured: true // CHANGED
                 };
                 setSettings(updatedSettings);
                 
@@ -284,12 +285,12 @@ export default function SettingsPage() {
                     church_admin_email: user?.email
                 });
                 if (settingsList.length > 0) {
-                    await base44.entities.ChurchSettings.update(settingsList[0].id, { sinch_configured: true });
+                    await base44.entities.ChurchSettings.update(settingsList[0].id, { signalhouse_configured: true }); // CHANGED
                 }
             } else {
                 // Show detailed error
-                const errorDetails = testResponse.data.api_test?.message || 'API connection failed';
-                setSinchTestResult({ 
+                const errorDetails = testResponse.data.connection_test_error || 'API connection failed'; // CHANGED
+                setSignalhouseTestResult({ // CHANGED
                     status: 'error', 
                     message: errorDetails,
                     details: testResponse.data
@@ -301,15 +302,15 @@ export default function SettingsPage() {
                     church_admin_email: user?.email
                 });
                 if (settingsList.length > 0) {
-                    await base44.entities.ChurchSettings.update(settingsList[0].id, { sinch_configured: false });
+                    await base44.entities.ChurchSettings.update(settingsList[0].id, { signalhouse_configured: false }); // CHANGED
                 }
             }
             
         } catch (error) {
             console.error('Test error:', error);
-            setSinchTestResult({ 
+            setSignalhouseTestResult({ // CHANGED
                 status: 'error', 
-                message: error.message || 'Failed to validate Sinch credentials. Please check your Service Plan ID and API Token.' 
+                message: error.message || 'Failed to validate SignalHouse credentials. Please check your API Key and Account ID.' // CHANGED
             });
             
             const user = await base44.auth.me();
@@ -317,7 +318,7 @@ export default function SettingsPage() {
                 church_admin_email: user?.email
             });
             if (settingsList.length > 0) {
-                await base44.entities.ChurchSettings.update(settingsList[0].id, { sinch_configured: false });
+                await base44.entities.ChurchSettings.update(settingsList[0].id, { signalhouse_configured: false }); // CHANGED
             }
         }
     };
@@ -378,8 +379,8 @@ export default function SettingsPage() {
 
     const handleChange = (field, value) => {
         setSettings(prev => ({ ...prev, [field]: value }));
-        if (['sinch_service_plan_id', 'sinch_api_token', 'sinch_phone_number'].includes(field)) {
-            setSinchTestResult(null);
+        if (['signalhouse_api_key', 'signalhouse_account_id', 'signalhouse_phone_number'].includes(field)) { // CHANGED
+            setSignalhouseTestResult(null); // CHANGED
         }
     };
 
@@ -403,7 +404,7 @@ export default function SettingsPage() {
                         <TabsTrigger value="streaming">Streaming</TabsTrigger>
                         <TabsTrigger value="giving">Giving</TabsTrigger>
                         <TabsTrigger value="receipts">Receipts</TabsTrigger>
-                        <TabsTrigger value="sms">SMS/Sinch</TabsTrigger>
+                        <TabsTrigger value="signalhouse">SignalHouse</TabsTrigger> {/* CHANGED */}
                         <TabsTrigger value="social">Social Media</TabsTrigger>
                         <TabsTrigger value="kiosk">Kiosk Setup</TabsTrigger>
                         <TabsTrigger value="subscription">Subscription</TabsTrigger>
@@ -436,7 +437,6 @@ export default function SettingsPage() {
                                         placeholder="e.g., 'A Place to Call Home' or 'Transforming Lives Through Christ'"
                                     />
                                 </div>
-                                {/* Removed live_stream_url from here, moved to Streaming tab */}
                             </CardContent>
                         </Card>
                     </TabsContent>
@@ -1411,41 +1411,35 @@ export default function SettingsPage() {
                         </Card>
                     </TabsContent>
 
-                    {/* Content for SMS/Sinch */}
-                    <TabsContent value="sms">
+                    {/* Content for SignalHouse */} {/* CHANGED FROM SMS/Sinch */}
+                    <TabsContent value="signalhouse"> {/* CHANGED FROM sms */}
                         <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
                                     <MessageSquare className="w-5 h-5 text-green-600" />
-                                    SMS / Sinch Configuration
+                                    SignalHouse Messaging Configuration {/* CHANGED */}
                                 </CardTitle>
-                                <div className="mt-2">
-                                    <Button 
-                                        variant="outline" 
-                                        className="w-full" 
-                                        onClick={() => { window.location.href = createPageUrl('SinchSetupGuide'); }}
-                                    >
-                                        📚 View Complete Sinch Setup Guide
-                                    </Button>
-                                </div>
+                                <p className="text-sm text-slate-600 mt-2">
+                                    Configure SMS, MMS, RCS, and Video messaging capabilities via SignalHouse.io {/* CHANGED */}
+                                </p>
                             </CardHeader>
                             <CardContent className="space-y-6">
                                 <div className="p-4 bg-red-50 rounded-lg border-2 border-red-500">
                                     <h3 className="font-semibold text-red-900 mb-2 text-lg">🚨 WEBHOOK URL - CRITICAL!</h3>
                                     <p className="text-sm text-red-800 mb-3">
-                                        If you're seeing TwiML/XML errors, you have the WRONG webhook URL configured!
+                                        Make sure you configure the CORRECT webhook URL in your SignalHouse dashboard! {/* CHANGED */}
                                     </p>
                                     <div className="bg-white p-3 rounded border border-red-300 mb-2">
                                         <p className="text-xs font-semibold text-green-900 mb-1">✅ CORRECT URL:</p>
                                         <code className="text-xs break-all block text-green-900 bg-green-50 p-2 rounded font-mono">
-                                            https://base44.app/api/apps/68d38ad0f4d6d5d05900d129/functions/handleIncomingSinchSMS
+                                            https://base44.app/api/apps/68d38ad0f4d6d5d05900d129/functions/handleSignalhouseWebhook {/* CHANGED */}
                                         </code>
                                         <Button
                                             variant="outline"
                                             size="sm"
                                             className="mt-2 text-xs"
                                             onClick={() => {
-                                                navigator.clipboard.writeText('https://base44.app/api/apps/68d38ad0f4d6d5d05900d129/functions/handleIncomingSinchSMS');
+                                                navigator.clipboard.writeText('https://base44.app/api/apps/68d38ad0f4d6d5d05900d129/functions/handleSignalhouseWebhook'); // CHANGED
                                                 alert('✅ Correct webhook URL copied!');
                                             }}
                                         >
@@ -1453,49 +1447,49 @@ export default function SettingsPage() {
                                         </Button>
                                     </div>
                                     <p className="text-xs text-red-700 font-semibold">
-                                        Notice it ends with "handleIncomingSinchSMS" (with "Sinch")
+                                        Notice it ends with "handleSignalhouseWebhook" {/* CHANGED */}
                                     </p>
                                 </div>
 
                                 <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
                                     <h3 className="font-semibold text-yellow-900 mb-2">⚠️ Environment Variables Required</h3>
                                     <p className="text-sm text-yellow-800 mb-3">
-                                        For SMS keywords to work, you MUST set these credentials as environment variables in the Dashboard:
+                                        For messaging to work, you MUST set these credentials as environment variables in the Dashboard:
                                     </p>
                                     <ol className="text-sm text-yellow-800 space-y-2 list-decimal ml-5">
                                         <li>Go to <strong>Dashboard → Code → Environment Variables</strong></li>
-                                        <li>Add: <code className="bg-yellow-100 px-2 py-1 rounded">SINCH_SERVICE_PLAN_ID</code></li>
-                                        <li>Add: <code className="bg-yellow-100 px-2 py-1 rounded">SINCH_API_TOKEN</code></li>
-                                        <li>Add: <code className="bg-yellow-100 px-2 py-1 rounded">SINCH_PHONE_NUMBER</code></li>
+                                        <li>Add: <code className="bg-yellow-100 px-2 py-1 rounded">SIGNALHOUSE_API_KEY</code></li> {/* CHANGED */}
+                                        <li>Add: <code className="bg-yellow-100 px-2 py-1 rounded">SIGNALHOUSE_ACCOUNT_ID</code></li> {/* CHANGED */}
+                                        <li>Add: <code className="bg-yellow-100 px-2 py-1 rounded">SIGNALHOUSE_PHONE_NUMBER</code></li> {/* CHANGED */}
                                         <li>Click "Save & Deploy"</li>
                                     </ol>
                                     <p className="text-xs text-yellow-700 mt-3">
-                                        💡 <strong>Why?</strong> Webhooks from Sinch come from external servers and can't access your database settings. Environment variables solve this.
+                                        💡 <strong>Why?</strong> Webhooks from SignalHouse come from external servers and can't access your database settings. Environment variables solve this. {/* CHANGED */}
                                     </p>
                                 </div>
 
-                                {settings.sinch_configured ? (
+                                {settings.signalhouse_configured ? ( {/* CHANGED */}
                                     <div className="p-4 bg-green-50 rounded-lg border border-green-200">
                                         <div className="flex items-center gap-2 text-green-800 mb-2">
                                             <CheckCircle className="w-5 h-5" />
-                                            <span className="font-medium">Sinch Connected!</span>
+                                            <span className="font-medium">SignalHouse Connected!</span> {/* CHANGED */}
                                         </div>
                                         <p className="text-sm text-green-700 mb-2">
-                                            Your SMS keyword system is active. Phone: {settings.sinch_phone_number}
+                                            Your messaging system is active. Phone: {settings.signalhouse_phone_number} {/* CHANGED */}
                                         </p>
                                         <div className="bg-white p-3 rounded border border-green-200 mt-3">
                                             <p className="text-xs font-semibold text-green-900 mb-1">📋 Test Your Setup:</p>
                                             <ol className="text-xs text-green-800 space-y-1 list-decimal ml-4">
-                                                <li>Create a keyword in SMS Keywords page</li>
-                                                <li>Text that keyword to: <strong>{settings.sinch_phone_number}</strong></li>
+                                                <li>Create a keyword in Text Messaging page</li>
+                                                <li>Text that keyword to: <strong>{settings.signalhouse_phone_number}</strong></li> {/* CHANGED */}
                                                 <li>Check TextMessaging → Message History tab for logs</li>
-                                                <li>If no response, check Dashboard → Code → Functions → handleIncomingSinchSMS for errors</li>
+                                                <li>If no response, check Dashboard → Code → Functions → handleSignalhouseWebhook for errors</li> {/* CHANGED */}
                                             </ol>
                                         </div>
                                         <Button 
                                             variant="outline" 
                                             size="sm" 
-                                            onClick={() => setSettings(prev => ({ ...prev, sinch_configured: false }))}
+                                            onClick={() => setSettings(prev => ({ ...prev, signalhouse_configured: false }))} {/* CHANGED */}
                                             className="mt-3"
                                         >
                                             Update Credentials
@@ -1505,48 +1499,48 @@ export default function SettingsPage() {
                                     <>
                                         <div className="space-y-4">
                                             <div className="space-y-2">
-                                                <Label htmlFor="sinch_service_plan_id">
-                                                    Service Plan ID
+                                                <Label htmlFor="signalhouse_api_key"> {/* CHANGED */}
+                                                    SignalHouse API Key {/* CHANGED */}
                                                     <span className="text-red-500">*</span>
                                                 </Label>
                                                 <Input
-                                                    id="sinch_service_plan_id"
-                                                    value={settings.sinch_service_plan_id}
-                                                    onChange={(e) => handleChange('sinch_service_plan_id', e.target.value)}
-                                                    placeholder="abc123def456..."
-                                                    type="text"
-                                                />
-                                                <p className="text-xs text-slate-500">
-                                                    Find in Sinch Dashboard → SMS → Service Plans
-                                                </p>
-                                            </div>
-
-                                            <div className="space-y-2">
-                                                <Label htmlFor="sinch_api_token">
-                                                    API Token
-                                                    <span className="text-red-500">*</span>
-                                                </Label>
-                                                <Input
-                                                    id="sinch_api_token"
-                                                    value={settings.sinch_api_token}
-                                                    onChange={(e) => handleChange('sinch_api_token', e.target.value)}
-                                                    placeholder="Your API token"
+                                                    id="signalhouse_api_key" {/* CHANGED */}
+                                                    value={settings.signalhouse_api_key} {/* CHANGED */}
+                                                    onChange={(e) => handleChange('signalhouse_api_key', e.target.value)} {/* CHANGED */}
+                                                    placeholder="Your API key from SignalHouse dashboard" {/* CHANGED */}
                                                     type="password"
                                                 />
                                                 <p className="text-xs text-slate-500">
-                                                    Find in Sinch Dashboard → SMS → API Tokens
+                                                    Find in SignalHouse Dashboard → API Keys {/* CHANGED */}
                                                 </p>
                                             </div>
 
                                             <div className="space-y-2">
-                                                <Label htmlFor="sinch_phone_number">
-                                                    Sinch Phone Number
+                                                <Label htmlFor="signalhouse_account_id"> {/* CHANGED */}
+                                                    SignalHouse Account ID {/* CHANGED */}
                                                     <span className="text-red-500">*</span>
                                                 </Label>
                                                 <Input
-                                                    id="sinch_phone_number"
-                                                    value={settings.sinch_phone_number}
-                                                    onChange={(e) => handleChange('sinch_phone_number', e.target.value)}
+                                                    id="signalhouse_account_id" {/* CHANGED */}
+                                                    value={settings.signalhouse_account_id} {/* CHANGED */}
+                                                    onChange={(e) => handleChange('signalhouse_account_id', e.target.value)} {/* CHANGED */}
+                                                    placeholder="Your account ID" {/* CHANGED */}
+                                                    type="text"
+                                                />
+                                                <p className="text-xs text-slate-500">
+                                                    Find in SignalHouse Dashboard → Settings → Account {/* CHANGED */}
+                                                </p>
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <Label htmlFor="signalhouse_phone_number"> {/* CHANGED */}
+                                                    SignalHouse Phone Number {/* CHANGED */}
+                                                    <span className="text-red-500">*</span>
+                                                </Label>
+                                                <Input
+                                                    id="signalhouse_phone_number" {/* CHANGED */}
+                                                    value={settings.signalhouse_phone_number} {/* CHANGED */}
+                                                    onChange={(e) => handleChange('signalhouse_phone_number', e.target.value)} {/* CHANGED */}
                                                     placeholder="+15551234567"
                                                     type="tel"
                                                 />
@@ -1556,11 +1550,11 @@ export default function SettingsPage() {
                                             </div>
 
                                             <Button 
-                                                onClick={testSinchConnection}
-                                                disabled={!settings.sinch_service_plan_id || !settings.sinch_api_token || !settings.sinch_phone_number || sinchTestResult?.status === 'testing' || isSaving}
+                                                onClick={testSignalhouseConnection} // CHANGED
+                                                disabled={!settings.signalhouse_api_key || !settings.signalhouse_account_id || !settings.signalhouse_phone_number || signalhouseTestResult?.status === 'testing' || isSaving} // CHANGED
                                                 className="w-full"
                                             >
-                                                {isSaving || sinchTestResult?.status === 'testing' ? (
+                                                {isSaving || signalhouseTestResult?.status === 'testing' ? ( {/* CHANGED */}
                                                     <>
                                                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                                                         {isSaving ? "Saving..." : "Testing Connection..."}
@@ -1570,18 +1564,18 @@ export default function SettingsPage() {
                                                 )}
                                             </Button>
 
-                                            {sinchTestResult?.status === 'success' && (
+                                            {signalhouseTestResult?.status === 'success' && ( {/* CHANGED */}
                                                 <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
                                                     <div className="flex items-center gap-2 text-green-800">
                                                         <CheckCircle className="w-4 h-4" />
                                                         <span className="font-medium">Success!</span>
                                                     </div>
                                                     <p className="text-sm text-green-700 mt-1">
-                                                        {sinchTestResult.message}
+                                                        {signalhouseTestResult.message} {/* CHANGED */}
                                                     </p>
-                                                    {sinchTestResult.details?.next_steps && (
+                                                    {signalhouseTestResult.details?.next_steps && ( {/* CHANGED */}
                                                         <div className="mt-3 space-y-1">
-                                                            {sinchTestResult.details.next_steps.map((step, idx) => (
+                                                            {signalhouseTestResult.details.next_steps.map((step, idx) => ( {/* CHANGED */}
                                                                 <p key={idx} className="text-xs text-green-700">{step}</p>
                                                             ))}
                                                         </div>
@@ -1589,18 +1583,18 @@ export default function SettingsPage() {
                                                 </div>
                                             )}
 
-                                            {sinchTestResult?.status === 'error' && (
+                                            {signalhouseTestResult?.status === 'error' && ( {/* CHANGED */}
                                                 <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
                                                     <div className="flex items-center gap-2 text-red-800">
                                                         <AlertCircle className="w-4 h-4" />
                                                         <span className="font-medium">Connection Failed</span>
                                                     </div>
                                                     <p className="text-sm text-red-700 mt-1">
-                                                        {sinchTestResult.message}
+                                                        {signalhouseTestResult.message} {/* CHANGED */}
                                                     </p>
-                                                    {sinchTestResult.details?.next_steps && (
+                                                    {signalhouseTestResult.details?.next_steps && ( {/* CHANGED */}
                                                         <div className="mt-3 space-y-1">
-                                                            {sinchTestResult.details.next_steps.map((step, idx) => (
+                                                            {signalhouseTestResult.details.next_steps.map((step, idx) => ( {/* CHANGED */}
                                                                 <p key={idx} className="text-xs text-red-700">{step}</p>
                                                             ))}
                                                         </div>
@@ -1608,10 +1602,10 @@ export default function SettingsPage() {
                                                     <div className="mt-3 p-2 bg-white rounded border border-red-200">
                                                         <p className="text-xs text-red-800 font-medium mb-1">Common Issues:</p>
                                                         <ul className="text-xs text-red-700 space-y-1 list-disc ml-4">
-                                                            <li>Double-check your Service Plan ID is correct</li>
-                                                            <li>Make sure API Token hasn't expired</li>
+                                                            <li>Double-check your API Key is correct</li> {/* CHANGED */}
+                                                            <li>Make sure Account ID is accurate</li> {/* CHANGED */}
                                                             <li>Verify phone number format: +15551234567</li>
-                                                            <li>Check your Sinch account is active</li>
+                                                            <li>Check your SignalHouse account is active</li> {/* CHANGED */}
                                                         </ul>
                                                     </div>
                                                 </div>
@@ -1621,12 +1615,12 @@ export default function SettingsPage() {
                                         <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                                             <h4 className="font-semibold text-blue-900 mb-2">🚀 Complete Setup Checklist</h4>
                                             <ol className="text-sm text-blue-800 space-y-2 list-decimal ml-4">
-                                                <li>Sign up at <a href="https://www.sinch.com/sign-up/" target="_blank" rel="noopener noreferrer" className="underline font-medium">sinch.com/sign-up</a></li>
-                                                <li>Get Service Plan ID, API Token, and Phone Number from Sinch dashboard</li>
+                                                <li>Sign up at <a href="https://signalhouse.io/" target="_blank" rel="noopener noreferrer" className="underline font-medium">signalhouse.io</a></li> {/* CHANGED */}
+                                                <li>Get API Key, Account ID, and Phone Number from SignalHouse dashboard</li> {/* CHANGED */}
                                                 <li>Enter credentials above and click "Save & Test Connection"</li>
                                                 <li><strong className="text-red-600">CRITICAL:</strong> Go to Dashboard → Code → Environment Variables and add all three credentials there too</li>
-                                                <li>Configure webhook in Sinch Dashboard (see below)</li>
-                                                <li>Create your first keyword in SMS Keywords page</li>
+                                                <li>Configure webhook in SignalHouse Dashboard (see below)</li> {/* CHANGED */}
+                                                <li>Create your first keyword in Text Messaging page</li>
                                                 <li>Text the keyword to test!</li>
                                             </ol>
                                         </div>
@@ -1634,18 +1628,18 @@ export default function SettingsPage() {
                                         <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
                                             <h4 className="font-semibold text-purple-900 mb-2">🔗 Webhook Configuration</h4>
                                             <p className="text-sm text-purple-800 mb-3">
-                                                In Sinch Dashboard → Numbers → Your Number → Webhooks → Set Inbound SMS URL to:
+                                                In SignalHouse Dashboard → Numbers → Your Number → Webhooks → Set Inbound Messaging URL to: {/* CHANGED */}
                                             </p>
                                             <div className="bg-white p-3 rounded border border-purple-300">
                                                 <code className="text-xs break-all block text-purple-900 font-mono">
-                                                    https://base44.app/api/apps/68d38ad0f4d6d5d05900d129/functions/handleIncomingSinchSMS
+                                                    https://base44.app/api/apps/68d38ad0f4d6d5d05900d129/functions/handleSignalhouseWebhook {/* CHANGED */}
                                                 </code>
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
                                                     className="mt-2 text-xs"
                                                     onClick={() => {
-                                                        navigator.clipboard.writeText('https://base44.app/api/apps/68d38ad0f4d6d5d05900d129/functions/handleIncomingSinchSMS');
+                                                        navigator.clipboard.writeText('https://base44.app/api/apps/68d38ad0f4d6d5d05900d129/functions/handleSignalhouseWebhook'); // CHANGED
                                                         alert('Webhook URL copied to clipboard!');
                                                     }}
                                                 >
@@ -1653,7 +1647,7 @@ export default function SettingsPage() {
                                                 </Button>
                                             </div>
                                             <p className="text-xs text-purple-700 mt-2">
-                                                ⚠️ <strong>Important:</strong> URL must end with <code>handleIncomingSinchSMS</code> (not handleIncomingSMS)
+                                                ⚠️ <strong>Important:</strong> URL must end with <code>handleSignalhouseWebhook</code> {/* CHANGED */}
                                             </p>
                                         </div>
                                     </>
