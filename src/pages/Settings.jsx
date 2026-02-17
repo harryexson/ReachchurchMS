@@ -46,10 +46,16 @@ export default function SettingsPage() {
         auto_sync_enabled: true,
         bank_account_connected: false,
         payouts_enabled: false,
-        signalhouse_api_key: "", // NEW
-        signalhouse_account_id: "", // NEW
-        signalhouse_phone_number: "", // NEW
-        signalhouse_configured: false // NEW
+        signalhouse_api_key: "",
+        signalhouse_account_id: "",
+        signalhouse_phone_number: "",
+        signalhouse_configured: false,
+        auto_send_receipts: true,
+        receipt_template_subject: "",
+        receipt_template_header: "",
+        receipt_template_footer: "",
+        receipt_tax_id: "",
+        receipt_address: "",
     });
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
@@ -57,7 +63,7 @@ export default function SettingsPage() {
     const [syncResult, setSyncResult] = useState(null);
     const [isConnecting, setIsConnecting] = useState(false);
     const [connectResult, setConnectResult] = useState(null);
-    const [signalhouseTestResult, setSignalhouseTestResult] = useState(null); // CHANGED
+    const [signalhouseTestResult, setSignalhouseTestResult] = useState(null);
     const [uploadingLogo, setUploadingLogo] = useState(false);
     const [uploadingHero, setUploadingHero] = useState(false);
 
@@ -92,16 +98,15 @@ export default function SettingsPage() {
                     bank_account_connected: settingsList[0].bank_account_connected ?? false,
                     payouts_enabled: settingsList[0].payouts_enabled ?? false,
                     donation_goal_monthly: settingsList[0].donation_goal_monthly != null ? String(settingsList[0].donation_goal_monthly) : "",
-                    signalhouse_api_key: settingsList[0].signalhouse_api_key ?? "", // CHANGED
-                    signalhouse_account_id: settingsList[0].signalhouse_account_id ?? "", // CHANGED
-                    signalhouse_phone_number: settingsList[0].signalhouse_phone_number ?? "", // CHANGED
-                    signalhouse_configured: settingsList[0].signalhouse_configured ?? false, // CHANGED
+                    signalhouse_api_key: settingsList[0].signalhouse_api_key ?? "",
+                    signalhouse_account_id: settingsList[0].signalhouse_account_id ?? "",
+                    signalhouse_phone_number: settingsList[0].signalhouse_phone_number ?? "",
+                    signalhouse_configured: settingsList[0].signalhouse_configured ?? false,
                     logo_url: settingsList[0].logo_url ?? "",
                     hero_image_url: settingsList[0].hero_image_url ?? "",
                     primary_color: settingsList[0].primary_color ?? "#3b82f6",
                     secondary_color: settingsList[0].secondary_color ?? "#10b981",
                     tagline: settingsList[0].tagline ?? "",
-                    // NEW STREAMING FIELDS
                     live_stream_url: settingsList[0].live_stream_url ?? "",
                     primary_streaming_platform: settingsList[0].primary_streaming_platform ?? "youtube",
                     restream_enabled: settingsList[0].restream_enabled ?? false,
@@ -115,6 +120,12 @@ export default function SettingsPage() {
                     custom_rtmp_key: settingsList[0].custom_rtmp_key ?? "",
                     stream_status: settingsList[0].stream_status ?? "offline",
                     last_stream_check: settingsList[0].last_stream_check ?? null,
+                    auto_send_receipts: settingsList[0].auto_send_receipts ?? true,
+                    receipt_template_subject: settingsList[0].receipt_template_subject ?? "",
+                    receipt_template_header: settingsList[0].receipt_template_header ?? "",
+                    receipt_template_footer: settingsList[0].receipt_template_footer ?? "",
+                    receipt_tax_id: settingsList[0].receipt_tax_id ?? "",
+                    receipt_address: settingsList[0].receipt_address ?? "",
                 }));
             }
         } catch (error) {
@@ -166,7 +177,6 @@ export default function SettingsPage() {
         setConnectResult(null);
 
         try {
-            // First save settings to ensure church_admin_email is stored
             const saved = await handleSave();
             if (!saved) {
                 alert("Failed to save settings. Please try again.");
@@ -174,7 +184,6 @@ export default function SettingsPage() {
                 return;
             }
 
-            // Small delay to ensure database is updated
             await new Promise(resolve => setTimeout(resolve, 500));
 
             const response = await base44.functions.invoke('createStripeConnectAccount', {
@@ -185,7 +194,6 @@ export default function SettingsPage() {
 
             console.log('✅ Stripe Connect response:', response);
 
-            // Handle response - the data is in response.data
             const data = response.data || response;
             
             if (data.onboarding_url) {
@@ -243,74 +251,68 @@ export default function SettingsPage() {
         setIsSyncing(false);
     };
 
-    const testSignalhouseConnection = async () => { // RENAMED from testSinchConnection
-        setSignalhouseTestResult({ status: 'testing' }); // CHANGED
+    const testSignalhouseConnection = async () => {
+        setSignalhouseTestResult({ status: 'testing' });
         
-        // First save the credentials to the database
         const saved = await handleSave();
         
         if (!saved) {
-            setSignalhouseTestResult({ // CHANGED
+            setSignalhouseTestResult({ 
                 status: 'error', 
-                message: 'Failed to save SignalHouse credentials. Please check for errors and try again.' // CHANGED
+                message: 'Failed to save SignalHouse credentials. Please check for errors and try again.'
             });
             return;
         }
 
-        // Small delay to ensure database is updated
         await new Promise(resolve => setTimeout(resolve, 500));
 
         try {
-            const testResponse = await base44.functions.invoke('testSignalhouseSetup', {}); // CHANGED
+            const testResponse = await base44.functions.invoke('testSignalhouseSetup', {});
             
             console.log('Test response:', testResponse.data);
             
             if (testResponse.data.all_configured) {
-                setSignalhouseTestResult({ // CHANGED
+                setSignalhouseTestResult({ 
                     status: 'success', 
-                    message: 'SignalHouse credentials verified! Your messaging system is ready to use.', // CHANGED
+                    message: 'SignalHouse credentials verified! Your messaging system is ready to use.',
                     details: testResponse.data
                 });
                 
-                // Update local state to mark as configured
                 const updatedSettings = {
                     ...settings,
-                    signalhouse_configured: true // CHANGED
+                    signalhouse_configured: true
                 };
                 setSettings(updatedSettings);
                 
-                // Save configured status to database
                 const user = await base44.auth.me();
                 const settingsList = await base44.entities.ChurchSettings.filter({
                     church_admin_email: user?.email
                 });
                 if (settingsList.length > 0) {
-                    await base44.entities.ChurchSettings.update(settingsList[0].id, { signalhouse_configured: true }); // CHANGED
+                    await base44.entities.ChurchSettings.update(settingsList[0].id, { signalhouse_configured: true });
                 }
             } else {
-                // Show detailed error
-                const errorDetails = testResponse.data.connection_test_error || 'API connection failed'; // CHANGED
-                setSignalhouseTestResult({ // CHANGED
+                const errorDetails = testResponse.data.connection_test_error || 'API connection failed';
+                setSignalhouseTestResult({ 
                     status: 'error', 
                     message: errorDetails,
                     details: testResponse.data
                 });
                 
-                // Update configured status
                 const user = await base44.auth.me();
                 const settingsList = await base44.entities.ChurchSettings.filter({
                     church_admin_email: user?.email
                 });
                 if (settingsList.length > 0) {
-                    await base44.entities.ChurchSettings.update(settingsList[0].id, { signalhouse_configured: false }); // CHANGED
+                    await base44.entities.ChurchSettings.update(settingsList[0].id, { signalhouse_configured: false });
                 }
             }
             
         } catch (error) {
             console.error('Test error:', error);
-            setSignalhouseTestResult({ // CHANGED
+            setSignalhouseTestResult({ 
                 status: 'error', 
-                message: error.message || 'Failed to validate SignalHouse credentials. Please check your API Key and Account ID.' // CHANGED
+                message: error.message || 'Failed to validate SignalHouse credentials. Please check your API Key and Account ID.'
             });
             
             const user = await base44.auth.me();
@@ -318,7 +320,7 @@ export default function SettingsPage() {
                 church_admin_email: user?.email
             });
             if (settingsList.length > 0) {
-                await base44.entities.ChurchSettings.update(settingsList[0].id, { signalhouse_configured: false }); // CHANGED
+                await base44.entities.ChurchSettings.update(settingsList[0].id, { signalhouse_configured: false });
             }
         }
     };
@@ -327,13 +329,11 @@ export default function SettingsPage() {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        // Validate file type
         if (!file.type.startsWith('image/')) {
             alert('Please upload an image file');
             return;
         }
 
-        // Validate file size (max 5MB)
         if (file.size > 5 * 1024 * 1024) {
             alert('File size must be less than 5MB');
             return;
@@ -379,8 +379,8 @@ export default function SettingsPage() {
 
     const handleChange = (field, value) => {
         setSettings(prev => ({ ...prev, [field]: value }));
-        if (['signalhouse_api_key', 'signalhouse_account_id', 'signalhouse_phone_number'].includes(field)) { // CHANGED
-            setSignalhouseTestResult(null); // CHANGED
+        if (['signalhouse_api_key', 'signalhouse_account_id', 'signalhouse_phone_number'].includes(field)) {
+            setSignalhouseTestResult(null);
         }
     };
 
@@ -404,7 +404,7 @@ export default function SettingsPage() {
                         <TabsTrigger value="streaming">Streaming</TabsTrigger>
                         <TabsTrigger value="giving">Giving</TabsTrigger>
                         <TabsTrigger value="receipts">Receipts</TabsTrigger>
-                        <TabsTrigger value="signalhouse">SignalHouse</TabsTrigger> {/* CHANGED */}
+                        <TabsTrigger value="signalhouse">SignalHouse</TabsTrigger>
                         <TabsTrigger value="social">Social Media</TabsTrigger>
                         <TabsTrigger value="kiosk">Kiosk Setup</TabsTrigger>
                         <TabsTrigger value="subscription">Subscription</TabsTrigger>
@@ -412,7 +412,6 @@ export default function SettingsPage() {
                         <TabsTrigger value="member-groups">Member Groups</TabsTrigger>
                     </TabsList>
 
-                    {/* Content for General (formerly Church Info) */}
                     <TabsContent value="general">
                         <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
                             <CardHeader>
@@ -441,7 +440,6 @@ export default function SettingsPage() {
                         </Card>
                     </TabsContent>
 
-                    {/* Content for Branding */}
                     <TabsContent value="branding">
                         <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
                             <CardHeader>
@@ -618,7 +616,6 @@ export default function SettingsPage() {
                         </Card>
                     </TabsContent>
 
-                    {/* UPDATED: Streaming Tab */}
                     <TabsContent value="streaming">
                         <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
                             <CardHeader>
@@ -995,7 +992,6 @@ export default function SettingsPage() {
                         </Card>
                     </TabsContent>
 
-                    {/* Content for Social Media */}
                     <TabsContent value="social">
                         <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
                             <CardHeader>
@@ -1090,7 +1086,6 @@ export default function SettingsPage() {
                         </Card>
                     </TabsContent>
 
-                    {/* Content for Receipts */}
                     <TabsContent value="receipts">
                         <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
                             <CardHeader>
@@ -1192,7 +1187,6 @@ export default function SettingsPage() {
                         </Card>
                     </TabsContent>
 
-                    {/* Content for Giving */}
                     <TabsContent value="giving">
                         {/* STRIPE SETUP WARNING - Update with clearer instructions */}
                         <Card className="mb-8 shadow-xl border-2 border-red-300 bg-red-50">
@@ -1276,7 +1270,7 @@ export default function SettingsPage() {
                                         <Button
                                             variant="outline"
                                             onClick={() => {
-                                                alert("CRITICAL REMINDER:\n\n✅ USE: Secret key (sk_test_... or sk_live_...)\n❌ DON'T USE: Publishable key (pk_...)\n\nGo to:\nDashboard → Code → Environment Variables\n\nAdd:\nSTRIPE_API_KEY = sk_test_... (your SECRET key)\n\nThen click 'Save & Deploy'");
+                                                alert("CRITICAL REMINDER:\n\n✅ USE: Secret key (sk_test_... or sk_live_...)\n❌ DON'T USE: Publishable key (pk_...)\n\nGo to:\nDashboard → Code → Environment Variables\n\nAdd:\nSTRIPE_API_KEY = sk_test_... (your SECRET key)\n\nThen click 'Save & Deploy');");
                                             }}
                                         >
                                             3. Setup Instructions
@@ -1293,7 +1287,6 @@ export default function SettingsPage() {
                             </CardContent>
                         </Card>
 
-                        {/* Keep existing Kiosk Setup card */}
                         <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm mb-6">
                             <CardHeader>
                                 <CardTitle>Kiosk Giving Setup</CardTitle>
@@ -1411,35 +1404,34 @@ export default function SettingsPage() {
                         </Card>
                     </TabsContent>
 
-                    {/* Content for SignalHouse */} {/* CHANGED FROM SMS/Sinch */}
-                    <TabsContent value="signalhouse"> {/* CHANGED FROM sms */}
+                    <TabsContent value="signalhouse">
                         <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
                                     <MessageSquare className="w-5 h-5 text-green-600" />
-                                    SignalHouse Messaging Configuration {/* CHANGED */}
+                                    SignalHouse Messaging Configuration
                                 </CardTitle>
                                 <p className="text-sm text-slate-600 mt-2">
-                                    Configure SMS, MMS, RCS, and Video messaging capabilities via SignalHouse.io {/* CHANGED */}
+                                    Configure SMS, MMS, RCS, and Video messaging capabilities via SignalHouse.io
                                 </p>
                             </CardHeader>
                             <CardContent className="space-y-6">
                                 <div className="p-4 bg-red-50 rounded-lg border-2 border-red-500">
                                     <h3 className="font-semibold text-red-900 mb-2 text-lg">🚨 WEBHOOK URL - CRITICAL!</h3>
                                     <p className="text-sm text-red-800 mb-3">
-                                        Make sure you configure the CORRECT webhook URL in your SignalHouse dashboard! {/* CHANGED */}
+                                        Make sure you configure the CORRECT webhook URL in your SignalHouse dashboard!
                                     </p>
                                     <div className="bg-white p-3 rounded border border-red-300 mb-2">
                                         <p className="text-xs font-semibold text-green-900 mb-1">✅ CORRECT URL:</p>
                                         <code className="text-xs break-all block text-green-900 bg-green-50 p-2 rounded font-mono">
-                                            https://base44.app/api/apps/68d38ad0f4d6d5d05900d129/functions/handleSignalhouseWebhook {/* CHANGED */}
+                                            https://base44.app/api/apps/68d38ad0f4d6d5d05900d129/functions/handleSignalhouseWebhook
                                         </code>
                                         <Button
                                             variant="outline"
                                             size="sm"
                                             className="mt-2 text-xs"
                                             onClick={() => {
-                                                navigator.clipboard.writeText('https://base44.app/api/apps/68d38ad0f4d6d5d05900d129/functions/handleSignalhouseWebhook'); // CHANGED
+                                                navigator.clipboard.writeText('https://base44.app/api/apps/68d38ad0f4d6d5d05900d129/functions/handleSignalhouseWebhook');
                                                 alert('✅ Correct webhook URL copied!');
                                             }}
                                         >
@@ -1447,7 +1439,7 @@ export default function SettingsPage() {
                                         </Button>
                                     </div>
                                     <p className="text-xs text-red-700 font-semibold">
-                                        Notice it ends with "handleSignalhouseWebhook" {/* CHANGED */}
+                                        Notice it ends with "handleSignalhouseWebhook"
                                     </p>
                                 </div>
 
@@ -1458,38 +1450,38 @@ export default function SettingsPage() {
                                     </p>
                                     <ol className="text-sm text-yellow-800 space-y-2 list-decimal ml-5">
                                         <li>Go to <strong>Dashboard → Code → Environment Variables</strong></li>
-                                        <li>Add: <code className="bg-yellow-100 px-2 py-1 rounded">SIGNALHOUSE_API_KEY</code></li> {/* CHANGED */}
-                                        <li>Add: <code className="bg-yellow-100 px-2 py-1 rounded">SIGNALHOUSE_ACCOUNT_ID</code></li> {/* CHANGED */}
-                                        <li>Add: <code className="bg-yellow-100 px-2 py-1 rounded">SIGNALHOUSE_PHONE_NUMBER</code></li> {/* CHANGED */}
+                                        <li>Add: <code className="bg-yellow-100 px-2 py-1 rounded">SIGNALHOUSE_API_KEY</code></li>
+                                        <li>Add: <code className="bg-yellow-100 px-2 py-1 rounded">SIGNALHOUSE_ACCOUNT_ID</code></li>
+                                        <li>Add: <code className="bg-yellow-100 px-2 py-1 rounded">SIGNALHOUSE_PHONE_NUMBER</code></li>
                                         <li>Click "Save & Deploy"</li>
                                     </ol>
                                     <p className="text-xs text-yellow-700 mt-3">
-                                        💡 <strong>Why?</strong> Webhooks from SignalHouse come from external servers and can't access your database settings. Environment variables solve this. {/* CHANGED */}
+                                        💡 <strong>Why?</strong> Webhooks from SignalHouse come from external servers and can't access your database settings. Environment variables solve this.
                                     </p>
                                 </div>
 
-                                {settings.signalhouse_configured ? ( {/* CHANGED */}
+                                {settings.signalhouse_configured ? (
                                     <div className="p-4 bg-green-50 rounded-lg border border-green-200">
                                         <div className="flex items-center gap-2 text-green-800 mb-2">
                                             <CheckCircle className="w-5 h-5" />
-                                            <span className="font-medium">SignalHouse Connected!</span> {/* CHANGED */}
+                                            <span className="font-medium">SignalHouse Connected!</span>
                                         </div>
                                         <p className="text-sm text-green-700 mb-2">
-                                            Your messaging system is active. Phone: {settings.signalhouse_phone_number} {/* CHANGED */}
+                                            Your messaging system is active. Phone: {settings.signalhouse_phone_number}
                                         </p>
                                         <div className="bg-white p-3 rounded border border-green-200 mt-3">
                                             <p className="text-xs font-semibold text-green-900 mb-1">📋 Test Your Setup:</p>
                                             <ol className="text-xs text-green-800 space-y-1 list-decimal ml-4">
                                                 <li>Create a keyword in Text Messaging page</li>
-                                                <li>Text that keyword to: <strong>{settings.signalhouse_phone_number}</strong></li> {/* CHANGED */}
+                                                <li>Text that keyword to: <strong>{settings.signalhouse_phone_number}</strong></li>
                                                 <li>Check TextMessaging → Message History tab for logs</li>
-                                                <li>If no response, check Dashboard → Code → Functions → handleSignalhouseWebhook for errors</li> {/* CHANGED */}
+                                                <li>If no response, check Dashboard → Code → Functions → handleSignalhouseWebhook for errors</li>
                                             </ol>
                                         </div>
                                         <Button 
                                             variant="outline" 
                                             size="sm" 
-                                            onClick={() => setSettings(prev => ({ ...prev, signalhouse_configured: false }))} {/* CHANGED */}
+                                            onClick={() => setSettings(prev => ({ ...prev, signalhouse_configured: false }))}
                                             className="mt-3"
                                         >
                                             Update Credentials
@@ -1499,48 +1491,48 @@ export default function SettingsPage() {
                                     <>
                                         <div className="space-y-4">
                                             <div className="space-y-2">
-                                                <Label htmlFor="signalhouse_api_key"> {/* CHANGED */}
-                                                    SignalHouse API Key {/* CHANGED */}
+                                                <Label htmlFor="signalhouse_api_key">
+                                                    SignalHouse API Key
                                                     <span className="text-red-500">*</span>
                                                 </Label>
                                                 <Input
-                                                    id="signalhouse_api_key" {/* CHANGED */}
-                                                    value={settings.signalhouse_api_key} {/* CHANGED */}
-                                                    onChange={(e) => handleChange('signalhouse_api_key', e.target.value)} {/* CHANGED */}
-                                                    placeholder="Your API key from SignalHouse dashboard" {/* CHANGED */}
+                                                    id="signalhouse_api_key"
+                                                    value={settings.signalhouse_api_key}
+                                                    onChange={(e) => handleChange('signalhouse_api_key', e.target.value)}
+                                                    placeholder="Your API key from SignalHouse dashboard"
                                                     type="password"
                                                 />
                                                 <p className="text-xs text-slate-500">
-                                                    Find in SignalHouse Dashboard → API Keys {/* CHANGED */}
+                                                    Find in SignalHouse Dashboard → API Keys
                                                 </p>
                                             </div>
 
                                             <div className="space-y-2">
-                                                <Label htmlFor="signalhouse_account_id"> {/* CHANGED */}
-                                                    SignalHouse Account ID {/* CHANGED */}
+                                                <Label htmlFor="signalhouse_account_id">
+                                                    SignalHouse Account ID
                                                     <span className="text-red-500">*</span>
                                                 </Label>
                                                 <Input
-                                                    id="signalhouse_account_id" {/* CHANGED */}
-                                                    value={settings.signalhouse_account_id} {/* CHANGED */}
-                                                    onChange={(e) => handleChange('signalhouse_account_id', e.target.value)} {/* CHANGED */}
-                                                    placeholder="Your account ID" {/* CHANGED */}
+                                                    id="signalhouse_account_id"
+                                                    value={settings.signalhouse_account_id}
+                                                    onChange={(e) => handleChange('signalhouse_account_id', e.target.value)}
+                                                    placeholder="Your account ID"
                                                     type="text"
                                                 />
                                                 <p className="text-xs text-slate-500">
-                                                    Find in SignalHouse Dashboard → Settings → Account {/* CHANGED */}
+                                                    Find in SignalHouse Dashboard → Settings → Account
                                                 </p>
                                             </div>
 
                                             <div className="space-y-2">
-                                                <Label htmlFor="signalhouse_phone_number"> {/* CHANGED */}
-                                                    SignalHouse Phone Number {/* CHANGED */}
+                                                <Label htmlFor="signalhouse_phone_number">
+                                                    SignalHouse Phone Number
                                                     <span className="text-red-500">*</span>
                                                 </Label>
                                                 <Input
-                                                    id="signalhouse_phone_number" {/* CHANGED */}
-                                                    value={settings.signalhouse_phone_number} {/* CHANGED */}
-                                                    onChange={(e) => handleChange('signalhouse_phone_number', e.target.value)} {/* CHANGED */}
+                                                    id="signalhouse_phone_number"
+                                                    value={settings.signalhouse_phone_number}
+                                                    onChange={(e) => handleChange('signalhouse_phone_number', e.target.value)}
                                                     placeholder="+15551234567"
                                                     type="tel"
                                                 />
@@ -1550,11 +1542,11 @@ export default function SettingsPage() {
                                             </div>
 
                                             <Button 
-                                                onClick={testSignalhouseConnection} // CHANGED
-                                                disabled={!settings.signalhouse_api_key || !settings.signalhouse_account_id || !settings.signalhouse_phone_number || signalhouseTestResult?.status === 'testing' || isSaving} // CHANGED
+                                                onClick={testSignalhouseConnection}
+                                                disabled={!settings.signalhouse_api_key || !settings.signalhouse_account_id || !settings.signalhouse_phone_number || signalhouseTestResult?.status === 'testing' || isSaving}
                                                 className="w-full"
                                             >
-                                                {isSaving || signalhouseTestResult?.status === 'testing' ? ( {/* CHANGED */}
+                                                {isSaving || signalhouseTestResult?.status === 'testing' ? (
                                                     <>
                                                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                                                         {isSaving ? "Saving..." : "Testing Connection..."}
@@ -1564,18 +1556,18 @@ export default function SettingsPage() {
                                                 )}
                                             </Button>
 
-                                            {signalhouseTestResult?.status === 'success' && ( {/* CHANGED */}
+                                            {signalhouseTestResult?.status === 'success' && (
                                                 <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
                                                     <div className="flex items-center gap-2 text-green-800">
                                                         <CheckCircle className="w-4 h-4" />
                                                         <span className="font-medium">Success!</span>
                                                     </div>
                                                     <p className="text-sm text-green-700 mt-1">
-                                                        {signalhouseTestResult.message} {/* CHANGED */}
+                                                        {signalhouseTestResult.message}
                                                     </p>
-                                                    {signalhouseTestResult.details?.next_steps && ( {/* CHANGED */}
+                                                    {signalhouseTestResult.details?.next_steps && (
                                                         <div className="mt-3 space-y-1">
-                                                            {signalhouseTestResult.details.next_steps.map((step, idx) => ( {/* CHANGED */}
+                                                            {signalhouseTestResult.details.next_steps.map((step, idx) => (
                                                                 <p key={idx} className="text-xs text-green-700">{step}</p>
                                                             ))}
                                                         </div>
@@ -1583,18 +1575,18 @@ export default function SettingsPage() {
                                                 </div>
                                             )}
 
-                                            {signalhouseTestResult?.status === 'error' && ( {/* CHANGED */}
+                                            {signalhouseTestResult?.status === 'error' && (
                                                 <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
                                                     <div className="flex items-center gap-2 text-red-800">
                                                         <AlertCircle className="w-4 h-4" />
                                                         <span className="font-medium">Connection Failed</span>
                                                     </div>
                                                     <p className="text-sm text-red-700 mt-1">
-                                                        {signalhouseTestResult.message} {/* CHANGED */}
+                                                        {signalhouseTestResult.message}
                                                     </p>
-                                                    {signalhouseTestResult.details?.next_steps && ( {/* CHANGED */}
+                                                    {signalhouseTestResult.details?.next_steps && (
                                                         <div className="mt-3 space-y-1">
-                                                            {signalhouseTestResult.details.next_steps.map((step, idx) => ( {/* CHANGED */}
+                                                            {signalhouseTestResult.details.next_steps.map((step, idx) => (
                                                                 <p key={idx} className="text-xs text-red-700">{step}</p>
                                                             ))}
                                                         </div>
@@ -1602,10 +1594,10 @@ export default function SettingsPage() {
                                                     <div className="mt-3 p-2 bg-white rounded border border-red-200">
                                                         <p className="text-xs text-red-800 font-medium mb-1">Common Issues:</p>
                                                         <ul className="text-xs text-red-700 space-y-1 list-disc ml-4">
-                                                            <li>Double-check your API Key is correct</li> {/* CHANGED */}
-                                                            <li>Make sure Account ID is accurate</li> {/* CHANGED */}
+                                                            <li>Double-check your API Key is correct</li>
+                                                            <li>Make sure Account ID is accurate</li>
                                                             <li>Verify phone number format: +15551234567</li>
-                                                            <li>Check your SignalHouse account is active</li> {/* CHANGED */}
+                                                            <li>Check your SignalHouse account is active</li>
                                                         </ul>
                                                     </div>
                                                 </div>
@@ -1615,11 +1607,11 @@ export default function SettingsPage() {
                                         <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                                             <h4 className="font-semibold text-blue-900 mb-2">🚀 Complete Setup Checklist</h4>
                                             <ol className="text-sm text-blue-800 space-y-2 list-decimal ml-4">
-                                                <li>Sign up at <a href="https://signalhouse.io/" target="_blank" rel="noopener noreferrer" className="underline font-medium">signalhouse.io</a></li> {/* CHANGED */}
-                                                <li>Get API Key, Account ID, and Phone Number from SignalHouse dashboard</li> {/* CHANGED */}
+                                                <li>Sign up at <a href="https://signalhouse.io/" target="_blank" rel="noopener noreferrer" className="underline font-medium">signalhouse.io</a></li>
+                                                <li>Get API Key, Account ID, and Phone Number from SignalHouse dashboard</li>
                                                 <li>Enter credentials above and click "Save & Test Connection"</li>
                                                 <li><strong className="text-red-600">CRITICAL:</strong> Go to Dashboard → Code → Environment Variables and add all three credentials there too</li>
-                                                <li>Configure webhook in SignalHouse Dashboard (see below)</li> {/* CHANGED */}
+                                                <li>Configure webhook in SignalHouse Dashboard (see below)</li>
                                                 <li>Create your first keyword in Text Messaging page</li>
                                                 <li>Text the keyword to test!</li>
                                             </ol>
@@ -1628,18 +1620,18 @@ export default function SettingsPage() {
                                         <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
                                             <h4 className="font-semibold text-purple-900 mb-2">🔗 Webhook Configuration</h4>
                                             <p className="text-sm text-purple-800 mb-3">
-                                                In SignalHouse Dashboard → Numbers → Your Number → Webhooks → Set Inbound Messaging URL to: {/* CHANGED */}
+                                                In SignalHouse Dashboard → Numbers → Your Number → Webhooks → Set Inbound Messaging URL to:
                                             </p>
                                             <div className="bg-white p-3 rounded border border-purple-300">
                                                 <code className="text-xs break-all block text-purple-900 font-mono">
-                                                    https://base44.app/api/apps/68d38ad0f4d6d5d05900d129/functions/handleSignalhouseWebhook {/* CHANGED */}
+                                                    https://base44.app/api/apps/68d38ad0f4d6d5d05900d129/functions/handleSignalhouseWebhook
                                                 </code>
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
                                                     className="mt-2 text-xs"
                                                     onClick={() => {
-                                                        navigator.clipboard.writeText('https://base44.app/api/apps/68d38ad0f4d6d5d05900d129/functions/handleSignalhouseWebhook'); // CHANGED
+                                                        navigator.clipboard.writeText('https://base44.app/api/apps/68d38ad0f4d6d5d05900d129/functions/handleSignalhouseWebhook');
                                                         alert('Webhook URL copied to clipboard!');
                                                     }}
                                                 >
@@ -1647,7 +1639,7 @@ export default function SettingsPage() {
                                                 </Button>
                                             </div>
                                             <p className="text-xs text-purple-700 mt-2">
-                                                ⚠️ <strong>Important:</strong> URL must end with <code>handleSignalhouseWebhook</code> {/* CHANGED */}
+                                                ⚠️ <strong>Important:</strong> URL must end with <code>handleSignalhouseWebhook</code>
                                             </p>
                                         </div>
                                     </>
@@ -1656,7 +1648,6 @@ export default function SettingsPage() {
                         </Card>
                     </TabsContent>
 
-                    {/* Kiosk Setup Tab */}
                     <TabsContent value="kiosk">
                         <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
                             <CardHeader>
@@ -1754,12 +1745,10 @@ export default function SettingsPage() {
                         </Card>
                     </TabsContent>
 
-                    {/* Custom Fields Tab */}
                     <TabsContent value="custom-fields">
                         <CustomFieldsManager />
                     </TabsContent>
 
-                    {/* Member Groups Tab */}
                     <TabsContent value="member-groups">
                         <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
                             <CardHeader>
@@ -1777,7 +1766,6 @@ export default function SettingsPage() {
                         </Card>
                     </TabsContent>
 
-                    {/* NEW: Subscription Tab Content */}
                     <TabsContent value="subscription">
                         <div className="space-y-6">
                             {/* Current Plan */}
