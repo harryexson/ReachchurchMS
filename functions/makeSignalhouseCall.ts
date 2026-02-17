@@ -4,66 +4,58 @@ Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
         const user = await base44.auth.me();
-        
+
         if (!user) {
             return Response.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { to, from, message, voiceType } = await req.json();
+        const { to, callbackUrl } = await req.json();
 
         if (!to) {
-            return Response.json({ 
-                error: 'Missing required field: to' 
-            }, { status: 400 });
+            return Response.json({ error: 'to number is required' }, { status: 400 });
         }
 
         const apiKey = Deno.env.get('SIGNALHOUSE_API_KEY');
-        const defaultFrom = Deno.env.get('SIGNALHOUSE_PHONE_NUMBER');
+        const accountId = Deno.env.get('SIGNALHOUSE_ACCOUNT_ID');
+        const fromNumber = Deno.env.get('SIGNALHOUSE_PHONE_NUMBER');
 
-        if (!apiKey) {
-            return Response.json({ 
-                error: 'Signalhouse API key not configured. Please set SIGNALHOUSE_API_KEY in settings.' 
-            }, { status: 500 });
+        if (!apiKey || !accountId || !fromNumber) {
+            return Response.json({ error: 'SignalHouse not configured' }, { status: 500 });
         }
 
-        // Make voice call via Signalhouse API
-        const response = await fetch('https://api.signalhouse.com/v1/voice/call', {
+        const payload = {
+            account_id: accountId,
+            from: fromNumber,
+            to: to
+        };
+
+        if (callbackUrl) {
+            payload.callback_url = callbackUrl;
+        }
+
+        const response = await fetch('https://api.signalhouse.io/v1/calls', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${apiKey}`,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                to: to,
-                from: from || defaultFrom,
-                message: message || 'This is a call from your church.',
-                voice: voiceType || 'female' // Options: male, female
-            })
+            body: JSON.stringify(payload)
         });
 
         const data = await response.json();
 
         if (!response.ok) {
-            console.error('Signalhouse API error:', data);
-            return Response.json({ 
-                error: 'Failed to make call',
-                details: data 
-            }, { status: response.status });
+            return Response.json({ error: data.error || 'Failed to initiate call', details: data }, { status: response.status });
         }
 
-        console.log('✅ Call initiated successfully:', data);
-
-        return Response.json({
-            success: true,
-            callId: data.call_id || data.id,
+        return Response.json({ 
+            success: true, 
+            call_id: data.id,
             status: data.status,
             data: data
         });
-
     } catch (error) {
-        console.error('Error making call:', error);
-        return Response.json({ 
-            error: error.message || 'Internal server error' 
-        }, { status: 500 });
+        console.error('Call error:', error);
+        return Response.json({ error: error.message }, { status: 500 });
     }
 });

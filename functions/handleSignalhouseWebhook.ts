@@ -1,167 +1,81 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
-// TCPA Compliance - Required disclaimer for all SMS messages
-const SMS_DISCLAIMER = "\n\nWe respect your privacy. Your information is used only for church communications and is never shared. Msg & data rates may apply. Reply STOP to opt-out.";
-
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
-        
-        // Parse webhook payload
-        const payload = await req.json();
-        console.log('📥 Signalhouse webhook received:', payload);
 
-        const eventType = payload.event || payload.type;
+        // Parse incoming webhook payload
+        const payload = await req.json();
         
-        // Handle different webhook event types
-        switch (eventType) {
-            case 'sms.received':
-                await handleIncomingSMS(base44, payload);
+        console.log('SignalHouse webhook received:', JSON.stringify(payload, null, 2));
+
+        const { event_type, message, account_id } = payload;
+
+        // Verify account ID matches
+        const expectedAccountId = Deno.env.get('SIGNALHOUSE_ACCOUNT_ID');
+        if (account_id !== expectedAccountId) {
+            console.error('Invalid account ID');
+            return Response.json({ error: 'Invalid account' }, { status: 403 });
+        }
+
+        // Handle different event types
+        switch (event_type) {
+            case 'message.received':
+                // Incoming message from a user
+                await handleIncomingMessage(base44, message);
                 break;
             
-            case 'sms.delivered':
-            case 'sms.sent':
-                await handleSMSStatus(base44, payload);
+            case 'message.delivered':
+                // Message successfully delivered
+                await updateMessageStatus(base44, message.id, 'delivered');
                 break;
             
-            case 'call.initiated':
-            case 'call.answered':
-            case 'call.completed':
-            case 'call.failed':
-                await handleCallStatus(base44, payload);
+            case 'message.failed':
+                // Message failed to deliver
+                await updateMessageStatus(base44, message.id, 'failed');
                 break;
             
-            case 'voice.received':
-                await handleIncomingCall(base44, payload);
+            case 'message.read':
+                // Message was read by recipient
+                await updateMessageStatus(base44, message.id, 'read');
                 break;
             
             default:
-                console.log('⚠️ Unhandled webhook event:', eventType);
+                console.log('Unhandled event type:', event_type);
         }
 
         return Response.json({ success: true, received: true });
-
     } catch (error) {
-        console.error('❌ Webhook processing error:', error);
-        return Response.json({ 
-            error: error.message 
-        }, { status: 500 });
+        console.error('Webhook error:', error);
+        return Response.json({ error: error.message }, { status: 500 });
     }
 });
 
-async function handleIncomingSMS(base44, payload) {
-    console.log('📱 Processing incoming SMS:', payload);
-    
-    const from = payload.from || payload.sender;
-    const message = payload.message || payload.body || payload.text;
-    const to = payload.to || payload.recipient;
-    const keyword = message.trim().split(/\s+/)[0].toUpperCase();
-
+async function handleIncomingMessage(base44, message) {
     try {
-        // Log the incoming message
+        // Store incoming message
         await base44.asServiceRole.entities.TextMessage.create({
-            from_number: from,
-            to_number: to,
-            message_body: message,
+            from_number: message.from,
+            to_number: message.to,
+            message_body: message.body,
             direction: 'inbound',
             status: 'received',
-            message_sid: payload.message_id || payload.id,
+            external_message_id: message.id,
+            message_type: message.type || 'sms',
+            media_urls: message.media_urls || [],
             received_at: new Date().toISOString()
         });
 
-        console.log('✅ Incoming SMS logged');
-
-        // Handle STOP/UNSUBSCRIBE requests
-        if (['STOP', 'UNSUBSCRIBE', 'CANCEL', 'END', 'QUIT'].includes(keyword)) {
-            console.log('🛑 Processing opt-out request...');
-            
-            const subscribers = await base44.asServiceRole.entities.TextSubscriber.filter({ 
-                phone_number: from 
-            });
-            
-            if (subscribers.length > 0) {
-                await base44.asServiceRole.entities.TextSubscriber.update(subscribers[0].id, {
-                    status: 'opted_out',
-                    opt_out_date: new Date().toISOString()
-                });
-                console.log('✅ Subscriber opted out');
-            }
-            
-            // Send confirmation (no disclaimer needed for opt-out confirmation)
-            const confirmMessage = 'You have been unsubscribed from church messages. No further messages will be sent. Reply HELP for support.';
-            await sendOptOutSMS(base44, from, confirmMessage);
-        }
-
-        // Handle HELP requests
-        if (['HELP', 'INFO', 'SUPPORT'].includes(keyword)) {
-            console.log('❓ Processing help request...');
-            const helpMessage = 'REACH Church Connect - For support, contact us at support@reachchurchms.com or reply STOP to unsubscribe.';
-            await sendHelpSMS(base44, from, helpMessage);
-        }
+        console.log('Stored incoming message:', message.id);
     } catch (error) {
-        console.error('Error logging incoming SMS:', error);
+        console.error('Error storing message:', error);
     }
 }
 
-async function sendOptOutSMS(base44, to, message) {
+async function updateMessageStatus(base44, messageId, status) {
     try {
-        // Send opt-out confirmation without disclaimer
-        const apiKey = Deno.env.get('SIGNALHOUSE_API_KEY');
-        const defaultFrom = Deno.env.get('SIGNALHOUSE_PHONE_NUMBER');
-        
-        if (!apiKey) return;
-        
-        await fetch('https://api.signalhouse.com/v1/sms/send', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${apiKey}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                to: to,
-                from: defaultFrom,
-                message: message
-            })
-        });
-    } catch (error) {
-        console.error('Error sending opt-out SMS:', error);
-    }
-}
-
-async function sendHelpSMS(base44, to, message) {
-    try {
-        const apiKey = Deno.env.get('SIGNALHOUSE_API_KEY');
-        const defaultFrom = Deno.env.get('SIGNALHOUSE_PHONE_NUMBER');
-        
-        if (!apiKey) return;
-        
-        await fetch('https://api.signalhouse.com/v1/sms/send', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${apiKey}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                to: to,
-                from: defaultFrom,
-                message: message
-            })
-        });
-    } catch (error) {
-        console.error('Error sending help SMS:', error);
-    }
-}
-
-async function handleSMSStatus(base44, payload) {
-    console.log('📊 SMS status update:', payload);
-    
-    const messageId = payload.message_id || payload.id;
-    const status = payload.status;
-
-    try {
-        // Find and update the message status
         const messages = await base44.asServiceRole.entities.TextMessage.filter({
-            message_sid: messageId
+            external_message_id: messageId
         });
 
         if (messages.length > 0) {
@@ -169,31 +83,9 @@ async function handleSMSStatus(base44, payload) {
                 status: status,
                 updated_at: new Date().toISOString()
             });
-            console.log('✅ SMS status updated');
+            console.log('Updated message status:', messageId, status);
         }
     } catch (error) {
-        console.error('Error updating SMS status:', error);
+        console.error('Error updating status:', error);
     }
-}
-
-async function handleCallStatus(base44, payload) {
-    console.log('📞 Call status update:', payload);
-    
-    // You can log call events or update records as needed
-    const callId = payload.call_id || payload.id;
-    const status = payload.status;
-    
-    console.log(`Call ${callId} status: ${status}`);
-}
-
-async function handleIncomingCall(base44, payload) {
-    console.log('📞 Incoming call:', payload);
-    
-    const from = payload.from || payload.caller;
-    const to = payload.to || payload.recipient;
-    
-    console.log(`Incoming call from ${from} to ${to}`);
-    
-    // You can add logic to handle incoming calls
-    // e.g., route to specific staff, record voicemail, etc.
 }

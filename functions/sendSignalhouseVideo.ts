@@ -9,10 +9,10 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { to, message } = await req.json();
+        const { to, videoUrl, thumbnailUrl, caption } = await req.json();
 
-        if (!to || !message) {
-            return Response.json({ error: 'to and message are required' }, { status: 400 });
+        if (!to || !videoUrl) {
+            return Response.json({ error: 'to and videoUrl are required' }, { status: 400 });
         }
 
         const apiKey = Deno.env.get('SIGNALHOUSE_API_KEY');
@@ -23,25 +23,35 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'SignalHouse not configured' }, { status: 500 });
         }
 
+        const payload = {
+            account_id: accountId,
+            from: fromNumber,
+            to: to,
+            type: 'mms',
+            media_urls: [videoUrl]
+        };
+
+        if (caption) {
+            payload.body = caption;
+        }
+
+        if (thumbnailUrl) {
+            payload.thumbnail_url = thumbnailUrl;
+        }
+
         const response = await fetch('https://api.signalhouse.io/v1/messages', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${apiKey}`,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                account_id: accountId,
-                from: fromNumber,
-                to: to,
-                body: message,
-                type: 'sms'
-            })
+            body: JSON.stringify(payload)
         });
 
         const data = await response.json();
 
         if (!response.ok) {
-            return Response.json({ error: data.error || 'Failed to send SMS', details: data }, { status: response.status });
+            return Response.json({ error: data.error || 'Failed to send video', details: data }, { status: response.status });
         }
 
         return Response.json({ 
@@ -51,7 +61,7 @@ Deno.serve(async (req) => {
             data: data
         });
     } catch (error) {
-        console.error('SMS error:', error);
+        console.error('Video error:', error);
         return Response.json({ error: error.message }, { status: 500 });
     }
 });
