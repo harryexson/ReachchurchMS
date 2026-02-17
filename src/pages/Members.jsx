@@ -56,11 +56,11 @@ export default function MembersPage() {
             loadCustomFields();
             loadUsers();
 
-            // Real-time subscription for instant updates
+            // Real-time subscription for instant updates across the organization
             const unsubscribe = base44.entities.Member.subscribe((event) => {
-                if (event.type === 'create' && event.data?.created_by === user.email) {
+                if (event.type === 'create') {
                     setMembers(prev => [event.data, ...prev]);
-                } else if (event.type === 'update' && event.data?.created_by === user.email) {
+                } else if (event.type === 'update') {
                     setMembers(prev => prev.map(m => m.id === event.id ? event.data : m));
                 } else if (event.type === 'delete') {
                     setMembers(prev => prev.filter(m => m.id !== event.id));
@@ -74,8 +74,8 @@ export default function MembersPage() {
     const loadMembers = async () => {
         setIsLoading(true);
         try {
-            // Load only members for this church (created by current admin)
-            const memberList = await base44.entities.Member.filter({ created_by: user.email });
+            // Load all members for this church organization
+            const memberList = await base44.entities.Member.list();
             
             // Merge with user profile pictures
             const membersWithPhotos = memberList.map(member => {
