@@ -73,8 +73,13 @@ export default function Dashboard() {
       let visitors = [];
 
       try {
-        // Load only members for this church (created by current admin)
-        members = await base44.entities.Member.filter({ created_by: user.email });
+        // Load only members for this church (by church admin email or created by)
+        members = await base44.entities.Member.filter({ 
+          $or: [
+            { church_admin_email: user.email },
+            { created_by: user.email }
+          ]
+        });
       } catch (error) {
         if (!signal?.aborted) {
           console.error("Error loading members:", error);

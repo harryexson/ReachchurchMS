@@ -58,9 +58,11 @@ export default function MembersPage() {
 
             // Real-time subscription for instant updates
             const unsubscribe = base44.entities.Member.subscribe((event) => {
-                if (event.type === 'create' && event.data?.created_by === user.email) {
+                const belongsToChurch = event.data?.church_admin_email === user.email || event.data?.created_by === user.email;
+                
+                if (event.type === 'create' && belongsToChurch) {
                     setMembers(prev => [event.data, ...prev]);
-                } else if (event.type === 'update' && event.data?.created_by === user.email) {
+                } else if (event.type === 'update' && belongsToChurch) {
                     setMembers(prev => prev.map(m => m.id === event.id ? event.data : m));
                 } else if (event.type === 'delete') {
                     setMembers(prev => prev.filter(m => m.id !== event.id));
@@ -74,8 +76,13 @@ export default function MembersPage() {
     const loadMembers = async () => {
         setIsLoading(true);
         try {
-            // Load only members for this church (created by current admin)
-            const memberList = await base44.entities.Member.filter({ created_by: user.email });
+            // Load only members for this church (by church admin email or created by)
+            const memberList = await base44.entities.Member.filter({ 
+                $or: [
+                    { church_admin_email: user.email },
+                    { created_by: user.email }
+                ]
+            });
             
             // Merge with user profile pictures
             const membersWithPhotos = memberList.map(member => {
