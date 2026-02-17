@@ -156,13 +156,14 @@ export default function Layout({ children, currentPageName }) {
             last_login: new Date().toISOString()
           }).catch(() => {});
 
-          // CRITICAL: Check for developer access FIRST before any redirects or checks
+          // CRITICAL: Check for developer/owner access FIRST before any redirects or checks
+          // harryexson@hotmail.com is the owner account with perpetual non-paying access
           const isDeveloper = user.email === "david@base44.app" || 
-                             user.email === "harryexson@hotmail.com" || 
-                             user.developer_access;
-          
+                         user.email === "harryexson@hotmail.com" || 
+                         user.developer_access;
+
           if (isDeveloper) {
-            console.log('👨‍💻 Developer account detected:', user.email, '- skipping all subscription and redirect checks');
+            console.log('👨‍💻 Developer/Owner account detected:', user.email, '- perpetual access granted, skipping all subscription checks');
             
             // Redirect away from landing page only
             if (currentPageName?.toLowerCase() === 'landingpage' || location.pathname === '/') {
