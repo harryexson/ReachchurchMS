@@ -73,8 +73,8 @@ export default function Dashboard() {
       let visitors = [];
 
       try {
-        // Load all members for this church organization
-        members = await base44.entities.Member.list();
+        // Load only members for this church (created by current admin)
+        members = await base44.entities.Member.filter({ created_by: user.email });
       } catch (error) {
         if (!signal?.aborted) {
           console.error("Error loading members:", error);
@@ -84,8 +84,12 @@ export default function Dashboard() {
       if (signal?.aborted) return;
 
       try {
-        // Load all donations for this church organization
-        donations = await base44.entities.Donation.list("-donation_date", 200);
+        // Filter donations by current user's organization
+        donations = await base44.entities.Donation.filter(
+          { created_by: user.email },
+          "-donation_date",
+          200
+        );
       } catch (error) {
         if (!signal?.aborted) {
           console.error("Error loading donations:", error);
@@ -97,8 +101,12 @@ export default function Dashboard() {
       if (signal?.aborted) return;
 
       try {
-        // Load all events for this church organization
-        events = await base44.entities.Event.list("-start_datetime", 20);
+        // Filter events by current user's organization
+        events = await base44.entities.Event.filter(
+          { created_by: user.email },
+          "-start_datetime",
+          20
+        );
       } catch (error) {
         if (!signal?.aborted) {
           console.error("Error loading events:", error);
@@ -108,8 +116,11 @@ export default function Dashboard() {
       if (signal?.aborted) return;
 
       try {
-        // Load all active volunteers for this church organization
-        volunteers = await base44.entities.Volunteer.filter({ status: 'active' });
+        // Filter volunteers by current user's organization
+        volunteers = await base44.entities.Volunteer.filter({ 
+          status: 'active',
+          created_by: user.email
+        });
       } catch (error) {
         if (!signal?.aborted) {
           console.error("Error loading volunteers:", error);
@@ -119,8 +130,11 @@ export default function Dashboard() {
       if (signal?.aborted) return;
 
       try {
-        // Load all visitors for this church organization
-        visitors = await base44.entities.Visitor.list("-visit_date");
+        // Filter visitors by current user's organization
+        visitors = await base44.entities.Visitor.filter(
+          { created_by: user.email },
+          "-visit_date"
+        );
       } catch (error) {
         if (!signal?.aborted) {
           console.error("Error loading visitors:", error);
