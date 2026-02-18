@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,6 +20,7 @@ import { createPageUrl } from "@/utils";
 
 export default function SettingsPage() {
     const [settings, setSettings] = useState({
+        _id: null,
         church_name: "",
         logo_url: "",
         hero_image_url: "",
@@ -88,6 +88,7 @@ export default function SettingsPage() {
         setIsLoading(true);
         try {
             const user = await base44.auth.me();
+            // CRITICAL: Store settings ID for updates to ensure we update the right record
             const settingsList = await base44.entities.ChurchSettings.filter({
                 church_admin_email: user?.email
             });
@@ -95,6 +96,7 @@ export default function SettingsPage() {
                 setSettings(prevSettings => ({
                     ...prevSettings,
                     ...settingsList[0],
+                    _id: settingsList[0].id,
                     bank_account_connected: settingsList[0].bank_account_connected ?? false,
                     payouts_enabled: settingsList[0].payouts_enabled ?? false,
                     donation_goal_monthly: settingsList[0].donation_goal_monthly != null ? String(settingsList[0].donation_goal_monthly) : "",
@@ -137,30 +139,39 @@ export default function SettingsPage() {
     const handleSave = async () => {
         setIsSaving(true);
         
-        const payload = {
-            ...settings,
-            donation_goal_monthly: settings.donation_goal_monthly === "" || isNaN(parseFloat(settings.donation_goal_monthly))
-                ? null
-                : parseFloat(settings.donation_goal_monthly),
-        };
-
         try {
             const user = await base44.auth.me();
-            const settingsList = await base44.entities.ChurchSettings.filter({
+            
+            // CRITICAL: Extract _id and built-in fields before saving
+            const { _id, id, created_date, updated_date, created_by, ...editableData } = settings;
+            
+            const payload = {
+                ...editableData,
+                donation_goal_monthly: editableData.donation_goal_monthly === "" || isNaN(parseFloat(editableData.donation_goal_monthly))
+                    ? null
+                    : parseFloat(editableData.donation_goal_monthly),
                 church_admin_email: user?.email
-            });
-            if (settingsList.length > 0) {
-                await base44.entities.ChurchSettings.update(settingsList[0].id, payload);
+            };
+
+            if (_id) {
+                // Update existing record
+                console.log('💾 Updating ChurchSettings:', _id);
+                await base44.entities.ChurchSettings.update(_id, payload);
+                console.log('✅ ChurchSettings updated successfully');
             } else {
-                await base44.entities.ChurchSettings.create({
-                    ...payload,
-                    church_admin_email: user?.email
-                });
+                // Create new record
+                console.log('💾 Creating new ChurchSettings');
+                const created = await base44.entities.ChurchSettings.create(payload);
+                console.log('✅ ChurchSettings created:', created.id);
+                setSettings(prev => ({ ...prev, _id: created.id }));
             }
+            
+            // Reload to verify save
+            await loadSettings();
             return true;
         } catch (error) {
             console.error("Failed to save settings:", error);
-            alert("Failed to save settings. Please try again.");
+            alert("Failed to save settings: " + (error.message || "Please try again."));
             return false;
         } finally {
             setIsSaving(false);
@@ -341,9 +352,23 @@ export default function SettingsPage() {
 
         setUploadingLogo(true);
         try {
-            const result = await UploadFile({ file });
-            setSettings(prev => ({ ...prev, logo_url: result.file_url }));
-            alert('Logo uploaded successfully!');
+            const result = await base44.integrations.Core.UploadFile({ file });
+            const newLogoUrl = result.file_url;
+            
+            // Update local state
+            setSettings(prev => ({ ...prev, logo_url: newLogoUrl }));
+            
+            // Auto-save after upload
+            if (settings._id) {
+                const { _id, id, created_date, updated_date, created_by, ...editableData } = settings;
+                await base44.entities.ChurchSettings.update(_id, {
+                    ...editableData,
+                    logo_url: newLogoUrl
+                });
+            }
+            
+            alert('Logo uploaded and saved successfully!');
+            await loadSettings();
         } catch (error) {
             console.error('Logo upload failed:', error);
             alert('Failed to upload logo. Please try again.');
@@ -367,9 +392,23 @@ export default function SettingsPage() {
 
         setUploadingHero(true);
         try {
-            const result = await UploadFile({ file });
-            setSettings(prev => ({ ...prev, hero_image_url: result.file_url }));
-            alert('Church photo uploaded successfully!');
+            const result = await base44.integrations.Core.UploadFile({ file });
+            const newHeroUrl = result.file_url;
+            
+            // Update local state
+            setSettings(prev => ({ ...prev, hero_image_url: newHeroUrl }));
+            
+            // Auto-save after upload
+            if (settings._id) {
+                const { _id, id, created_date, updated_date, created_by, ...editableData } = settings;
+                await base44.entities.ChurchSettings.update(_id, {
+                    ...editableData,
+                    hero_image_url: newHeroUrl
+                });
+            }
+            
+            alert('Church photo uploaded and saved successfully!');
+            await loadSettings();
         } catch (error) {
             console.error('Hero image upload failed:', error);
             alert('Failed to upload photo. Please try again.');
