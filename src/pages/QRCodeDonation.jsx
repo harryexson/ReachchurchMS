@@ -45,8 +45,8 @@ export default function QRCodeDonation() {
                 });
             }
 
-            // Use actual app URL for donations
-            const givingUrl = `${window.location.origin}${createPageUrl('PublicGiving')}`;
+            // CRITICAL: Include church admin email in URL for proper data isolation
+            const givingUrl = `${window.location.origin}${createPageUrl('PublicGiving')}?org=${encodeURIComponent(user.email)}`;
             setDonationUrl(givingUrl);
 
             // Generate QR code using QuickChart API
