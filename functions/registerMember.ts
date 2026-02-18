@@ -14,7 +14,7 @@ Deno.serve(async (req) => {
 
         // Check if already a member in THIS organization
         const existingMembers = await base44.asServiceRole.entities.Member.filter({
-            created_by: orgAdminEmail,
+            church_admin_email: orgAdminEmail,
             $or: [
                 { email: memberData.email },
                 { phone: memberData.phone }
@@ -31,7 +31,7 @@ Deno.serve(async (req) => {
 
         // Check for existing visitor to convert (within this organization)
         const visitors = await base44.asServiceRole.entities.Visitor.filter({
-            created_by: orgAdminEmail,
+            church_admin_email: orgAdminEmail,
             $or: [
                 { email: memberData.email },
                 { phone: memberData.phone }
@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
             ...memberData,
             member_status: "member",
             join_date: new Date().toISOString().split('T')[0],
-            created_by: orgAdminEmail
+            church_admin_email: orgAdminEmail
         };
 
         // If visitor exists, include visitor info

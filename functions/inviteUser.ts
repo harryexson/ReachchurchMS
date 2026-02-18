@@ -73,7 +73,7 @@ Deno.serve(async (req) => {
         try {
             const existingMembers = await base44.asServiceRole.entities.Member.filter({
                 email: email,
-                created_by: currentUser.email
+                church_admin_email: currentUser.email
             });
 
             if (existingMembers.length === 0) {
@@ -89,7 +89,7 @@ Deno.serve(async (req) => {
                     phone: phone || '',
                     member_status: 'member',
                     join_date: new Date().toISOString().split('T')[0],
-                    created_by: currentUser.email // CRITICAL: Scope to church
+                    church_admin_email: currentUser.email // CRITICAL: Scope to church
                 });
                 console.log('✅ Member record created for:', email);
             } else {

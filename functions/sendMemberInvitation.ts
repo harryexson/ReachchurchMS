@@ -40,8 +40,11 @@ Deno.serve(async (req) => {
             console.warn('Could not check existing user:', error.message);
         }
 
-        // Get church settings for branding
-        const churchSettings = await base44.asServiceRole.entities.ChurchSettings.list();
+        // Get church settings for branding - CRITICAL: filter by church admin
+        const churchAdminEmail = data.church_admin_email;
+        const churchSettings = await base44.asServiceRole.entities.ChurchSettings.filter({
+            church_admin_email: churchAdminEmail
+        });
         const churchName = churchSettings.length > 0 ? churchSettings[0].church_name : 'Your Church';
 
         // Generate unique invitation token
