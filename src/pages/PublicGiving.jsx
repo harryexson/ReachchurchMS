@@ -308,12 +308,33 @@ export default function PublicGiving() {
                 setIsAuthenticated(false);
             }
 
-            // CRITICAL: Only load settings for the organization this page belongs to
-            // For public pages, we need to get org from URL or load first available
-            const settings = await base44.entities.ChurchSettings.list();
-            if (settings.length > 0) {
-                // For public giving page, use the first church (or could be filtered by URL param)
-                const churchSettings = settings[0];
+            // CRITICAL: Get church from URL parameter for proper data isolation
+            const urlParams = new URLSearchParams(window.location.search);
+            const orgId = urlParams.get('org') || urlParams.get('church');
+            
+            let churchSettings = null;
+            if (orgId) {
+                // Load specific church settings by org ID
+                const settings = await base44.entities.ChurchSettings.filter({
+                    church_admin_email: orgId
+                });
+                if (settings.length > 0) {
+                    churchSettings = settings[0];
+                }
+            } else {
+                // Fallback to authenticated user's church if logged in
+                if (user && user.role === 'admin') {
+                    const settings = await base44.entities.ChurchSettings.filter({
+                        church_admin_email: user.email
+                    });
+                    if (settings.length > 0) {
+                        churchSettings = settings[0];
+                    }
+                }
+            }
+            
+            if (churchSettings) {
+                const churchSettings = churchSettings;
                 if (churchSettings.church_name) {
                     setChurchName(churchSettings.church_name);
                 }
@@ -334,7 +355,10 @@ export default function PublicGiving() {
                     
                     const now = new Date();
                     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-                    const donations = await base44.entities.Donation.list('-donation_date', 1000);
+                    // CRITICAL: Filter donations by church_admin_email for proper data isolation
+                    const donations = await base44.entities.Donation.filter({
+                        church_admin_email: churchSettings.church_admin_email
+                    }, '-donation_date', 1000);
                     const monthlyDonations = donations.filter(d => d.donation_date >= monthStart);
                     const total = monthlyDonations.reduce((sum, d) => sum + (d.amount || 0), 0);
                     setCurrentMonthTotal(total);
@@ -422,6 +446,19 @@ export default function PublicGiving() {
                 payment_method: paymentMethod
             });
 
+            // CRITICAL: Get church admin email from URL or settings to ensure proper data isolation
+            const urlParams = new URLSearchParams(window.location.search);
+            const orgId = urlParams.get('org') || urlParams.get('church');
+            
+            let churchAdminEmail = orgId;
+            if (!churchAdminEmail && currentUser?.role === 'admin') {
+                churchAdminEmail = currentUser.email;
+            }
+            
+            if (!churchAdminEmail) {
+                throw new Error('Cannot process donation: Church organization not identified. Please use the donation link provided by your church.');
+            }
+
             const response = await base44.functions.invoke('createDonationCheckout', {
                 amount: donationAmount,
                 currency: currency,
@@ -435,6 +472,7 @@ export default function PublicGiving() {
                 successUrl: successUrl,
                 cancelUrl: cancelUrl,
                 metadata: {
+                    church_admin_email: churchAdminEmail,
                     donor_name: donorName,
                     donor_email: donorEmail,
                     donor_phone: donorPhone,
