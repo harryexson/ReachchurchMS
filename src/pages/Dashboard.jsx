@@ -73,12 +73,9 @@ export default function Dashboard() {
       let visitors = [];
 
       try {
-        // Load only members for this church (by church admin email or created by)
+        // CRITICAL: Load only members for this church by church_admin_email for strict data isolation
         members = await base44.entities.Member.filter({ 
-          $or: [
-            { church_admin_email: user.email },
-            { created_by: user.email }
-          ]
+          church_admin_email: user.email
         });
       } catch (error) {
         if (!signal?.aborted) {

@@ -23,10 +23,26 @@ Deno.serve(async (req) => {
             apiVersion: '2024-12-18.acacia'
         });
 
-        // Get church settings to check for Stripe Connect account
+        // CRITICAL: Get church_admin_email from metadata to ensure proper data isolation
+        const body = await req.json();
+        const churchAdminEmail = body.metadata?.church_admin_email;
+        
+        if (!churchAdminEmail) {
+            console.error(`[${requestId}] ❌ CRITICAL: No church_admin_email in request - data isolation broken!`);
+            return Response.json({ 
+                error: 'Invalid request',
+                message: 'Church organization not identified. Please use the donation link provided by your church.'
+            }, { status: 400 });
+        }
+        
+        console.log(`[${requestId}] 🏛️ Processing donation for church: ${churchAdminEmail}`);
+        
+        // Get church settings for THIS specific church
         let stripeAccountId = null;
         try {
-            const settings = await base44.asServiceRole.entities.ChurchSettings.list();
+            const settings = await base44.asServiceRole.entities.ChurchSettings.filter({
+                church_admin_email: churchAdminEmail
+            });
             if (settings.length > 0 && settings[0].stripe_account_id) {
                 stripeAccountId = settings[0].stripe_account_id;
                 console.log(`[${requestId}] ✅ Using Stripe Connect account: ${stripeAccountId}`);
@@ -34,7 +50,6 @@ Deno.serve(async (req) => {
         } catch (err) {
             console.log(`[${requestId}] ⚠️ Could not load church settings:`, err.message);
         }
-        const body = await req.json();
 
         console.log(`[${requestId}] Request body:`, JSON.stringify(body, null, 2));
 
@@ -170,6 +185,7 @@ Deno.serve(async (req) => {
             cancel_url: cleanCancelUrl,
             locale: localeMap[language] || 'auto',
             metadata: {
+                church_admin_email: churchAdminEmail,
                 donation_type: donation_type,
                 donor_name: donor_name,
                 donor_email: donor_email,
