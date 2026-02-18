@@ -29,7 +29,11 @@ export default function QRCodeDonation() {
 
     const loadSettings = async () => {
         try {
-            const settings = await base44.entities.ChurchSettings.list();
+            const user = await base44.auth.me();
+            // CRITICAL: Filter by church_admin_email for proper data isolation
+            const settings = await base44.entities.ChurchSettings.filter({
+                church_admin_email: user.email
+            });
             let name = "Our Church";
             if (settings.length > 0) {
                 const churchSettings = settings[0];
