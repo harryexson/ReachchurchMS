@@ -22,16 +22,19 @@ export default function VisitorQRCodePage() {
             const user = await base44.auth.me();
             setCurrentUser(user);
 
-            const settings = await base44.entities.ChurchSettings.list();
+            // CRITICAL: Filter by church_admin_email for proper data isolation
+            const settings = await base44.entities.ChurchSettings.filter({
+                church_admin_email: user.email
+            });
             let name = "Church";
             if (settings.length > 0) {
                 setChurchSettings(settings[0]);
                 name = settings[0].church_name || "Church";
             }
             
-            // CRITICAL: Include organization ID in URLs to scope registrations
-            const visitorFormUrl = `${window.location.origin}${createPageUrl('PublicVisitorRegistration')}?org=${user.id}`;
-            const displayScreenUrl = `${window.location.origin}${createPageUrl('VisitorQRDisplay')}?org=${user.id}`;
+            // CRITICAL: Include church_admin_email in URLs to ensure data goes to the correct church
+            const visitorFormUrl = `${window.location.origin}${createPageUrl('PublicVisitorRegistration')}?org=${encodeURIComponent(user.email)}`;
+            const displayScreenUrl = `${window.location.origin}${createPageUrl('VisitorQRDisplay')}?org=${encodeURIComponent(user.email)}`;
             
             setQrUrl(visitorFormUrl);
             setDisplayUrl(displayScreenUrl);

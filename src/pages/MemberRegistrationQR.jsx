@@ -21,7 +21,10 @@ export default function MemberRegistrationQRPage() {
             const user = await base44.auth.me();
             setCurrentUser(user);
 
-            const settings = await base44.entities.ChurchSettings.list();
+            // CRITICAL: Filter by church_admin_email for proper data isolation
+            const settings = await base44.entities.ChurchSettings.filter({
+                church_admin_email: user.email
+            });
             if (settings.length > 0) {
                 const name = settings[0].church_name || "Church";
                 setChurchName(name);
