@@ -41,9 +41,15 @@ export default function GivingPage() {
         // Get current user to filter by organization
         const user = await base44.auth.me();
         
+        // For admins: filter by church_admin_email to ensure proper data isolation
+        // For members: filter by their own email
+        const churchFilter = user.role === 'admin' 
+            ? { church_admin_email: user.email }
+            : { donor_email: user.email };
+        
         const [donationsList, membersList] = await Promise.all([
-            base44.entities.Donation.filter({ "data.created_by": user.email }, "-donation_date"),
-            base44.entities.Member.filter({ "data.created_by": user.email })
+            base44.entities.Donation.filter(churchFilter, "-donation_date"),
+            base44.entities.Member.filter({ church_admin_email: user.email })
         ]);
         setDonations(donationsList);
         setMembers(membersList);
