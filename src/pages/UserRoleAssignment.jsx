@@ -33,8 +33,19 @@ export default function UserRoleAssignment() {
         try {
             console.log('Starting to load members...');
             
-            const membersData = await base44.entities.Member.list('-created_date', 1000);
-            console.log('✅ Loaded members:', membersData.length, membersData);
+            // CRITICAL: Get current user to filter by church
+            const currentUser = await base44.auth.me();
+            if (!currentUser) {
+                console.error('❌ No authenticated user');
+                setLoading(false);
+                return;
+            }
+            
+            // CRITICAL: Only load members belonging to this church admin's organization
+            const membersData = await base44.entities.Member.filter({ 
+                church_admin_email: currentUser.email 
+            }, '-created_date', 1000);
+            console.log('✅ Loaded members for', currentUser.email, ':', membersData.length, membersData);
             
             const rolesData = await base44.entities.Role.filter({ is_active: true });
             console.log('✅ Loaded roles:', rolesData.length, rolesData);
@@ -46,7 +57,7 @@ export default function UserRoleAssignment() {
             setRoles(rolesData);
             setUserRoles(userRolesData);
             
-            console.log('✅ State updated successfully');
+            console.log('✅ State updated successfully with church-filtered data');
         } catch (error) {
             console.error('❌ Error loading data:', error);
             console.error('Error details:', error.message, error.stack);
