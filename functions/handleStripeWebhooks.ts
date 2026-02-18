@@ -145,7 +145,16 @@ async function createDonationRecord(base44, session) {
     const isZeroDecimal = ['jpy', 'krw', 'clp', 'vnd', 'xaf', 'xof'].includes(currency.toLowerCase());
     const amount = isZeroDecimal ? session.amount_total : session.amount_total / 100;
 
+    // CRITICAL: Get church_admin_email for proper data isolation
+    const churchAdminEmail = metadata.church_admin_email;
+    
+    if (!churchAdminEmail) {
+        console.error('❌ CRITICAL: No church_admin_email in donation metadata. Data isolation broken!');
+        throw new Error('Missing church_admin_email - cannot create donation without proper church association');
+    }
+
     const donationData = {
+        church_admin_email: churchAdminEmail,
         receipt_number: receiptNumber,
         donor_name: metadata.donor_name || session.customer_details?.name || 'Anonymous',
         donor_email: metadata.donor_email || session.customer_details?.email,
