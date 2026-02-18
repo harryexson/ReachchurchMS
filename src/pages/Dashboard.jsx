@@ -89,9 +89,9 @@ export default function Dashboard() {
       if (signal?.aborted) return;
 
       try {
-        // Filter donations by current user's organization
+        // CRITICAL: Filter donations by church_admin_email for proper isolation
         donations = await base44.entities.Donation.filter(
-          { created_by: user.email },
+          { church_admin_email: user.email },
           "-donation_date",
           200
         );

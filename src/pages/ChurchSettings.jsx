@@ -54,16 +54,17 @@ export default function ChurchSettingsPage() {
                 return;
             }
 
-            // Load church settings - CRITICAL: Filter by current admin to ensure proper isolation
+            // Load church settings - CRITICAL: Filter by church_admin_email for proper isolation
             const settings = await base44.entities.ChurchSettings.filter({
-                created_by: user.email
+                church_admin_email: user.email
             });
             if (settings.length > 0) {
                 setChurchSettings(settings[0]);
             } else {
-                // Create default settings
+                // Create default settings with church_admin_email
                 const defaultSettings = {
                     church_name: "",
+                    church_admin_email: user.email,
                     logo_url: "",
                     hero_image_url: "",
                     primary_color: "#3b82f6",
