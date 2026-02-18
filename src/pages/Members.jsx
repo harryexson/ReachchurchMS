@@ -56,9 +56,9 @@ export default function MembersPage() {
             loadCustomFields();
             loadUsers();
 
-            // Real-time subscription for instant updates
+            // Real-time subscription for instant updates - CRITICAL: strict church_admin_email filtering
             const unsubscribe = base44.entities.Member.subscribe((event) => {
-                const belongsToChurch = event.data?.church_admin_email === user.email || event.data?.created_by === user.email;
+                const belongsToChurch = event.data?.church_admin_email === user.email;
                 
                 if (event.type === 'create' && belongsToChurch) {
                     setMembers(prev => [event.data, ...prev]);
@@ -76,12 +76,9 @@ export default function MembersPage() {
     const loadMembers = async () => {
         setIsLoading(true);
         try {
-            // Load only members for this church (by church admin email or created by)
+            // CRITICAL: Load only members for this church by church_admin_email for strict data isolation
             const memberList = await base44.entities.Member.filter({ 
-                $or: [
-                    { church_admin_email: user.email },
-                    { created_by: user.email }
-                ]
+                church_admin_email: user.email
             });
             
             // Merge with user profile pictures
