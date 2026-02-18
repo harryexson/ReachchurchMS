@@ -26,7 +26,11 @@ export default function GoalTracker({ donations }) {
 
     const loadGoal = async () => {
         try {
-            const settings = await base44.entities.ChurchSettings.list();
+            const user = await base44.auth.me();
+            // CRITICAL: Filter by church_admin_email for proper data isolation
+            const settings = await base44.entities.ChurchSettings.filter({
+                church_admin_email: user.email
+            });
             if (settings.length > 0 && settings[0].donation_goal_monthly) {
                 setGoal(settings[0]);
                 setFormData({
@@ -44,11 +48,21 @@ export default function GoalTracker({ donations }) {
     const handleSave = async () => {
         setIsLoading(true);
         try {
-            const settings = await base44.entities.ChurchSettings.list();
+            const user = await base44.auth.me();
+            // CRITICAL: Filter by church_admin_email for proper data isolation
+            const settings = await base44.entities.ChurchSettings.filter({
+                church_admin_email: user.email
+            });
+            
+            const dataToSave = {
+                ...formData,
+                church_admin_email: user.email
+            };
+            
             if (settings.length > 0) {
-                await base44.entities.ChurchSettings.update(settings[0].id, formData);
+                await base44.entities.ChurchSettings.update(settings[0].id, dataToSave);
             } else {
-                await base44.entities.ChurchSettings.create(formData);
+                await base44.entities.ChurchSettings.create(dataToSave);
             }
             toast.success('Giving goal updated successfully!');
             await loadGoal();
