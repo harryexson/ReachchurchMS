@@ -26,8 +26,8 @@ export default function MobileNavBar({ userRole = "member" }) {
   const navItems = userRole === "admin" ? adminNav : memberNav;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-slate-200/50 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] z-40 md:hidden safe-area-inset-bottom">
-      <div className="flex justify-around items-center h-20 relative px-2">
+    <div className="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border-t border-slate-200/50 dark:border-slate-700/50 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] z-40 md:hidden safe-area-inset-bottom">
+      <div className="flex justify-around items-center h-20 relative px-2" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
         {navItems.map((item, index) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.url;
@@ -82,13 +82,13 @@ export default function MobileNavBar({ userRole = "member" }) {
                 <motion.div
                   animate={isActive ? { scale: [1, 1.1, 1] } : {}}
                   transition={{ duration: 0.3 }}
-                  className={`p-2 rounded-xl ${
-                    isActive ? "bg-blue-50" : ""
+                  className={`p-2 rounded-xl transition-all ${
+                    isActive ? "bg-blue-50 dark:bg-blue-900/30" : ""
                   }`}
                 >
                   <Icon
                     className={`w-6 h-6 transition-colors ${
-                      isActive ? "text-blue-600" : "text-slate-400"
+                      isActive ? "text-blue-600 dark:text-blue-400" : "text-slate-400 dark:text-slate-500"
                     }`}
                   />
                 </motion.div>
@@ -98,7 +98,7 @@ export default function MobileNavBar({ userRole = "member" }) {
                     fontWeight: isActive ? 600 : 500
                   }}
                   className={`transition-colors ${
-                    isActive ? "text-blue-600" : "text-slate-500"
+                    isActive ? "text-blue-600 dark:text-blue-400" : "text-slate-500 dark:text-slate-400"
                   }`}
                 >
                   {item.label}

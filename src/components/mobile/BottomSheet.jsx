@@ -37,10 +37,11 @@ export default function BottomSheet({
                                 onClose();
                             }
                         }}
-                        className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl shadow-2xl overflow-hidden"
+                        className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl shadow-2xl overflow-hidden safe-area-inset-bottom"
                         style={{ 
                             height: height === "auto" ? "auto" : height,
-                            maxHeight: "90vh"
+                            maxHeight: "90vh",
+                            paddingBottom: "env(safe-area-inset-bottom)"
                         }}
                     >
                         {/* Drag Handle */}

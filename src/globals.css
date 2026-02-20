@@ -191,6 +191,19 @@ select {
   -webkit-touch-callout: none;
 }
 
+/* Prevent text selection on interactive elements */
+button,
+a,
+nav,
+nav *,
+[role="button"],
+[role="link"] {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
 /* Native card shadows */
 .native-shadow {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);

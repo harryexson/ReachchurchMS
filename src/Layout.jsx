@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { createPageUrl } from "@/utils";
 import { Link, useLocation } from "react-router-dom";
 import { Helmet } from "react-helmet";
+import { motion, AnimatePresence } from "framer-motion";
 import {
                                 Church,
                                 Users,
@@ -49,6 +50,8 @@ import PushNotificationManager from "@/components/pwa/PushNotificationManager";
 import OfflineIndicator from "@/components/pwa/OfflineIndicator";
 import MobileNavBar from "@/components/pwa/MobileNavBar";
 import SupportChatWidget from "@/components/support/SupportChatWidget";
+import NativeHeader from "@/components/mobile/NativeHeader";
+import PullToRefresh from "@/components/mobile/PullToRefresh";
 import { Button } from "@/components/ui/button";
 
 const publicPages = [
@@ -414,6 +417,27 @@ export default function Layout({ children, currentPageName }) {
     setAuthError(null);
     setIsLoadingUser(true);
     window.location.reload();
+  };
+
+  const handleRefresh = async () => {
+    window.location.reload();
+  };
+
+  // Define primary dashboard routes (no back button on these)
+  const primaryDashboardRoutes = [
+    createPageUrl("Dashboard"),
+    createPageUrl("MemberDashboard"),
+    createPageUrl("LandingPage"),
+    "/"
+  ];
+
+  const isPrimaryRoute = primaryDashboardRoutes.some(route => 
+    location.pathname === route || location.pathname.toLowerCase() === route.toLowerCase()
+  );
+
+  const getPageTitle = () => {
+    const pageName = currentPageName || "REACH Church Connect";
+    return pageName.replace(/([A-Z])/g, ' $1').trim();
   };
 
   // CRITICAL: Enhanced public page detection to ensure donation pages are always accessible
@@ -1098,9 +1122,34 @@ export default function Layout({ children, currentPageName }) {
       </aside>
 
       <main className="lg:ml-64 min-h-screen transition-colors duration-200">
-        <div className="page-enter-active">
-          {children}
+        {/* Mobile Native Header */}
+        <div className="lg:hidden">
+          <NativeHeader 
+            title={getPageTitle()}
+            showBack={!isPrimaryRoute}
+            rightAction={<NotificationBell />}
+          />
         </div>
+
+        {/* Animated Page Transitions with Pull to Refresh */}
+        <PullToRefresh onRefresh={handleRefresh}>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={location.pathname}
+              initial={{ x: 300, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: -300, opacity: 0 }}
+              transition={{
+                type: "spring",
+                stiffness: 260,
+                damping: 20
+              }}
+              className="page-enter-active"
+            >
+              {children}
+            </motion.div>
+          </AnimatePresence>
+        </PullToRefresh>
       </main>
 
       {showLogoutConfirm && (
