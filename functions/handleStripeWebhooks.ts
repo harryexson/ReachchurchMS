@@ -134,6 +134,13 @@ async function handleCheckoutCompleted(base44, session) {
 }
 
 async function createDonationRecord(base44, session) {
+    console.log('🎁 === CREATING DONATION RECORD ===');
+    console.log('📋 Session ID:', session.id);
+    console.log('💰 Amount Total:', session.amount_total);
+    console.log('💵 Currency:', session.currency);
+    console.log('📦 Session Metadata:', JSON.stringify(session.metadata, null, 2));
+    console.log('👤 Customer Details:', JSON.stringify(session.customer_details, null, 2));
+    
     const metadata = session.metadata || {};
     
     // Generate unique receipt number
@@ -148,8 +155,11 @@ async function createDonationRecord(base44, session) {
     // CRITICAL: Get church_admin_email for proper data isolation
     const churchAdminEmail = metadata.church_admin_email;
     
+    console.log('🏛️ Church Admin Email from metadata:', churchAdminEmail);
+    
     if (!churchAdminEmail) {
         console.error('❌ CRITICAL: No church_admin_email in donation metadata. Data isolation broken!');
+        console.error('❌ Full metadata:', JSON.stringify(metadata, null, 2));
         throw new Error('Missing church_admin_email - cannot create donation without proper church association');
     }
 
