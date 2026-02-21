@@ -6,8 +6,19 @@ Deno.serve(async (req) => {
 
         const { donation_id, donation_data } = await req.json();
 
-        // Get church settings
-        const settingsList = await base44.entities.ChurchSettings.list();
+        // CRITICAL: Get church settings for THIS specific church using church_admin_email for proper data isolation
+        const churchAdminEmail = donation_data.church_admin_email;
+        
+        if (!churchAdminEmail) {
+            console.error('❌ No church_admin_email in donation data - cannot load church settings');
+            return Response.json({
+                error: 'Missing church association'
+            }, { status: 400 });
+        }
+        
+        const settingsList = await base44.asServiceRole.entities.ChurchSettings.filter({
+            church_admin_email: churchAdminEmail
+        });
         const settings = settingsList[0] || {};
 
         const churchName = settings.church_name || 'Church';

@@ -190,7 +190,30 @@ async function createDonationRecord(base44, session) {
 
     const donation = await base44.asServiceRole.entities.Donation.create(donationData);
     
-    console.log('Donation record created:', donation.id);
+    console.log('✅ Donation record created:', donation.id);
+    
+    // CRITICAL: Auto-send receipt if enabled for this church
+    try {
+        const churchSettings = await base44.asServiceRole.entities.ChurchSettings.filter({
+            church_admin_email: churchAdminEmail
+        });
+        
+        const autoSendReceipts = churchSettings.length > 0 ? churchSettings[0].auto_send_receipts : true;
+        
+        if (autoSendReceipts !== false && donation.donor_email) {
+            console.log('📧 Auto-sending donation receipt to:', donation.donor_email);
+            await base44.asServiceRole.functions.invoke('sendDonationReceipt', {
+                donation_id: donation.id,
+                donation_data: donation
+            });
+            console.log('✅ Receipt sent successfully');
+        } else {
+            console.log('⏭️ Auto-send receipts disabled or no donor email');
+        }
+    } catch (receiptError) {
+        console.error('⚠️ Error sending receipt:', receiptError.message);
+        // Don't fail the donation creation if receipt fails
+    }
     
     return donation;
 }
