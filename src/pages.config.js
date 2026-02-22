@@ -192,6 +192,7 @@ import WhyReach from './pages/WhyReach';
 import WorkflowBuilder from './pages/WorkflowBuilder';
 import backoffice from './pages/backoffice';
 import BillingHistory from './pages/BillingHistory';
+import MySubscription from './pages/MySubscription';
 import __Layout from './Layout.jsx';
 
 
@@ -341,6 +342,7 @@ export const PAGES = {
     "WorkflowBuilder": WorkflowBuilder,
     "backoffice": backoffice,
     "BillingHistory": BillingHistory,
+    "MySubscription": MySubscription,
 }
 
 export const pagesConfig = {
