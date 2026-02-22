@@ -101,12 +101,85 @@ export default function QRCodeDonation() {
     };
 
     const handleDownload = () => {
-        const link = document.createElement('a');
-        link.href = qrCodeUrl;
-        link.download = `${churchName.replace(/\s+/g, '-')}-Donation-QR.png`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        // Create a canvas to combine church name + QR code
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 800;
+        canvas.height = 1000;
+
+        // White background
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Load and draw logo if available
+        let yPosition = 60;
+        
+        const drawContent = () => {
+            // Church name
+            ctx.fillStyle = '#1e293b';
+            ctx.font = 'bold 48px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(churchName, canvas.width / 2, yPosition + 80);
+
+            // "Scan to Give" subtitle
+            ctx.fillStyle = branding.primary_color;
+            ctx.font = 'bold 24px Arial';
+            ctx.fillText('📱 Scan to Give', canvas.width / 2, yPosition + 130);
+
+            // Load and draw QR code
+            const qrImage = new Image();
+            qrImage.crossOrigin = 'anonymous';
+            qrImage.onload = () => {
+                const qrSize = 500;
+                const qrX = (canvas.width - qrSize) / 2;
+                const qrY = yPosition + 160;
+                
+                // Draw border
+                ctx.strokeStyle = branding.primary_color;
+                ctx.lineWidth = 8;
+                ctx.strokeRect(qrX - 20, qrY - 20, qrSize + 40, qrSize + 40);
+                
+                // Draw QR code
+                ctx.drawImage(qrImage, qrX, qrY, qrSize, qrSize);
+
+                // Instructions text
+                ctx.fillStyle = '#64748b';
+                ctx.font = '20px Arial';
+                ctx.fillText('Point your phone camera at this code', canvas.width / 2, qrY + qrSize + 60);
+                ctx.fillText(`to donate to ${churchName}`, canvas.width / 2, qrY + qrSize + 90);
+
+                // Download
+                canvas.toBlob((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `${churchName.replace(/\s+/g, '-')}-Donation-QR.png`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                });
+            };
+            qrImage.src = qrCodeUrl;
+        };
+
+        if (branding.logo_url) {
+            const logoImage = new Image();
+            logoImage.crossOrigin = 'anonymous';
+            logoImage.onload = () => {
+                const maxLogoHeight = 80;
+                const aspectRatio = logoImage.width / logoImage.height;
+                const logoHeight = maxLogoHeight;
+                const logoWidth = logoHeight * aspectRatio;
+                ctx.drawImage(logoImage, (canvas.width - logoWidth) / 2, 40, logoWidth, logoHeight);
+                yPosition = 40 + logoHeight;
+                drawContent();
+            };
+            logoImage.onerror = drawContent;
+            logoImage.src = branding.logo_url;
+        } else {
+            drawContent();
+        }
     };
 
     const handlePrint = () => {
@@ -217,6 +290,20 @@ export default function QRCodeDonation() {
                             <CardTitle>Donation QR Code</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
+                            <div className="text-center mb-4">
+                                {branding.logo_url && (
+                                    <img 
+                                        src={branding.logo_url} 
+                                        alt={`${churchName} Logo`}
+                                        className="h-16 w-auto mx-auto mb-3 object-contain"
+                                    />
+                                )}
+                                <h3 className="text-2xl font-bold text-slate-900 mb-1">{churchName}</h3>
+                                <p className="text-sm font-semibold" style={{ color: branding.primary_color }}>
+                                    📱 Scan to Give
+                                </p>
+                            </div>
+
                             <div 
                                 className="p-6 rounded-xl border-4 bg-white flex items-center justify-center"
                                 style={{ borderColor: branding.primary_color }}
@@ -224,7 +311,7 @@ export default function QRCodeDonation() {
                                 {qrCodeUrl ? (
                                     <img 
                                         src={qrCodeUrl} 
-                                        alt="Donation QR Code"
+                                        alt={`${churchName} Donation QR Code`}
                                         className="w-full max-w-sm"
                                     />
                                 ) : (
@@ -234,8 +321,9 @@ export default function QRCodeDonation() {
                                 )}
                             </div>
 
-                            <div className="text-center">
-                                <p className="text-sm text-slate-600">Scan with phone camera to donate</p>
+                            <div className="text-center mt-4">
+                                <p className="text-sm text-slate-600">Scan with phone camera to donate to</p>
+                                <p className="text-lg font-bold text-slate-900">{churchName}</p>
                             </div>
                         </CardContent>
                     </Card>

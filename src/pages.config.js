@@ -54,6 +54,7 @@ import AnalyticsDashboard from './pages/AnalyticsDashboard';
 import AutoDeviceSetup from './pages/AutoDeviceSetup';
 import BackOffice from './pages/BackOffice';
 import BillingCenter from './pages/BillingCenter';
+import BillingHistory from './pages/BillingHistory';
 import BluetoothConnectivityResearch from './pages/BluetoothConnectivityResearch';
 import Bookstore from './pages/Bookstore';
 import Careers from './pages/Careers';
@@ -121,6 +122,7 @@ import MyDonations from './pages/MyDonations';
 import MyGroups from './pages/MyGroups';
 import MyOrders from './pages/MyOrders';
 import MyProfile from './pages/MyProfile';
+import MySubscription from './pages/MySubscription';
 import NetworkPrinterSetup from './pages/NetworkPrinterSetup';
 import NotificationSettings from './pages/NotificationSettings';
 import OnboardingProgress from './pages/OnboardingProgress';
@@ -191,8 +193,6 @@ import Volunteers from './pages/Volunteers';
 import WhyReach from './pages/WhyReach';
 import WorkflowBuilder from './pages/WorkflowBuilder';
 import backoffice from './pages/backoffice';
-import BillingHistory from './pages/BillingHistory';
-import MySubscription from './pages/MySubscription';
 import __Layout from './Layout.jsx';
 
 
@@ -204,6 +204,7 @@ export const PAGES = {
     "AutoDeviceSetup": AutoDeviceSetup,
     "BackOffice": BackOffice,
     "BillingCenter": BillingCenter,
+    "BillingHistory": BillingHistory,
     "BluetoothConnectivityResearch": BluetoothConnectivityResearch,
     "Bookstore": Bookstore,
     "Careers": Careers,
@@ -271,6 +272,7 @@ export const PAGES = {
     "MyGroups": MyGroups,
     "MyOrders": MyOrders,
     "MyProfile": MyProfile,
+    "MySubscription": MySubscription,
     "NetworkPrinterSetup": NetworkPrinterSetup,
     "NotificationSettings": NotificationSettings,
     "OnboardingProgress": OnboardingProgress,
@@ -341,8 +343,6 @@ export const PAGES = {
     "WhyReach": WhyReach,
     "WorkflowBuilder": WorkflowBuilder,
     "backoffice": backoffice,
-    "BillingHistory": BillingHistory,
-    "MySubscription": MySubscription,
 }
 
 export const pagesConfig = {
