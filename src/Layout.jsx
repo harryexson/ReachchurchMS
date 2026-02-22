@@ -120,6 +120,7 @@ export default function Layout({ children, currentPageName }) {
 
   const toggleTheme = () => setIsDark(!isDark);
 
+  // CRITICAL: All hooks must be called before any conditional returns
   useEffect(() => {
     if (isDark) {
       document.documentElement.classList.add('dark');
@@ -133,6 +134,7 @@ export default function Layout({ children, currentPageName }) {
     }
   }, [isDark]);
 
+  // CRITICAL: Fetch user data - must be called before any conditional rendering
   useEffect(() => {
     const fetchUser = async () => {
       const pathLower = location.pathname.toLowerCase();
@@ -431,25 +433,30 @@ export default function Layout({ children, currentPageName }) {
     "/"
   ];
 
-  const isPrimaryRoute = primaryDashboardRoutes.some(route => 
-    location.pathname === route || location.pathname.toLowerCase() === route.toLowerCase()
+  const isPrimaryRoute = React.useMemo(() => 
+    primaryDashboardRoutes.some(route => 
+      location.pathname === route || location.pathname.toLowerCase() === route.toLowerCase()
+    ), [location.pathname]
   );
 
-  const getPageTitle = () => {
+  const getPageTitle = React.useCallback(() => {
     const pageName = currentPageName || "REACH Church Connect";
     return pageName.replace(/([A-Z])/g, ' $1').trim();
-  };
+  }, [currentPageName]);
 
   // CRITICAL: Enhanced public page detection to ensure donation pages are always accessible
-  const isPublicPage = PUBLIC_PATHS.some(path => 
-    location.pathname.toLowerCase().includes(path.toLowerCase()) || 
-    currentPageName?.toLowerCase().includes(path.toLowerCase())
-  ) || 
-  currentPageName?.toLowerCase() === 'publicgiving' ||
-  location.pathname.toLowerCase().includes('publicgiving') ||
-  location.pathname.toLowerCase() === '/publicgiving';
+  const isPublicPage = React.useMemo(() => 
+    PUBLIC_PATHS.some(path => 
+      location.pathname.toLowerCase().includes(path.toLowerCase()) || 
+      currentPageName?.toLowerCase().includes(path.toLowerCase())
+    ) || 
+    currentPageName?.toLowerCase() === 'publicgiving' ||
+    location.pathname.toLowerCase().includes('publicgiving') ||
+    location.pathname.toLowerCase() === '/publicgiving',
+    [location.pathname, currentPageName]
+  );
 
-  const adminPages = [
+  const adminPages = React.useMemo(() => [
     {
       title: "Dashboard",
       url: createPageUrl("Dashboard"),
@@ -745,9 +752,9 @@ export default function Layout({ children, currentPageName }) {
       url: createPageUrl("Settings"),
       icon: Settings,
     },
-    ];
+    ], []);
 
-  const superAdminPages = [
+  const superAdminPages = React.useMemo(() => [
     {
       title: "Back Office",
       url: createPageUrl("BackOffice"),
@@ -773,9 +780,9 @@ export default function Layout({ children, currentPageName }) {
       url: createPageUrl("CompetitiveAnalysis"),
       icon: BarChart3,
     },
-  ];
+  ], []);
 
-  const memberPages = [
+  const memberPages = React.useMemo(() => [
     {
       title: "My Dashboard",
       url: createPageUrl("MemberDashboard"),
@@ -841,38 +848,40 @@ export default function Layout({ children, currentPageName }) {
       url: createPageUrl("MyOrders"),
       icon: ShoppingCart,
     },
-    ];
+    ], []);
 
-  let pages = [];
-  if (currentUser) {
-    if (currentUser.role === "admin") {
-      // Filter out developer-only service planning pages for non-developers
-      const isDeveloper = currentUser.email === "david@base44.app" || 
-                         currentUser.email === "harryexson@hotmail.com" || 
-                         currentUser.developer_access;
-      const developerOnlyPages = [
-        "ServicePlanning",
-        "ServiceCalendar", 
-        "SongLibrary",
-        "ServiceTemplates",
-        "ServiceNotificationTemplates",
-        "VolunteerScheduling"
-      ];
-      
-      pages = isDeveloper 
-        ? [...adminPages]
-        : adminPages.filter(p => !developerOnlyPages.some(dev => p.url.includes(dev)));
-      
-      if (isDeveloper) {
-        pages = [...pages, ...superAdminPages];
+  const pages = React.useMemo(() => {
+    if (currentUser) {
+      if (currentUser.role === "admin") {
+        const isDeveloper = currentUser.email === "david@base44.app" || 
+                           currentUser.email === "harryexson@hotmail.com" || 
+                           currentUser.developer_access;
+        const developerOnlyPages = [
+          "ServicePlanning",
+          "ServiceCalendar", 
+          "SongLibrary",
+          "ServiceTemplates",
+          "ServiceNotificationTemplates",
+          "VolunteerScheduling"
+        ];
+        
+        let adminPagesFiltered = isDeveloper 
+          ? [...adminPages]
+          : adminPages.filter(p => !developerOnlyPages.some(dev => p.url.includes(dev)));
+        
+        if (isDeveloper) {
+          adminPagesFiltered = [...adminPagesFiltered, ...superAdminPages];
+        }
+        return adminPagesFiltered;
+      } else {
+        return memberPages;
       }
     } else {
-      pages = memberPages;
+      return publicPages;
     }
-  } else {
-    pages = publicPages;
-  }
+  }, [currentUser, adminPages, superAdminPages, memberPages]);
 
+  // Conditional rendering - all hooks have been called above
   if (isLoadingUser && !isPublicPage) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50/30">
