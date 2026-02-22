@@ -53,6 +53,26 @@ export default function SubscriptionPlansPage() {
             }
         };
         loadData();
+
+        // CRITICAL: Real-time updates when pricing plans or subscriptions change in back office
+        const unsubscribePlans = base44.entities.PricingPlan.subscribe((event) => {
+            console.log('🔄 Pricing plan updated in real-time:', event.type);
+            loadData();
+        });
+
+        const unsubscribeSubscriptions = base44.entities.Subscription.subscribe((event) => {
+            console.log('🔄 Subscription updated in real-time:', event.type);
+            base44.auth.me().then(user => {
+                if (user?.email && event.data.church_admin_email === user.email) {
+                    loadData();
+                }
+            });
+        });
+
+        return () => {
+            unsubscribePlans();
+            unsubscribeSubscriptions();
+        };
     }, []);
 
     const defaultPlans = useMemo(() => [

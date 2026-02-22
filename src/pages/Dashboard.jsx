@@ -40,6 +40,43 @@ export default function Dashboard() {
     
     if (!orgLoading && user) {
       loadDashboardData(abortController.signal);
+
+      // CRITICAL: Real-time updates when data changes in back office
+      const unsubscribeMembers = base44.entities.Member.subscribe((event) => {
+        if (event.data.church_admin_email === user.email) {
+          console.log('🔄 Member data updated in real-time:', event.type);
+          loadDashboardData(abortController.signal);
+        }
+      });
+
+      const unsubscribeDonations = base44.entities.Donation.subscribe((event) => {
+        if (event.data.church_admin_email === user.email) {
+          console.log('🔄 Donation data updated in real-time:', event.type);
+          loadDashboardData(abortController.signal);
+        }
+      });
+
+      const unsubscribeEvents = base44.entities.Event.subscribe((event) => {
+        if (event.data.created_by === user.email) {
+          console.log('🔄 Event data updated in real-time:', event.type);
+          loadDashboardData(abortController.signal);
+        }
+      });
+
+      const unsubscribeSubscriptions = base44.entities.Subscription.subscribe((event) => {
+        if (event.data.church_admin_email === user.email) {
+          console.log('🔄 Subscription updated in real-time:', event.type);
+          loadDashboardData(abortController.signal);
+        }
+      });
+
+      return () => {
+        abortController.abort();
+        unsubscribeMembers();
+        unsubscribeDonations();
+        unsubscribeEvents();
+        unsubscribeSubscriptions();
+      };
     }
     
     return () => {

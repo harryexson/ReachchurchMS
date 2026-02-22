@@ -33,6 +33,24 @@ export default function ChurchSettingsPage() {
         } else if (urlParams.get('stripe_return') === 'refresh') {
             toast.info('Please complete your Stripe Connect setup.');
         }
+
+        // CRITICAL: Real-time updates when settings change in back office
+        let unsubscribe = null;
+        
+        base44.auth.me().then(user => {
+            if (user && user.role === 'admin') {
+                unsubscribe = base44.entities.ChurchSettings.subscribe((event) => {
+                    if (event.data.church_admin_email === user.email) {
+                        console.log('🔄 Church settings updated in real-time from back office');
+                        loadData();
+                    }
+                });
+            }
+        }).catch(err => console.error('Error setting up settings listener:', err));
+
+        return () => {
+            if (unsubscribe) unsubscribe();
+        };
     }, []);
 
     const loadData = async () => {
