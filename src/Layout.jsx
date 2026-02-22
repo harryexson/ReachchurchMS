@@ -165,6 +165,26 @@ export default function Layout({ children, currentPageName }) {
       try {
         const user = await base44.auth.me();
 
+        // CRITICAL: Real-time updates for church settings changes made in back office
+        if (user) {
+          const unsubscribeSettings = base44.entities.ChurchSettings.subscribe((event) => {
+            if (event.data.church_admin_email === user.email) {
+              console.log('🔄 Church settings updated in real-time:', event.type);
+              setBranding({
+                logo_url: event.data.logo_url || "",
+                church_name: event.data.church_name || "REACH Church Connect",
+                primary_color: event.data.primary_color || "#3b82f6",
+                secondary_color: event.data.secondary_color || "#10b981"
+              });
+            }
+          });
+
+          // Clean up subscription on unmount
+          return () => {
+            unsubscribeSettings();
+          };
+        }
+
         if (user) {
           const urlParams = new URLSearchParams(location.search);
           const isUpgradeFlow = urlParams.get('upgrade') === 'true' || urlParams.get('expired') === 'true';
