@@ -279,41 +279,9 @@ export default function Layout({ children, currentPageName }) {
                 console.log('⚠️ Unknown subscription status:', subscription.status);
               }
 
-              // If user has valid access, check onboarding and Stripe Connect setup
-              if (hasValidAccess && user.role === 'admin' && !pageLower.includes('onboarding') && !pageLower.includes('adminonboarding') && !pageLower.includes('stripeconnect') && !pageLower.includes('settings')) {
-                try {
-                  // First check Stripe Connect setup
-                  const churchSettings = await base44.entities.ChurchSettings.filter({
-                    church_admin_email: user.email
-                  });
-
-                  if (churchSettings.length > 0) {
-                    const settings = churchSettings[0];
-                    const stripeConnected = settings.stripe_account_id && settings.payouts_enabled;
-                    
-                    if (!stripeConnected) {
-                      console.log('💳 Stripe Connect not set up - redirecting to setup');
-                      window.location.href = createPageUrl('Settings') + '?tab=billing';
-                      return;
-                    }
-                  }
-
-                  // Then check onboarding status
-                  const onboardingRecords = await base44.entities.OnboardingProgress.filter({
-                    user_email: user.email
-                  });
-
-                  if (onboardingRecords.length === 0 || !onboardingRecords[0].onboarding_completed) {
-                    console.log('🎯 First-time admin - redirecting to onboarding');
-                    window.location.href = createPageUrl('AdminOnboarding');
-                    return;
-                  } else {
-                    console.log('✅ Onboarding already completed');
-                  }
-                } catch (setupError) {
-                  console.log('⚠️ Could not check setup status:', setupError.message);
-                }
-              }
+              // DISABLED: Stripe Connect check causing redirect loops
+              // Admin users can access the app without Stripe Connect
+              // They will be prompted to set it up when they try to use giving features
             } else {
               // No subscription found - only redirect to subscription if not on public pages or onboarding
               if (!pageLower.includes('onboarding') && !pageLower.includes('subscriptionplans')) {
