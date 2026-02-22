@@ -172,7 +172,6 @@ Deno.serve(async (req) => {
                 price: priceId,
                 quantity: 1
             }],
-            allow_promotion_codes: true,
             success_url: successUrl,
             cancel_url: cancelUrl,
             metadata: {
@@ -216,6 +215,9 @@ Deno.serve(async (req) => {
             sessionParams.discounts = [{
                 coupon: await createStripeCoupon(stripe, promoCodeData)
             }];
+        } else {
+            // Only allow manual promo code entry if no programmatic discount is applied
+            sessionParams.allow_promotion_codes = true;
         }
 
         const session = await stripe.checkout.sessions.create(sessionParams);
