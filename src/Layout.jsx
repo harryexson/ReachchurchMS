@@ -120,6 +120,18 @@ export default function Layout({ children, currentPageName }) {
 
   const toggleTheme = () => setIsDark(!isDark);
 
+  // CRITICAL: Define isPublicPage early - needed by useEffect hooks
+  const isPublicPage = React.useMemo(() => 
+    PUBLIC_PATHS.some(path => 
+      location.pathname.toLowerCase().includes(path.toLowerCase()) || 
+      currentPageName?.toLowerCase().includes(path.toLowerCase())
+    ) || 
+    currentPageName?.toLowerCase() === 'publicgiving' ||
+    location.pathname.toLowerCase().includes('publicgiving') ||
+    location.pathname.toLowerCase() === '/publicgiving',
+    [location.pathname, currentPageName]
+  );
+
   // CRITICAL: All hooks must be called before any conditional returns
   useEffect(() => {
     if (isDark) {
@@ -452,18 +464,6 @@ export default function Layout({ children, currentPageName }) {
     const pageName = currentPageName || "REACH Church Connect";
     return pageName.replace(/([A-Z])/g, ' $1').trim();
   }, [currentPageName]);
-
-  // CRITICAL: Enhanced public page detection to ensure donation pages are always accessible
-  const isPublicPage = React.useMemo(() => 
-    PUBLIC_PATHS.some(path => 
-      location.pathname.toLowerCase().includes(path.toLowerCase()) || 
-      currentPageName?.toLowerCase().includes(path.toLowerCase())
-    ) || 
-    currentPageName?.toLowerCase() === 'publicgiving' ||
-    location.pathname.toLowerCase().includes('publicgiving') ||
-    location.pathname.toLowerCase() === '/publicgiving',
-    [location.pathname, currentPageName]
-  );
 
   const adminPages = React.useMemo(() => [
     {
