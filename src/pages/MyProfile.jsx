@@ -39,28 +39,14 @@ export default function MyProfilePage() {
             const user = await base44.auth.me();
             setCurrentUser(user);
 
-            // Load church settings
-            const settings = await base44.entities.ChurchSettings.list();
-            if (settings.length > 0) {
-                setChurchSettings(settings[0]);
-            }
-
-            // Load onboarding progress
-            const progress = await base44.entities.OnboardingProgress.filter({ user_email: user.email });
-            if (progress.length > 0) {
-                setOnboardingProgress(progress[0]);
-            }
-
-            // Load custom field definitions
-            const customFieldDefs = await base44.entities.CustomFieldDefinition.filter({
-                entity_type: 'member'
-            });
-            setCustomFields(customFieldDefs);
-
-            // Try to find linked member record
+            // Load member record first to get church_admin_email
             const members = await base44.entities.Member.filter({ email: user.email });
+            let churchAdminEmail = null;
+            
             if (members.length > 0) {
                 setMemberProfile(members[0]);
+                churchAdminEmail = members[0].church_admin_email;
+                
                 setFormData({
                     phone: members[0].phone || "",
                     address: members[0].address || "",
@@ -77,6 +63,30 @@ export default function MyProfilePage() {
                     custom_fields: members[0].custom_fields || {}
                 });
             }
+
+            // CRITICAL: Load church settings using church_admin_email from member record
+            if (churchAdminEmail) {
+                const settings = await base44.entities.ChurchSettings.filter({
+                    church_admin_email: churchAdminEmail
+                });
+                if (settings.length > 0) {
+                    setChurchSettings(settings[0]);
+                }
+
+                // Load onboarding progress for church admin
+                const progress = await base44.entities.OnboardingProgress.filter({ 
+                    user_email: churchAdminEmail 
+                });
+                if (progress.length > 0) {
+                    setOnboardingProgress(progress[0]);
+                }
+            }
+
+            // Load custom field definitions
+            const customFieldDefs = await base44.entities.CustomFieldDefinition.filter({
+                entity_type: 'member'
+            });
+            setCustomFields(customFieldDefs);
         } catch (error) {
             console.error("Failed to load profile:", error);
         }

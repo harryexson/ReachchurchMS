@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ContactGroup } from "@/entities/ContactGroup";
-import { ChurchSettings } from "@/entities/ChurchSettings";
+import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Mail, Phone, MapPin, Church, Users } from "lucide-react";
 
@@ -16,14 +15,28 @@ export default function MemberContactsPage() {
     const loadContacts = async () => {
         setIsLoading(true);
         try {
-            // Load church settings for general contact info
-            const settings = await ChurchSettings.list();
-            if (settings.length > 0) {
-                setChurchInfo(settings[0]);
+            const user = await base44.auth.me();
+            
+            // CRITICAL: Get church admin email from member record
+            const members = await base44.entities.Member.filter({ email: user.email });
+            let churchAdminEmail = null;
+            
+            if (members.length > 0 && members[0].church_admin_email) {
+                churchAdminEmail = members[0].church_admin_email;
+            }
+            
+            // Load church settings using church admin email
+            if (churchAdminEmail) {
+                const settings = await base44.entities.ChurchSettings.filter({
+                    church_admin_email: churchAdminEmail
+                });
+                if (settings.length > 0) {
+                    setChurchInfo(settings[0]);
+                }
             }
 
             // Load groups to get leader contacts
-            const groups = await ContactGroup.list();
+            const groups = await base44.entities.ContactGroup.list();
             const leaders = groups
                 .filter(g => g.leader_email)
                 .map(g => ({
