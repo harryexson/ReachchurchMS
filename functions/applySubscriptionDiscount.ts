@@ -94,38 +94,46 @@ Deno.serve(async (req) => {
 
         console.log('Applying discount to subscription:', subscription.church_name);
 
-        // Create coupon in Stripe
-        const couponId = `custom_${subscription_id.substring(0, 8)}_${Date.now()}`;
-        let couponParams;
+        // CRITICAL: Create a customer-specific discount, not a generic coupon
+        // Use Stripe's subscription discount API to ensure discount is ONLY for this customer
+        const discountParams = {
+            coupon: {
+                duration: duration,
+                name: `Discount for ${subscription.church_name} - ${reason.substring(0, 50)}`,
+                // CRITICAL: Use max_redemptions: 1 to prevent reuse across customers
+                max_redemptions: 1,
+            },
+            metadata: {
+                discount_reason: reason,
+                discount_applied_by: user.email,
+                discount_applied_date: new Date().toISOString(),
+                subscription_id: subscription_id,
+                church_admin_email: subscription.church_admin_email
+            }
+        };
 
         if (discount_type === 'percentage') {
-            couponParams = {
-                percent_off: parseFloat(discount_value),
-                duration: duration,
-                name: `Custom discount for ${subscription.church_name}`,
-            };
+            discountParams.coupon.percent_off = parseFloat(discount_value);
         } else {
-            couponParams = {
-                amount_off: Math.round(parseFloat(discount_value) * 100), // Convert to cents
-                currency: 'usd',
-                duration: duration,
-                name: `Custom discount for ${subscription.church_name}`,
-            };
+            discountParams.coupon.amount_off = Math.round(parseFloat(discount_value) * 100);
+            discountParams.coupon.currency = 'usd';
         }
 
         if (duration === 'repeating' && duration_months) {
-            couponParams.duration_in_months = parseInt(duration_months);
+            discountParams.coupon.duration_in_months = parseInt(duration_months);
         }
 
-        console.log('Creating Stripe coupon with params:', JSON.stringify(couponParams, null, 2));
+        console.log('Creating customer-specific discount:', JSON.stringify(discountParams, null, 2));
 
+        // Create coupon with max_redemptions=1 to ensure it's customer-specific
+        const couponId = `discount_${subscription_id.substring(0, 8)}_${Date.now()}`;
         let coupon;
         try {
             coupon = await stripe.coupons.create({
                 id: couponId,
-                ...couponParams
+                ...discountParams.coupon
             });
-            console.log('Coupon created:', coupon.id);
+            console.log('Customer-specific coupon created:', coupon.id);
         } catch (stripeError) {
             console.error('Stripe coupon creation error:', stripeError);
             return Response.json({ 
@@ -135,19 +143,21 @@ Deno.serve(async (req) => {
             }, { status: 400 });
         }
 
-        // Apply coupon to Stripe subscription
+        // Apply coupon to THIS customer's Stripe subscription only
         try {
             await stripe.subscriptions.update(subscription.stripe_subscription_id, {
                 coupon: coupon.id,
-                metadata: {
-                    discount_reason: reason,
-                    discount_applied_by: user.email,
-                    discount_applied_date: new Date().toISOString()
-                }
+                metadata: discountParams.metadata
             });
-            console.log('Discount applied to Stripe subscription');
+            console.log('Customer-specific discount applied to Stripe subscription');
         } catch (stripeError) {
             console.error('Stripe subscription update error:', stripeError);
+            // Clean up the coupon if we couldn't apply it
+            try {
+                await stripe.coupons.del(coupon.id);
+            } catch (cleanupError) {
+                console.error('Failed to cleanup coupon:', cleanupError);
+            }
             return Response.json({ 
                 error: 'Failed to apply coupon to subscription',
                 details: stripeError.message,
