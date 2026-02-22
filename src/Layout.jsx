@@ -938,32 +938,34 @@ export default function Layout({ children, currentPageName }) {
         );
         }
 
-  if (!currentUser && !authError) {
-        // User is not authenticated - redirect to login page with current page as next URL
-        React.useEffect(() => {
-          const currentPath = location.pathname;
-          const nextUrl = window.location.origin + currentPath;
-          base44.auth.redirectToLogin(nextUrl);
-        }, [location.pathname]);
+  // CRITICAL: Handle login redirect - must be in useEffect at top level, not conditional
+  React.useEffect(() => {
+    if (!currentUser && !authError && !isLoadingUser && !isPublicPage) {
+      const currentPath = location.pathname;
+      const nextUrl = window.location.origin + currentPath;
+      base44.auth.redirectToLogin(nextUrl);
+    }
+  }, [currentUser, authError, isLoadingUser, isPublicPage, location.pathname]);
 
-        // Show loading while redirecting
-        return (
-          <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50/30">
-            <div className="text-center space-y-6 p-8">
-              <img 
-                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68d38ad0f4d6d5d05900d129/e2e85f6c7_REACHLOGOGIFF.png"
-                alt="REACH Church Connect Logo"
-                className="h-32 w-auto max-w-[400px] mx-auto mb-4 object-contain"
-              />
-              <div>
-                <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
-                <h1 className="text-2xl font-bold text-slate-900 mb-2">Redirecting to Sign In...</h1>
-                <p className="text-slate-600">Please wait</p>
-              </div>
-            </div>
+  if (!currentUser && !authError && !isLoadingUser && !isPublicPage) {
+    // Show loading while redirecting
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50/30">
+        <div className="text-center space-y-6 p-8">
+          <img 
+            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68d38ad0f4d6d5d05900d129/e2e85f6c7_REACHLOGOGIFF.png"
+            alt="REACH Church Connect Logo"
+            className="h-32 w-auto max-w-[400px] mx-auto mb-4 object-contain"
+          />
+          <div>
+            <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
+            <h1 className="text-2xl font-bold text-slate-900 mb-2">Redirecting to Sign In...</h1>
+            <p className="text-slate-600">Please wait</p>
           </div>
-        );
-      }
+        </div>
+      </div>
+    );
+  }
 
   if (authError && !currentUser) {
     return (
