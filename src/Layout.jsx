@@ -279,9 +279,25 @@ export default function Layout({ children, currentPageName }) {
                 console.log('⚠️ Unknown subscription status:', subscription.status);
               }
 
-              // DISABLED: Stripe Connect check causing redirect loops
-              // Admin users can access the app without Stripe Connect
-              // They will be prompted to set it up when they try to use giving features
+              // If user has valid access, check onboarding (but NOT Stripe Connect to avoid redirect loops)
+              if (hasValidAccess && user.role === 'admin' && !pageLower.includes('onboarding') && !pageLower.includes('adminonboarding')) {
+                try {
+                  // Check onboarding status only
+                  const onboardingRecords = await base44.entities.OnboardingProgress.filter({
+                    user_email: user.email
+                  });
+
+                  if (onboardingRecords.length === 0 || !onboardingRecords[0].onboarding_completed) {
+                    console.log('🎯 First-time admin - redirecting to onboarding');
+                    window.location.href = createPageUrl('AdminOnboarding');
+                    return;
+                  } else {
+                    console.log('✅ Onboarding already completed');
+                  }
+                } catch (setupError) {
+                  console.log('⚠️ Could not check onboarding status:', setupError.message);
+                }
+              }
             } else {
               // No subscription found - only redirect to subscription if not on public pages or onboarding
               if (!pageLower.includes('onboarding') && !pageLower.includes('subscriptionplans')) {
