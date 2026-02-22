@@ -266,7 +266,7 @@ export default function Layout({ children, currentPageName }) {
               }
 
               // If user has valid access, check onboarding and Stripe Connect setup
-              if (hasValidAccess && user.role === 'admin' && !pageLower.includes('onboarding') && !pageLower.includes('adminonboarding') && !pageLower.includes('stripeconnect')) {
+              if (hasValidAccess && user.role === 'admin' && !pageLower.includes('onboarding') && !pageLower.includes('adminonboarding') && !pageLower.includes('stripeconnect') && !pageLower.includes('settings')) {
                 try {
                   // First check Stripe Connect setup
                   const churchSettings = await base44.entities.ChurchSettings.filter({
