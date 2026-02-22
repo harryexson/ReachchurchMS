@@ -33,6 +33,29 @@ export default function GivingPage() {
 
     useEffect(() => {
         loadData();
+
+        // CRITICAL: Real-time updates when donations are added/modified in back office
+        let unsubscribeDonations = null;
+        
+        base44.auth.me().then(user => {
+            if (user) {
+                unsubscribeDonations = base44.entities.Donation.subscribe((event) => {
+                    const churchFilter = user.role === 'admin' ? user.email : user.email;
+                    const isRelevant = user.role === 'admin' 
+                        ? event.data.church_admin_email === churchFilter
+                        : event.data.donor_email === churchFilter;
+                    
+                    if (isRelevant) {
+                        console.log('🔄 Donation updated in real-time:', event.type);
+                        loadData();
+                    }
+                });
+            }
+        }).catch(err => console.error('Error setting up donation listener:', err));
+
+        return () => {
+            if (unsubscribeDonations) unsubscribeDonations();
+        };
     }, []);
 
     const loadData = async () => {

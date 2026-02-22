@@ -58,6 +58,31 @@ export default function EventsPage() {
 
     useEffect(() => {
         loadData();
+
+        // CRITICAL: Real-time updates when events are added/modified in back office
+        let unsubscribeEvents = null;
+        let unsubscribeRegistrations = null;
+        
+        base44.auth.me().then(user => {
+            if (user) {
+                unsubscribeEvents = base44.entities.Event.subscribe((event) => {
+                    if (event.data.created_by === user.email) {
+                        console.log('🔄 Event updated in real-time:', event.type);
+                        loadData();
+                    }
+                });
+
+                unsubscribeRegistrations = base44.entities.EventRegistration.subscribe((event) => {
+                    console.log('🔄 Event registration updated in real-time:', event.type);
+                    loadData();
+                });
+            }
+        }).catch(err => console.error('Error setting up event listeners:', err));
+
+        return () => {
+            if (unsubscribeEvents) unsubscribeEvents();
+            if (unsubscribeRegistrations) unsubscribeRegistrations();
+        };
     }, []);
 
     const loadData = async () => {
