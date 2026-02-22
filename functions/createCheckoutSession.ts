@@ -104,6 +104,27 @@ Deno.serve(async (req) => {
 
         console.log(`[${requestId}] Creating checkout with price: ${priceId}`);
         
+        // Check for existing subscription with discount
+        let existingDiscount = null;
+        try {
+            const existingSubscriptions = await base44.asServiceRole.entities.Subscription.filter({
+                church_admin_email: user.email
+            });
+            
+            if (existingSubscriptions.length > 0) {
+                const existingSub = existingSubscriptions[0];
+                if (existingSub.discount_percentage || existingSub.effective_monthly_price < existingSub.monthly_price) {
+                    existingDiscount = existingSub;
+                    console.log(`[${requestId}] Found existing subscription discount:`, {
+                        percentage: existingSub.discount_percentage,
+                        reason: existingSub.discount_reason
+                    });
+                }
+            }
+        } catch (err) {
+            console.log(`[${requestId}] No existing subscription found:`, err.message);
+        }
+        
         // Validate promo code if provided
         let promoCodeData = null;
         if (promoCode) {
@@ -183,8 +204,14 @@ Deno.serve(async (req) => {
             }
         };
 
-        // Apply discount if promo code provides one
-        if (promoCodeData && (promoCodeData.code_type === 'percentage' || promoCodeData.code_type === 'fixed_amount')) {
+        // Apply discount - prioritize existing subscription discount over promo code
+        if (existingDiscount && existingDiscount.discount_percentage) {
+            console.log(`[${requestId}] Applying existing subscription discount: ${existingDiscount.discount_percentage}%`);
+            const discountCouponId = await createSubscriptionDiscountCoupon(stripe, existingDiscount, requestId);
+            if (discountCouponId) {
+                sessionParams.discounts = [{ coupon: discountCouponId }];
+            }
+        } else if (promoCodeData && (promoCodeData.code_type === 'percentage' || promoCodeData.code_type === 'fixed_amount')) {
             sessionParams.discounts = [{
                 coupon: await createStripeCoupon(stripe, promoCodeData)
             }];
@@ -209,6 +236,34 @@ Deno.serve(async (req) => {
         }, { status: 500 });
     }
 });
+
+async function createSubscriptionDiscountCoupon(stripe, subscription, requestId) {
+    try {
+        const couponId = `SUB_DISCOUNT_${subscription.id.substring(0, 8)}`;
+        
+        try {
+            const existingCoupon = await stripe.coupons.retrieve(couponId);
+            console.log(`[${requestId}] Using existing subscription discount coupon:`, couponId);
+            return existingCoupon.id;
+        } catch (e) {
+            // Coupon doesn't exist, create it
+        }
+
+        const couponParams = {
+            id: couponId,
+            name: `Subscription discount for ${subscription.church_name}`,
+            duration: 'forever',
+            percent_off: subscription.discount_percentage
+        };
+
+        const coupon = await stripe.coupons.create(couponParams);
+        console.log(`[${requestId}] Created subscription discount coupon:`, coupon.id);
+        return coupon.id;
+    } catch (error) {
+        console.error(`[${requestId}] Error creating subscription discount coupon:`, error);
+        return null;
+    }
+}
 
 async function createStripeCoupon(stripe, promoCodeData) {
     try {
