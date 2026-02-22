@@ -155,9 +155,34 @@ Deno.serve(async (req) => {
             }, { status: 400 });
         }
 
-        // Update subscription entity with discount info
+        // Calculate discounted prices
+        const originalMonthly = subscription.monthly_price;
+        const originalAnnual = subscription.annual_price;
+        let effectiveMonthly = originalMonthly;
+        let effectiveAnnual = originalAnnual;
+        
+        if (discount_type === 'percentage') {
+            effectiveMonthly = originalMonthly * (1 - discount_value / 100);
+            effectiveAnnual = originalAnnual * (1 - discount_value / 100);
+        } else {
+            // Fixed amount discount
+            effectiveMonthly = Math.max(0, originalMonthly - discount_value);
+            effectiveAnnual = Math.max(0, originalAnnual - (discount_value * 12));
+        }
+        
+        console.log('Price calculation:', {
+            original: { monthly: originalMonthly, annual: originalAnnual },
+            effective: { monthly: effectiveMonthly, annual: effectiveAnnual },
+            discount: { type: discount_type, value: discount_value }
+        });
+        
+        // Update subscription entity with discount info AND updated prices
         await base44.asServiceRole.entities.Subscription.update(subscription_id, {
-            notes: `${subscription.notes || ''}\n[${new Date().toISOString()}] Discount applied by ${user.email}: ${discount_type === 'percentage' ? `${discount_value}%` : `$${discount_value}`} off (${duration}). Reason: ${reason}`
+            discount_percentage: discount_type === 'percentage' ? discount_value : null,
+            discount_reason: reason,
+            effective_monthly_price: effectiveMonthly,
+            effective_annual_price: effectiveAnnual,
+            notes: `${subscription.notes || ''}\n[${new Date().toISOString()}] Discount applied by ${user.email}: ${discount_type === 'percentage' ? `${discount_value}%` : `$${discount_value}`} off (${duration}). Reason: ${reason}. New prices: $${effectiveMonthly}/mo, $${effectiveAnnual}/yr`
         });
 
         // Log action
