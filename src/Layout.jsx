@@ -390,6 +390,15 @@ export default function Layout({ children, currentPageName }) {
     fetchUser();
   }, [location.pathname, currentPageName]);
 
+  // CRITICAL: Handle login redirect - must be at top level before any conditional returns
+  React.useEffect(() => {
+    if (!currentUser && !authError && !isLoadingUser && !isPublicPage) {
+      const currentPath = location.pathname;
+      const nextUrl = window.location.origin + currentPath;
+      base44.auth.redirectToLogin(nextUrl);
+    }
+  }, [currentUser, authError, isLoadingUser, isPublicPage, location.pathname]);
+
   const handleLogout = async () => {
     try {
       await base44.auth.logout();
@@ -881,7 +890,8 @@ export default function Layout({ children, currentPageName }) {
     }
   }, [currentUser, adminPages, superAdminPages, memberPages]);
 
-  // Conditional rendering - all hooks have been called above
+  // All hooks MUST be called before any conditional returns
+  // Conditional rendering starts here
   if (isLoadingUser && !isPublicPage) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50/30">
@@ -937,15 +947,6 @@ export default function Layout({ children, currentPageName }) {
         </>
         );
         }
-
-  // CRITICAL: Handle login redirect - must be in useEffect at top level, not conditional
-  React.useEffect(() => {
-    if (!currentUser && !authError && !isLoadingUser && !isPublicPage) {
-      const currentPath = location.pathname;
-      const nextUrl = window.location.origin + currentPath;
-      base44.auth.redirectToLogin(nextUrl);
-    }
-  }, [currentUser, authError, isLoadingUser, isPublicPage, location.pathname]);
 
   if (!currentUser && !authError && !isLoadingUser && !isPublicPage) {
     // Show loading while redirecting
