@@ -50,6 +50,7 @@ import PushNotificationManager from "@/components/pwa/PushNotificationManager";
 import OfflineIndicator from "@/components/pwa/OfflineIndicator";
 import MobileNavBar from "@/components/pwa/MobileNavBar";
 import SupportChatWidget from "@/components/support/SupportChatWidget";
+import AIChatbot from "@/components/support/AIChatbot";
 import NativeHeader from "@/components/mobile/NativeHeader";
 import PullToRefresh from "@/components/mobile/PullToRefresh";
 import { Button } from "@/components/ui/button";
@@ -1171,6 +1172,9 @@ export default function Layout({ children, currentPageName }) {
           onClick={() => setIsMobileMenuOpen(false)}
           />
           )}
+
+          {/* AI Chatbot - Available to everyone (public and authenticated) */}
+          <AIChatbot />
 
           {/* Support Chat - Available to all authenticated users */}
           {currentUser && <SupportChatWidget />}
