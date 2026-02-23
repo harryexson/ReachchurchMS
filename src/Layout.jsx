@@ -203,8 +203,11 @@ export default function Layout({ children, currentPageName }) {
           if (isDeveloper) {
             console.log('👨‍💻 Developer/Owner account detected:', user.email, '- perpetual access granted, skipping all subscription checks');
             
-            // Redirect away from landing page only
-            if (currentPageName?.toLowerCase() === 'landingpage' || location.pathname === '/') {
+            // Redirect away from landing page or subscription page
+            if (currentPageName?.toLowerCase() === 'landingpage' || 
+                location.pathname === '/' ||
+                currentPageName?.toLowerCase() === 'subscriptionplans' ||
+                location.pathname.toLowerCase().includes('subscriptionplans')) {
               const dashboardUrl = user.role === 'admin' 
                 ? createPageUrl('Dashboard') 
                 : createPageUrl('MemberDashboard');
