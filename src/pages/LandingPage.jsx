@@ -55,9 +55,10 @@ export default function LandingPage() {
     checkAuth();
   }, []);
 
-  const handleLogin = () => {
-    // Redirect to Base44 authentication - let Layout handle the redirect after login
-    base44.auth.redirectToLogin();
+  const handleLogin = async () => {
+    // Redirect to Base44 authentication with explicit dashboard destination
+    const dashboardUrl = window.location.origin + createPageUrl('Dashboard');
+    await base44.auth.redirectToLogin(dashboardUrl);
   };
 
   const features = [
