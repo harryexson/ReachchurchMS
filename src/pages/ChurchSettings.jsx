@@ -859,7 +859,7 @@ export default function ChurchSettingsPage() {
                                 <div className="p-4 bg-green-50 rounded-lg border border-green-200">
                                     <h3 className="font-semibold text-green-900 mb-2">⚙️ Technical Settings</h3>
                                     <p className="text-sm text-green-800 mb-3">
-                                        Configure integrations, streaming, SMS, and other technical features
+                                        Configure integrations, streaming, SignalHouse messaging, and other technical features
                                     </p>
                                     <Button
                                         onClick={() => window.location.href = createPageUrl('Settings')}
