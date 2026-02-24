@@ -1098,13 +1098,8 @@ export default function Layout({ children, currentPageName }) {
         </Button>
       </div>
 
-      {/* Sidebar Navigation - CRITICAL: Always visible on desktop (lg:), toggleable on mobile */}
-      <aside
-        className={`fixed top-0 left-0 h-screen w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 shadow-xl z-50 transition-transform duration-300 ease-in-out
-        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
-        lg:translate-x-0
-        `}
-      >
+      {/* LEFT SIDEBAR NAVIGATION - Always visible on desktop, toggleable on mobile */}
+      <aside className={`fixed top-0 left-0 h-screen w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 shadow-xl z-50 overflow-hidden transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex-shrink-0">
