@@ -174,10 +174,10 @@ export default function Layout({ children, currentPageName }) {
 
         // CRITICAL: Real-time updates for church settings changes made in back office
         if (user) {
-          const unsubscribeSettings = base44.entities.ChurchSettings.subscribe((event) => {
+          base44.entities.ChurchSettings.subscribe((event) => {
             if (event.data.church_admin_email === user.email) {
               console.log('🔄 Church settings updated in real-time:', event.type);
-              setBranding({
+              setChurchBranding({
                 logo_url: event.data.logo_url || "",
                 church_name: event.data.church_name || "REACH Church Connect",
                 primary_color: event.data.primary_color || "#3b82f6",
@@ -185,11 +185,6 @@ export default function Layout({ children, currentPageName }) {
               });
             }
           });
-
-          // Clean up subscription on unmount
-          return () => {
-            unsubscribeSettings();
-          };
         }
 
         if (user) {
