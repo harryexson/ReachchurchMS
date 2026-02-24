@@ -391,6 +391,29 @@ export default function Layout({ children, currentPageName }) {
     fetchUser();
   }, [location.pathname, currentPageName]);
 
+  // Redirect authenticated users away from public pages
+  React.useEffect(() => {
+    if (currentUser && !isLoadingUser) {
+      const isOnLandingPage = currentPageName?.toLowerCase() === 'landingpage' || location.pathname === '/';
+      const isOnSubscriptionPage = currentPageName?.toLowerCase() === 'subscriptionplans' || location.pathname.toLowerCase().includes('subscriptionplans');
+      const urlParams = new URLSearchParams(location.search);
+      const isUpgradeFlow = urlParams.get('upgrade') === 'true' || urlParams.get('expired') === 'true';
+      
+      // Redirect authenticated users away from landing page
+      if (isOnLandingPage) {
+        console.log('🔀 Authenticated user on landing page - redirecting to dashboard');
+        const dashboardUrl = currentUser.role === 'admin' ? createPageUrl('Dashboard') : createPageUrl('MemberDashboard');
+        window.location.href = dashboardUrl;
+      }
+      // Allow subscription page only during upgrade flow
+      else if (isOnSubscriptionPage && !isUpgradeFlow) {
+        console.log('🔀 Authenticated user on subscription page - redirecting to dashboard');
+        const dashboardUrl = currentUser.role === 'admin' ? createPageUrl('Dashboard') : createPageUrl('MemberDashboard');
+        window.location.href = dashboardUrl;
+      }
+    }
+  }, [currentUser, isLoadingUser, currentPageName, location.pathname, location.search]);
+
   // CRITICAL: Handle login redirect - must be at top level before any conditional returns
   React.useEffect(() => {
     // Don't redirect if:
