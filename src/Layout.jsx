@@ -412,15 +412,27 @@ export default function Layout({ children, currentPageName }) {
 
   // CRITICAL: Handle login redirect - must be at top level before any conditional returns
   React.useEffect(() => {
-    // Don't redirect if we just came back from auth or Stripe checkout
+    // Don't redirect if:
+    // 1. Still loading user data
+    // 2. Just came back from auth or Stripe checkout
+    // 3. We're on a public page
+    // 4. User is authenticated
+    // 5. There's an auth error (will be handled separately)
     const urlParams = new URLSearchParams(location.search);
     const hasAuthParams = urlParams.has('code') || urlParams.has('state');
     const hasStripeParams = urlParams.has('session_id') || urlParams.has('checkout_session_id');
     
+    // CRITICAL: Only redirect if we're absolutely sure the user is not authenticated
+    // AND we've finished loading AND we're not in the middle of an auth callback
     if (!currentUser && !authError && !isLoadingUser && !isPublicPage && !hasAuthParams && !hasStripeParams) {
-      const currentPath = location.pathname;
-      const nextUrl = window.location.origin + currentPath;
-      base44.auth.redirectToLogin(nextUrl);
+      // Add a small delay to prevent premature redirects during page load
+      const timeoutId = setTimeout(() => {
+        const currentPath = location.pathname;
+        const nextUrl = window.location.origin + currentPath;
+        base44.auth.redirectToLogin(nextUrl);
+      }, 100);
+      
+      return () => clearTimeout(timeoutId);
     }
   }, [currentUser, authError, isLoadingUser, isPublicPage, location.pathname, location.search]);
 
