@@ -412,12 +412,16 @@ export default function Layout({ children, currentPageName }) {
 
   // CRITICAL: Handle login redirect - must be at top level before any conditional returns
   React.useEffect(() => {
-    if (!currentUser && !authError && !isLoadingUser && !isPublicPage) {
+    // Don't redirect if we just came back from auth (give it time to load user)
+    const urlParams = new URLSearchParams(location.search);
+    const hasAuthParams = urlParams.has('code') || urlParams.has('state');
+    
+    if (!currentUser && !authError && !isLoadingUser && !isPublicPage && !hasAuthParams) {
       const currentPath = location.pathname;
       const nextUrl = window.location.origin + currentPath;
       base44.auth.redirectToLogin(nextUrl);
     }
-  }, [currentUser, authError, isLoadingUser, isPublicPage, location.pathname]);
+  }, [currentUser, authError, isLoadingUser, isPublicPage, location.pathname, location.search]);
 
   const handleLogout = async () => {
     try {
