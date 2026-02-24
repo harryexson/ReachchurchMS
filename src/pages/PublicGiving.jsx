@@ -334,7 +334,6 @@ export default function PublicGiving() {
             }
             
             if (churchSettings) {
-                const churchSettings = churchSettings;
                 if (churchSettings.church_name) {
                     setChurchName(churchSettings.church_name);
                 }
@@ -662,8 +661,15 @@ export default function PublicGiving() {
                         <Heart className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
                     </motion.div>
                     
+                    <div className="mb-4 px-6 py-3 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg inline-block border-2" style={{ borderColor: branding.primary_color }}>
+                        <p className="text-sm font-semibold text-slate-600 mb-1">You're giving to</p>
+                        <h2 className="text-2xl sm:text-3xl font-bold" style={{ color: branding.primary_color }}>
+                            {churchName}
+                        </h2>
+                    </div>
+                    
                     <h1 className="text-3xl sm:text-5xl font-bold text-slate-900 mb-3">
-                        {t.title} {churchName}
+                        {t.title}
                     </h1>
                     {branding.tagline && (
                         <p className="text-lg text-slate-600 mb-3">{branding.tagline}</p>
