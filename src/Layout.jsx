@@ -212,31 +212,6 @@ export default function Layout({ children, currentPageName }) {
             setCurrentUser(user);
             setAuthError(null);
             setIsLoadingUser(false);
-            
-            // Redirect away from landing page or subscription page AFTER setting user
-            if (currentPageName?.toLowerCase() === 'landingpage' || 
-                location.pathname === '/' ||
-                currentPageName?.toLowerCase() === 'subscriptionplans' ||
-                location.pathname.toLowerCase().includes('subscriptionplans')) {
-              console.log('🔀 Developer on public page - redirecting to dashboard');
-              const dashboardPath = user.role === 'admin' ? '/Dashboard' : '/MemberDashboard';
-              setTimeout(() => {
-                window.history.replaceState({}, '', dashboardPath);
-                window.location.reload();
-              }, 100);
-            }
-            return;
-          }
-
-          // CRITICAL: Redirect authenticated users away from landing/signup pages IMMEDIATELY
-          // BUT allow subscription plans page during upgrade flow
-          if ((currentPageName?.toLowerCase() === 'landingpage' || 
-              location.pathname === '/') && !isUpgradeFlow) {
-            console.log('🔀 Authenticated user on public page - redirecting to dashboard');
-            // Use react-router navigate instead of window.location to avoid page reload
-            const dashboardPath = user.role === 'admin' ? '/Dashboard' : '/MemberDashboard';
-            window.history.replaceState({}, '', dashboardPath);
-            window.location.reload();
             return;
           }
 
