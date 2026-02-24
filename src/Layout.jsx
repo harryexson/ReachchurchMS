@@ -1258,7 +1258,7 @@ export default function Layout({ children, currentPageName }) {
 
       {isMobileMenuOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
           onClick={() => setIsMobileMenuOpen(false)}
           />
           )}
