@@ -198,7 +198,6 @@ export default function Layout({ children, currentPageName }) {
           // harryexson@hotmail.com is the owner account with perpetual non-paying access
           const isDeveloper = user.email === "david@base44.app" || 
                          user.email === "harryexson@hotmail.com" || 
-                         user.email === "hiskingdomharvest@gmail.com" ||
                          user.developer_access;
 
           if (isDeveloper) {
