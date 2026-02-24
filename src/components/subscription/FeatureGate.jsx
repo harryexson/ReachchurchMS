@@ -215,7 +215,7 @@ export default function FeatureGate({
                                 Back to Dashboard
                             </Button>
                         </Link>
-                        <Link to={createPageUrl('SubscriptionPlans')} className="flex-1">
+                        <Link to={`${createPageUrl('SubscriptionPlans')}?upgrade=true&plan=${neededPlan}`} className="flex-1">
                             <Button className={`w-full h-12 bg-gradient-to-r ${plan.color} hover:opacity-90`}>
                                 <Icon className="w-5 h-5 mr-2" />
                                 Upgrade to {plan.name}
