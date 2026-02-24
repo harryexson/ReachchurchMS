@@ -160,6 +160,25 @@ export function useSubscription() {
                 return;
             }
 
+            // CRITICAL: Developer/Owner accounts get FULL Premium access without subscription
+            const isDeveloper = user.email === "david@base44.app" || 
+                               user.email === "harryexson@hotmail.com" || 
+                               user.developer_access;
+
+            if (isDeveloper) {
+                console.log('[useSubscription] 👨‍💻 DEVELOPER/OWNER ACCOUNT - FULL PREMIUM ACCESS GRANTED');
+                setFeatures(PLAN_FEATURES.premium);
+                setSubscription({
+                    subscription_tier: 'premium',
+                    status: 'active',
+                    church_admin_email: user.email,
+                    church_name: 'Developer Account',
+                    features: PLAN_FEATURES.premium
+                });
+                setLoading(false);
+                return;
+            }
+
             // Try to find subscription
             let subscriptions = [];
             try {
