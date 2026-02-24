@@ -1065,12 +1065,28 @@ export default function Layout({ children, currentPageName }) {
     );
   }
 
+  // CRITICAL: Ensure we have currentUser before rendering sidebar
+  if (!currentUser) {
+    console.log('⚠️ Rendering without currentUser - showing loading');
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50/30">
+        <div className="text-center">
+          <Church className="w-16 h-16 mx-auto mb-4 text-blue-600 animate-pulse" />
+          <p className="text-slate-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  console.log('✅ Rendering authenticated layout with sidebar for:', currentUser.email);
+
   return (
     <>
       <Helmet>
         <meta name="google-site-verification" content="your-google-verification-code" />
       </Helmet>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30">
+      {/* Mobile Menu Toggle */}
       <div className="lg:hidden fixed top-4 left-4 z-50">
         <Button
           variant="outline"
@@ -1082,6 +1098,7 @@ export default function Layout({ children, currentPageName }) {
         </Button>
       </div>
 
+      {/* Sidebar Navigation */}
       <aside
         className={`
           fixed top-0 left-0 h-full bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 shadow-xl
