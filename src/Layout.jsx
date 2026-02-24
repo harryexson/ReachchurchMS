@@ -154,7 +154,7 @@ export default function Layout({ children, currentPageName }) {
       const pageLower = currentPageName?.toLowerCase() || '';
 
       // CRITICAL: Enhanced public page detection for donation pages
-      const isPublicPage = PUBLIC_PATHS.some(path => 
+      const isPublicPageCheck = PUBLIC_PATHS.some(path => 
         pathLower.includes(path.toLowerCase()) || 
         pageLower.includes(path.toLowerCase())
       ) || 
@@ -162,8 +162,15 @@ export default function Layout({ children, currentPageName }) {
       pathLower.includes('publicgiving') ||
       pathLower === '/publicgiving';
 
+      console.log('🔍 Auth Check:', { 
+        path: location.pathname, 
+        pageName: currentPageName, 
+        isPublic: isPublicPageCheck 
+      });
+
       try {
         const user = await base44.auth.me();
+        console.log('✅ User authenticated:', user?.email, 'Role:', user?.role);
 
         // CRITICAL: Real-time updates for church settings changes made in back office
         if (user) {
