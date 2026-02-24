@@ -188,6 +188,37 @@ export default function Layout({ children, currentPageName }) {
         }
 
         if (user) {
+          // CRITICAL: Check for developer/owner access IMMEDIATELY before ANYTHING else
+          // harryexson@hotmail.com and david@base44.app are owner accounts with perpetual non-paying access
+          const isDeveloper = user.email === "david@base44.app" || 
+                         user.email === "harryexson@hotmail.com" || 
+                         user.developer_access;
+
+          if (isDeveloper) {
+            console.log('👨‍💻 DEVELOPER/OWNER ACCOUNT:', user.email, '- FULL ACCESS GRANTED - SKIPPING ALL CHECKS');
+            setCurrentUser(user);
+            setAuthError(null);
+            setIsLoadingUser(false);
+            
+            // Load church branding for developer
+            try {
+              const settings = await base44.entities.ChurchSettings.filter({
+                created_by: user.email
+              });
+              if (settings.length > 0) {
+                setChurchBranding({
+                  logo_url: settings[0].logo_url,
+                  church_name: settings[0].church_name,
+                  primary_color: settings[0].primary_color || "#3b82f6",
+                  secondary_color: settings[0].secondary_color || "#10b981"
+                });
+              }
+            } catch (brandingError) {
+              console.log('⚠️ Could not load branding, continuing anyway');
+            }
+            return; // EXIT IMMEDIATELY - NO FURTHER CHECKS
+          }
+
           const urlParams = new URLSearchParams(location.search);
           const isUpgradeFlow = urlParams.get('upgrade') === 'true' || urlParams.get('expired') === 'true';
 
@@ -195,20 +226,6 @@ export default function Layout({ children, currentPageName }) {
           base44.auth.updateMe({
             last_login: new Date().toISOString()
           }).catch(() => {});
-
-          // CRITICAL: Check for developer/owner access FIRST before any redirects or checks
-          // harryexson@hotmail.com is the owner account with perpetual non-paying access
-          const isDeveloper = user.email === "david@base44.app" || 
-                         user.email === "harryexson@hotmail.com" || 
-                         user.developer_access;
-
-          if (isDeveloper) {
-            console.log('👨‍💻 Developer/Owner account detected:', user.email, '- perpetual access granted, skipping all subscription checks');
-            setCurrentUser(user);
-            setAuthError(null);
-            setIsLoadingUser(false);
-            return;
-          }
 
           // Allow subscription plans page if in upgrade flow
           if ((currentPageName?.toLowerCase() === 'subscriptionplans' || 
