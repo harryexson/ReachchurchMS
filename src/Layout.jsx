@@ -412,11 +412,12 @@ export default function Layout({ children, currentPageName }) {
 
   // CRITICAL: Handle login redirect - must be at top level before any conditional returns
   React.useEffect(() => {
-    // Don't redirect if we just came back from auth (give it time to load user)
+    // Don't redirect if we just came back from auth or Stripe checkout
     const urlParams = new URLSearchParams(location.search);
     const hasAuthParams = urlParams.has('code') || urlParams.has('state');
+    const hasStripeParams = urlParams.has('session_id') || urlParams.has('checkout_session_id');
     
-    if (!currentUser && !authError && !isLoadingUser && !isPublicPage && !hasAuthParams) {
+    if (!currentUser && !authError && !isLoadingUser && !isPublicPage && !hasAuthParams && !hasStripeParams) {
       const currentPath = location.pathname;
       const nextUrl = window.location.origin + currentPath;
       base44.auth.redirectToLogin(nextUrl);
