@@ -1086,8 +1086,8 @@ export default function Layout({ children, currentPageName }) {
         <meta name="google-site-verification" content="your-google-verification-code" />
       </Helmet>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30">
-      {/* Mobile Menu Toggle */}
-      <div className="lg:hidden fixed top-4 left-4 z-50">
+      {/* Mobile Menu Toggle - Only visible on mobile */}
+      <div className="lg:hidden fixed top-4 left-4 z-[60]">
         <Button
           variant="outline"
           size="icon"
@@ -1098,11 +1098,12 @@ export default function Layout({ children, currentPageName }) {
         </Button>
       </div>
 
-      {/* Sidebar Navigation - CRITICAL: Always visible on desktop, toggleable on mobile */}
+      {/* Sidebar Navigation - CRITICAL: Always visible on desktop (lg:), toggleable on mobile */}
       <aside
-        className={`fixed top-0 left-0 h-full w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 shadow-xl z-50 transition-transform duration-300 ease-in-out ${
-          isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-        }`}
+        className={`fixed top-0 left-0 h-screen w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 shadow-xl z-50 transition-transform duration-300 ease-in-out
+        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+        lg:translate-x-0
+        `}
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
