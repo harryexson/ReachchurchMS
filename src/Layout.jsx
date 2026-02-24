@@ -1207,7 +1207,8 @@ export default function Layout({ children, currentPageName }) {
         </div>
       </aside>
 
-      <main className="lg:ml-64 min-h-screen transition-colors duration-200">
+      {/* Main content area - offset by sidebar width on desktop */}
+      <main className="min-h-screen transition-colors duration-200 lg:ml-64">
         {/* Mobile Native Header */}
         <div className="lg:hidden">
           <NativeHeader 
