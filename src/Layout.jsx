@@ -202,23 +202,22 @@ export default function Layout({ children, currentPageName }) {
 
           if (isDeveloper) {
             console.log('👨‍💻 Developer/Owner account detected:', user.email, '- perpetual access granted, skipping all subscription checks');
+            setCurrentUser(user);
+            setAuthError(null);
+            setIsLoadingUser(false);
             
-            // Redirect away from landing page or subscription page
+            // Redirect away from landing page or subscription page AFTER setting user
             if (currentPageName?.toLowerCase() === 'landingpage' || 
                 location.pathname === '/' ||
                 currentPageName?.toLowerCase() === 'subscriptionplans' ||
                 location.pathname.toLowerCase().includes('subscriptionplans')) {
-              const dashboardUrl = user.role === 'admin' 
-                ? createPageUrl('Dashboard') 
-                : createPageUrl('MemberDashboard');
-              console.log('🔀 Developer redirecting to dashboard:', dashboardUrl);
-              window.location.href = dashboardUrl;
-              return;
+              console.log('🔀 Developer on public page - redirecting to dashboard');
+              const dashboardPath = user.role === 'admin' ? '/Dashboard' : '/MemberDashboard';
+              setTimeout(() => {
+                window.history.replaceState({}, '', dashboardPath);
+                window.location.reload();
+              }, 100);
             }
-            
-            setCurrentUser(user);
-            setAuthError(null);
-            setIsLoadingUser(false);
             return;
           }
 
