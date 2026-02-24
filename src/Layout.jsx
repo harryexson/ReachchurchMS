@@ -397,15 +397,15 @@ export default function Layout({ children, currentPageName }) {
         }
 
         // On public pages, authentication failure is normal - just show public content
-        if (isPublicPage) {
-          console.log('Public page - no authentication required');
+        if (isPublicPageCheck) {
+          console.log('✅ Public page - no authentication required');
           setCurrentUser(null);
           setAuthError(null);
           setIsLoadingUser(false);
           return;
         }
 
-        console.error('Auth error:', error);
+        console.error('❌ Auth error:', error.message, 'Path:', location.pathname);
         setAuthError(error.message || 'Authentication failed');
         setCurrentUser(null);
       } finally {
