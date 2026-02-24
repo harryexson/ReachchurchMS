@@ -226,11 +226,11 @@ export default function Layout({ children, currentPageName }) {
           // BUT allow subscription plans page during upgrade flow
           if ((currentPageName?.toLowerCase() === 'landingpage' || 
               location.pathname === '/') && !isUpgradeFlow) {
-            const dashboardUrl = user.role === 'admin' 
-              ? createPageUrl('Dashboard') 
-              : createPageUrl('MemberDashboard');
-            console.log('🔀 Authenticated user on public page - redirecting to:', dashboardUrl);
-            window.location.href = dashboardUrl;
+            console.log('🔀 Authenticated user on public page - redirecting to dashboard');
+            // Use react-router navigate instead of window.location to avoid page reload
+            const dashboardPath = user.role === 'admin' ? '/Dashboard' : '/MemberDashboard';
+            window.history.replaceState({}, '', dashboardPath);
+            window.location.reload();
             return;
           }
 
