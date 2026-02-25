@@ -26,20 +26,22 @@ Deno.serve(async (req) => {
             }, { status: 500 });
         }
 
-        console.log('Sending SMS via SignalHouse:', { to, from: fromNumber });
+        console.log('Sending SMS via SignalHouse:', { to, from: fromNumber, accountId });
 
+        // Try the messaging endpoint with proper structure
         const payload = {
-            phoneNumber: fromNumber,
-            recipientPhoneNumber: to,
-            message: message
+            from: fromNumber,
+            to: to,
+            body: message
         };
 
-        console.log('Request payload:', payload);
+        console.log('Request payload:', JSON.stringify(payload, null, 2));
 
-        const response = await fetch('https://devapi.signalhouse.io/v1/sendSMS', {
+        const response = await fetch('https://api.signalhouse.io/messaging/send', {
             method: 'POST',
             headers: {
-                'x-api-key': apiKey,
+                'Authorization': `Bearer ${apiKey}`,
+                'x-account-id': accountId,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(payload)
