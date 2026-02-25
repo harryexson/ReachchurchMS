@@ -34,6 +34,14 @@ export default function TextMessagingPage() {
     const [testResult, setTestResult] = useState(null);
     const [smsSetupStatus, setSmsSetupStatus] = useState(null);
     const [isCheckingSetup, setIsCheckingSetup] = useState(false);
+    
+    // Sinch Test State
+    const [sinchTestPhone, setSinchTestPhone] = useState('');
+    const [sinchTestMessage, setSinchTestMessage] = useState('Hello from REACH Church Connect! This is a Sinch test message.');
+    const [isSendingSinchTest, setIsSendingSinchTest] = useState(false);
+    const [sinchTestResult, setSinchTestResult] = useState(null);
+    const [sinchSetupStatus, setSinchSetupStatus] = useState(null);
+    const [isCheckingSinchSetup, setIsCheckingSinchSetup] = useState(false);
 
     useEffect(() => {
         loadData();
