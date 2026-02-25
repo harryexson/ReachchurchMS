@@ -282,7 +282,7 @@ export default function TextMessagingPage() {
                             <ComplianceHelper />
                         </TabsContent>
 
-                        {/* Test SMS Tab */}
+                        {/* Test SignalHouse SMS Tab */}
                         <TabsContent value="test">
                             <div className="grid lg:grid-cols-2 gap-6">
                                 {/* SMS Setup Status */}
