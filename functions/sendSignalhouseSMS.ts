@@ -47,74 +47,44 @@ Deno.serve(async (req) => {
 
         console.log('Request payload:', JSON.stringify(payload, null, 2));
 
-        const endpoints = [
-            'https://api.signalhouse.io/messaging/sms/send',
-            'https://api.signalhouse.io/sms/send',
-            'https://api.signalhouse.io/messaging/send',
-            'https://api.signalhouse.io/v1/sms'
-        ];
+        const response = await fetch('https://api.signalhouse.io/message/sendSMS', {
+            method: 'POST',
+            headers: {
+                'x-api-key': apiKey,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
 
-        for (const endpoint of endpoints) {
-            try {
-                console.log(`\n📡 Trying: ${endpoint}`);
-                
-                const response = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: {
-                        'x-api-key': apiKey,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(payload)
-                });
+        console.log(`Status: ${response.status}`);
+        const responseText = await response.text();
+        console.log(`Response: ${responseText}`);
 
-                console.log(`Status: ${response.status}`);
-                const responseText = await response.text();
-                console.log(`Response: ${responseText.substring(0, 500)}`);
-
-                if (responseText.trim().startsWith('<')) {
-                    console.log('❌ HTML response, wrong endpoint');
-                    continue;
-                }
-
-                let data;
-                try {
-                    data = JSON.parse(responseText);
-                } catch {
-                    console.log('❌ Invalid JSON');
-                    continue;
-                }
-
-                if (response.ok) {
-                    console.log('✅ SMS sent successfully!');
-                    return Response.json({ 
-                        success: true, 
-                        message_id: data.messageId || data.id,
-                        status: data.status || 'sent',
-                        endpoint_used: endpoint,
-                        data: data
-                    });
-                }
-
-                if (data && (data.error || data.message)) {
-                    console.error('API error:', data);
-                    return Response.json({ 
-                        error: data.message || data.error || 'Failed to send SMS', 
-                        details: data,
-                        endpoint_used: endpoint
-                    }, { status: response.status });
-                }
-
-            } catch (endpointError) {
-                console.log(`❌ ${endpoint} failed:`, endpointError.message);
-                continue;
-            }
+        let data;
+        try {
+            data = JSON.parse(responseText);
+        } catch (parseError) {
+            return Response.json({ 
+                error: 'Invalid response from SignalHouse',
+                raw_response: responseText.substring(0, 500)
+            }, { status: 500 });
         }
 
+        if (response.ok) {
+            console.log('✅ SMS sent successfully!');
+            return Response.json({ 
+                success: true, 
+                message_id: data.messageId || data.id,
+                status: data.status || 'sent',
+                data: data
+            });
+        }
+
+        console.error('API error:', data);
         return Response.json({ 
-            error: 'Unable to determine SignalHouse SMS endpoint',
-            help: 'Please log into https://devapi.signalhouse.io/apiDocs with your API key to find the correct endpoint',
-            endpoints_tried: endpoints
-        }, { status: 500 });
+            error: data.message || data.error || 'Failed to send SMS', 
+            details: data
+        }, { status: response.status });
 
     } catch (error) {
         console.error('SMS error:', error);
