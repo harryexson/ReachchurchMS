@@ -154,6 +154,10 @@ export default function TextMessagingPage() {
                 message: sinchTestMessage
             });
             
+            if (response.error) {
+                throw new Error(response.error);
+            }
+            
             const data = response.data || response;
             setSinchTestResult(data);
             
