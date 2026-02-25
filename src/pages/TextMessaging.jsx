@@ -270,7 +270,8 @@ export default function TextMessagingPage() {
                     <Tabs defaultValue="compliance" className="space-y-6">
                         <TabsList>
                             <TabsTrigger value="compliance">Compliance</TabsTrigger>
-                            <TabsTrigger value="test">Test Messaging</TabsTrigger>
+                            <TabsTrigger value="test">Test SignalHouse</TabsTrigger>
+                            <TabsTrigger value="sinchtest">Test Sinch</TabsTrigger>
                             <TabsTrigger value="keywords">Keywords</TabsTrigger>
                             <TabsTrigger value="subscribers">Subscribers</TabsTrigger>
                             <TabsTrigger value="messages">Message History</TabsTrigger>
