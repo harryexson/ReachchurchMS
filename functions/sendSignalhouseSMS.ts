@@ -23,7 +23,7 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'SignalHouse not configured' }, { status: 500 });
         }
 
-        const response = await fetch('https://api.signalhouse.io/v1/messages', {
+        const response = await fetch('https://api.signalhouse.io/v2/sms', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${apiKey}`,
