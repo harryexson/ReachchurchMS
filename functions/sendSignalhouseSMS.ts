@@ -31,23 +31,99 @@ Deno.serve(async (req) => {
         console.log('To:', to);
         console.log('From:', fromNumber);
         console.log('Account ID:', accountId);
-        console.log('API Key length:', apiKey?.length);
 
-        // SignalHouse API documentation is behind authentication
-        // Contact support@signalhouse.io for proper API endpoint and authentication
+        // Try multiple potential SMS endpoints based on common CPaaS patterns
+        const endpoints = [
+            'https://api.signalhouse.io/sms/send',
+            'https://api.signalhouse.io/messaging/send',
+            'https://api.signalhouse.io/v1/messages',
+            'https://api.signalhouse.io/messages'
+        ];
+
+        for (const endpoint of endpoints) {
+            try {
+                console.log(`\nTrying endpoint: ${endpoint}`);
+                
+                const payload = {
+                    to: to,
+                    from: fromNumber,
+                    body: message,
+                    message: message,
+                    phoneNumber: fromNumber,
+                    recipientPhoneNumber: to
+                };
+
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'x-api-key': apiKey,
+                        'Authorization': `Bearer ${apiKey}`,
+                        'x-account-id': accountId,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                console.log(`Response status: ${response.status}`);
+                const responseText = await response.text();
+                console.log(`Response preview: ${responseText.substring(0, 300)}`);
+
+                // If we got HTML, continue to next endpoint
+                if (responseText.trim().startsWith('<')) {
+                    console.log('Got HTML response, trying next endpoint...');
+                    continue;
+                }
+
+                // Try to parse JSON
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                } catch {
+                    console.log('Invalid JSON, trying next endpoint...');
+                    continue;
+                }
+
+                // If we got a successful response
+                if (response.ok || (data && !data.error)) {
+                    console.log('✅ SMS sent successfully:', data);
+                    return Response.json({ 
+                        success: true, 
+                        message_id: data.messageId || data.id || data.message_id,
+                        status: data.status || 'sent',
+                        endpoint_used: endpoint,
+                        data: data
+                    });
+                }
+
+                // If we got an error response but it's JSON (correct endpoint, wrong auth/params)
+                if (data) {
+                    console.error('API error from endpoint:', endpoint, data);
+                    return Response.json({ 
+                        error: data.message || data.error || 'Failed to send SMS', 
+                        details: data,
+                        endpoint_used: endpoint,
+                        help: 'Verify your SIGNALHOUSE_API_KEY and SIGNALHOUSE_ACCOUNT_ID are correct'
+                    }, { status: response.status });
+                }
+
+            } catch (endpointError) {
+                console.log(`Endpoint ${endpoint} failed:`, endpointError.message);
+                continue;
+            }
+        }
+
+        // If all endpoints failed
         return Response.json({ 
-            error: 'SignalHouse API integration incomplete',
-            details: 'SignalHouse requires direct API access setup through their support team.',
-            recommendation: 'Please contact SignalHouse support (support@signalhouse.io) to get:',
-            required_info: [
-                '1. The correct API endpoint URL for sending SMS',
-                '2. Proper authentication method (API key format/location)',
-                '3. Request body structure and required fields',
-                '4. Example curl command or code snippet'
+            error: 'Unable to send SMS via SignalHouse',
+            details: 'All attempted endpoints returned HTML or failed',
+            troubleshooting: [
+                '1. Log into https://devapi.signalhouse.io/apiDocs with your API key',
+                '2. Find the correct SMS sending endpoint in the documentation',
+                '3. Contact support@signalhouse.io for API integration help',
+                '4. Use their webhook-based integration as an alternative'
             ],
-            alternative: 'Consider using webhook-based integration through SignalHouse portal instead of direct API calls.',
-            note: 'Their API docs (devapi.signalhouse.io/apiDocs) require authentication and don\'t show SMS sending endpoints publicly.'
-        }, { status: 501 });
+            endpoints_tried: endpoints
+        }, { status: 500 });
 
     } catch (error) {
         console.error('SMS error:', error);
