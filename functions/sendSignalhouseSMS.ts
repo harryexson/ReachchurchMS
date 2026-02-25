@@ -29,14 +29,14 @@ Deno.serve(async (req) => {
         console.log('Sending SMS via SignalHouse:', { to, from: fromNumber });
 
         const payload = {
-            from: fromNumber,
-            to: to,
+            phoneNumber: fromNumber,
+            recipientPhoneNumber: to,
             message: message
         };
 
         console.log('Request payload:', payload);
 
-        const response = await fetch('https://api.signalhouse.io/api/v1/sms/send', {
+        const response = await fetch('https://devapi.signalhouse.io/v1/sendSMS', {
             method: 'POST',
             headers: {
                 'x-api-key': apiKey,
