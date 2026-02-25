@@ -22,71 +22,33 @@ Deno.serve(async (req) => {
         if (!apiKey || !accountId || !fromNumber) {
             return Response.json({ 
                 error: 'SignalHouse not configured',
-                details: 'Missing required environment variables'
+                details: 'Missing required environment variables',
+                help: 'SignalHouse requires API authentication through their portal. Please contact SignalHouse support for API integration details or use their webhook-based integrations instead.'
             }, { status: 500 });
         }
 
-        console.log('Sending SMS via SignalHouse:', { to, from: fromNumber, accountId });
+        console.log('=== SignalHouse SMS Request ===');
+        console.log('To:', to);
+        console.log('From:', fromNumber);
+        console.log('Account ID:', accountId);
+        console.log('API Key length:', apiKey?.length);
 
-        // Try the messaging endpoint with proper structure
-        const payload = {
-            from: fromNumber,
-            to: to,
-            body: message
-        };
-
-        console.log('Request payload:', JSON.stringify(payload, null, 2));
-
-        const response = await fetch('https://api.signalhouse.io/messaging/send', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${apiKey}`,
-                'x-account-id': accountId,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-        });
-
-        console.log('Response status:', response.status);
-
-        const responseText = await response.text();
-        console.log('Response text:', responseText.substring(0, 500));
-        
-        let data;
-        
-        try {
-            data = JSON.parse(responseText);
-        } catch (parseError) {
-            console.error('Failed to parse response as JSON');
-            return Response.json({ 
-                error: 'SignalHouse API returned invalid response',
-                details: 'The API returned HTML instead of JSON. Please check your API credentials.',
-                response_preview: responseText.substring(0, 200),
-                troubleshooting: [
-                    '1. Verify your SIGNALHOUSE_API_KEY is correct',
-                    '2. Check that your SignalHouse account is active',
-                    '3. Ensure your phone number is verified in SignalHouse',
-                    '4. Contact SignalHouse support if the issue persists'
-                ]
-            }, { status: 500 });
-        }
-
-        if (!response.ok) {
-            console.error('SignalHouse API error:', data);
-            return Response.json({ 
-                error: data.message || data.error || 'Failed to send SMS', 
-                details: data 
-            }, { status: response.status });
-        }
-
-        console.log('SMS sent successfully:', data);
-
+        // SignalHouse API documentation is behind authentication
+        // Contact support@signalhouse.io for proper API endpoint and authentication
         return Response.json({ 
-            success: true, 
-            message_id: data.messageId || data.id,
-            status: data.status || 'sent',
-            data: data
-        });
+            error: 'SignalHouse API integration incomplete',
+            details: 'SignalHouse requires direct API access setup through their support team.',
+            recommendation: 'Please contact SignalHouse support (support@signalhouse.io) to get:',
+            required_info: [
+                '1. The correct API endpoint URL for sending SMS',
+                '2. Proper authentication method (API key format/location)',
+                '3. Request body structure and required fields',
+                '4. Example curl command or code snippet'
+            ],
+            alternative: 'Consider using webhook-based integration through SignalHouse portal instead of direct API calls.',
+            note: 'Their API docs (devapi.signalhouse.io/apiDocs) require authentication and don\'t show SMS sending endpoints publicly.'
+        }, { status: 501 });
+
     } catch (error) {
         console.error('SMS error:', error);
         return Response.json({ 
