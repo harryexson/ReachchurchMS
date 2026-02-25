@@ -20,49 +20,76 @@ Deno.serve(async (req) => {
         const fromNumber = Deno.env.get('SIGNALHOUSE_PHONE_NUMBER');
 
         if (!apiKey || !accountId || !fromNumber) {
-            return Response.json({ error: 'SignalHouse not configured' }, { status: 500 });
+            return Response.json({ 
+                error: 'SignalHouse not configured',
+                details: 'Missing required environment variables'
+            }, { status: 500 });
         }
 
-        const response = await fetch('https://api.signalhouse.io/v2/sms', {
+        console.log('Sending SMS via SignalHouse:', { to, from: fromNumber });
+
+        const payload = {
+            from: fromNumber,
+            to: to,
+            message: message
+        };
+
+        console.log('Request payload:', payload);
+
+        const response = await fetch('https://api.signalhouse.io/api/v1/sms/send', {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${apiKey}`,
+                'x-api-key': apiKey,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                account_id: accountId,
-                from: fromNumber,
-                to: to,
-                body: message,
-                type: 'sms'
-            })
+            body: JSON.stringify(payload)
         });
 
+        console.log('Response status:', response.status);
+
         const responseText = await response.text();
+        console.log('Response text:', responseText.substring(0, 500));
+        
         let data;
         
         try {
             data = JSON.parse(responseText);
         } catch (parseError) {
-            console.error('Failed to parse response:', responseText);
+            console.error('Failed to parse response as JSON');
             return Response.json({ 
-                error: 'Invalid response from SignalHouse', 
-                details: responseText.substring(0, 200) 
+                error: 'SignalHouse API returned invalid response',
+                details: 'The API returned HTML instead of JSON. Please check your API credentials.',
+                response_preview: responseText.substring(0, 200),
+                troubleshooting: [
+                    '1. Verify your SIGNALHOUSE_API_KEY is correct',
+                    '2. Check that your SignalHouse account is active',
+                    '3. Ensure your phone number is verified in SignalHouse',
+                    '4. Contact SignalHouse support if the issue persists'
+                ]
             }, { status: 500 });
         }
 
         if (!response.ok) {
-            return Response.json({ error: data.error || 'Failed to send SMS', details: data }, { status: response.status });
+            console.error('SignalHouse API error:', data);
+            return Response.json({ 
+                error: data.message || data.error || 'Failed to send SMS', 
+                details: data 
+            }, { status: response.status });
         }
+
+        console.log('SMS sent successfully:', data);
 
         return Response.json({ 
             success: true, 
-            message_id: data.id,
-            status: data.status,
+            message_id: data.messageId || data.id,
+            status: data.status || 'sent',
             data: data
         });
     } catch (error) {
         console.error('SMS error:', error);
-        return Response.json({ error: error.message }, { status: 500 });
+        return Response.json({ 
+            error: error.message,
+            stack: error.stack 
+        }, { status: 500 });
     }
 });
