@@ -123,6 +123,50 @@ export default function TextMessagingPage() {
         setIsSendingTest(false);
     };
 
+    const checkSinchSetup = async () => {
+        setIsCheckingSinchSetup(true);
+        try {
+            const response = await base44.functions.invoke('testSinchSetup');
+            setSinchSetupStatus(response.data || response);
+        } catch (error) {
+            console.error('Error checking Sinch setup:', error);
+            setSinchSetupStatus({ error: error.message });
+        }
+        setIsCheckingSinchSetup(false);
+    };
+
+    const sendSinchTestSMS = async () => {
+        if (!sinchTestPhone) {
+            setSinchTestResult({ success: false, error: 'Please enter a phone number' });
+            return;
+        }
+        
+        setIsSendingSinchTest(true);
+        setSinchTestResult(null);
+        
+        try {
+            const response = await base44.functions.invoke('sendSinchSMS', {
+                to: sinchTestPhone,
+                message: sinchTestMessage
+            });
+            
+            const data = response.data || response;
+            setSinchTestResult(data);
+            
+            if (data.success) {
+                await loadData();
+            }
+        } catch (error) {
+            console.error('Sinch test SMS error:', error);
+            setSinchTestResult({ 
+                success: false, 
+                error: error.response?.data?.error || error.message || 'Failed to send Sinch test SMS'
+            });
+        }
+        
+        setIsSendingSinchTest(false);
+    };
+
     return (
         <FeatureGate 
             feature="signalhouse_messaging_enabled"
