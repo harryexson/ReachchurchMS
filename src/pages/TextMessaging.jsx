@@ -46,6 +46,7 @@ export default function TextMessagingPage() {
     useEffect(() => {
         loadData();
         checkSMSSetup();
+        checkSinchSetup();
     }, []);
 
     const loadData = async () => {
