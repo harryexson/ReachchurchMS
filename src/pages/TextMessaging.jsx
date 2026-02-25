@@ -473,6 +473,184 @@ export default function TextMessagingPage() {
                             </div>
                         </TabsContent>
 
+                        {/* Test Sinch SMS Tab */}
+                        <TabsContent value="sinchtest">
+                            <div className="grid lg:grid-cols-2 gap-6">
+                                {/* Sinch Setup Status */}
+                                <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                                    <CardHeader>
+                                        <CardTitle className="flex items-center gap-2">
+                                            <TestTube className="w-5 h-5 text-blue-600" />
+                                            Sinch Configuration Status
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        {isCheckingSinchSetup ? (
+                                            <div className="flex items-center gap-2 text-slate-600">
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                                Checking Sinch configuration...
+                                            </div>
+                                        ) : sinchSetupStatus ? (
+                                            <div className="space-y-3">
+                                                {sinchSetupStatus.error ? (
+                                                    <Alert className="border-red-200 bg-red-50">
+                                                        <AlertCircle className="w-4 h-4 text-red-600" />
+                                                        <AlertTitle className="text-red-900">Configuration Error</AlertTitle>
+                                                        <AlertDescription className="text-red-700">{sinchSetupStatus.error}</AlertDescription>
+                                                    </Alert>
+                                                ) : (
+                                                    <>
+                                                        <div className="p-3 bg-slate-50 rounded-lg">
+                                                            <h4 className="font-semibold text-slate-900 mb-2">Sinch Credentials</h4>
+                                                            <div className="space-y-1 text-sm">
+                                                                {Object.entries(sinchSetupStatus.environment_variables || {}).map(([key, value]) => (
+                                                                    <div key={key} className="flex justify-between">
+                                                                        <span className="text-slate-600">{key}:</span>
+                                                                        <span className={value.includes('✅') ? 'text-green-600' : 'text-red-600'}>{value}</span>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        {sinchSetupStatus.all_configured ? (
+                                                            <Alert className="border-green-200 bg-green-50">
+                                                                <CheckCircle className="w-4 h-4 text-green-600" />
+                                                                <AlertTitle className="text-green-900">Sinch Ready!</AlertTitle>
+                                                                <AlertDescription className="text-green-700">
+                                                                    All Sinch credentials are configured. You can send test messages.
+                                                                </AlertDescription>
+                                                            </Alert>
+                                                        ) : (
+                                                            <Alert className="border-orange-200 bg-orange-50">
+                                                                <AlertCircle className="w-4 h-4 text-orange-600" />
+                                                                <AlertTitle className="text-orange-900">Sinch Setup Incomplete</AlertTitle>
+                                                                <AlertDescription className="text-orange-700">
+                                                                    Please set SINCH_SERVICE_PLAN_ID, SINCH_API_TOKEN, and SINCH_PHONE_NUMBER environment variables.
+                                                                </AlertDescription>
+                                                            </Alert>
+                                                        )}
+                                                    </>
+                                                )}
+                                            </div>
+                                        ) : null}
+                                        
+                                        <Button 
+                                            onClick={checkSinchSetup} 
+                                            variant="outline" 
+                                            disabled={isCheckingSinchSetup}
+                                            className="w-full"
+                                        >
+                                            {isCheckingSinchSetup ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <TestTube className="w-4 h-4 mr-2" />}
+                                            Refresh Sinch Status
+                                        </Button>
+                                    </CardContent>
+                                </Card>
+
+                                {/* Send Sinch Test Message */}
+                                <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                                    <CardHeader>
+                                        <CardTitle className="flex items-center gap-2">
+                                            <Send className="w-5 h-5 text-blue-600" />
+                                            Send Sinch Test Message
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        <div>
+                                            <Label htmlFor="sinchTestPhone">Phone Number</Label>
+                                            <div className="relative mt-1">
+                                                <Phone className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
+                                                <Input
+                                                    id="sinchTestPhone"
+                                                    value={sinchTestPhone}
+                                                    onChange={(e) => setSinchTestPhone(e.target.value)}
+                                                    placeholder="+1 (555) 123-4567"
+                                                    className="pl-10"
+                                                />
+                                            </div>
+                                            <p className="text-xs text-slate-500 mt-1">Enter your phone number to receive a Sinch test message</p>
+                                        </div>
+
+                                        <div>
+                                            <Label htmlFor="sinchTestMessage">Message</Label>
+                                            <Input
+                                                id="sinchTestMessage"
+                                                value={sinchTestMessage}
+                                                onChange={(e) => setSinchTestMessage(e.target.value)}
+                                                placeholder="Your test message..."
+                                                className="mt-1"
+                                            />
+                                        </div>
+
+                                        <Button 
+                                            onClick={sendSinchTestSMS}
+                                            disabled={isSendingSinchTest || !sinchTestPhone}
+                                            className="w-full bg-blue-600 hover:bg-blue-700"
+                                        >
+                                            {isSendingSinchTest ? (
+                                                <>
+                                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                    Sending via Sinch...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Send className="w-4 h-4 mr-2" />
+                                                    Send Sinch Test
+                                                </>
+                                            )}
+                                        </Button>
+
+                                        {sinchTestResult && (
+                                            <Alert className={sinchTestResult.success ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"}>
+                                                {sinchTestResult.success ? (
+                                                    <CheckCircle className="w-4 h-4 text-green-600" />
+                                                ) : (
+                                                    <AlertCircle className="w-4 h-4 text-red-600" />
+                                                )}
+                                                <AlertTitle className={sinchTestResult.success ? "text-green-900" : "text-red-900"}>
+                                                    {sinchTestResult.success ? "Sinch Message Sent!" : "Failed to Send via Sinch"}
+                                                </AlertTitle>
+                                                <AlertDescription className={sinchTestResult.success ? "text-green-700" : "text-red-700"}>
+                                                    {sinchTestResult.success ? (
+                                                        <div className="space-y-1">
+                                                            <div>Message sent to: {sinchTestResult.to}</div>
+                                                            {sinchTestResult.message_id && <div>Message ID: {sinchTestResult.message_id}</div>}
+                                                            {sinchTestResult.data && (
+                                                                <details className="mt-2">
+                                                                    <summary className="text-xs cursor-pointer text-slate-600">View Sinch Response</summary>
+                                                                    <pre className="text-xs mt-1 p-2 bg-slate-100 rounded overflow-x-auto">
+                                                                        {JSON.stringify(sinchTestResult.data, null, 2)}
+                                                                    </pre>
+                                                                </details>
+                                                            )}
+                                                        </div>
+                                                    ) : (
+                                                        <div className="space-y-1">
+                                                            <div>{sinchTestResult.error}</div>
+                                                            {sinchTestResult.details && (
+                                                                <pre className="text-xs mt-2 p-2 bg-red-100 rounded overflow-x-auto">
+                                                                    {JSON.stringify(sinchTestResult.details, null, 2)}
+                                                                </pre>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </AlertDescription>
+                                            </Alert>
+                                        )}
+
+                                        <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                                            <h4 className="font-semibold text-blue-900 text-sm mb-2">💡 Sinch Setup Tips</h4>
+                                            <ul className="text-xs text-blue-800 space-y-1">
+                                                <li>• Configure SINCH_SERVICE_PLAN_ID, SINCH_API_TOKEN, and SINCH_PHONE_NUMBER in environment variables</li>
+                                                <li>• Use your own phone number for testing</li>
+                                                <li>• Check Message History tab after sending</li>
+                                                <li>• Verify credentials at <a href="https://www.sinch.com/" target="_blank" rel="noopener noreferrer" className="underline">sinch.com</a></li>
+                                            </ul>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        </TabsContent>
+
                         <TabsContent value="keywords">
                             <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
                                 <CardHeader>
