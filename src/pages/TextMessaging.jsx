@@ -105,6 +105,10 @@ export default function TextMessagingPage() {
                 message: testMessage
             });
             
+            if (response.error) {
+                throw new Error(response.error);
+            }
+            
             const data = response.data || response;
             setTestResult(data);
             
