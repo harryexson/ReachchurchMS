@@ -38,7 +38,18 @@ Deno.serve(async (req) => {
             })
         });
 
-        const data = await response.json();
+        const responseText = await response.text();
+        let data;
+        
+        try {
+            data = JSON.parse(responseText);
+        } catch (parseError) {
+            console.error('Failed to parse response:', responseText);
+            return Response.json({ 
+                error: 'Invalid response from SignalHouse', 
+                details: responseText.substring(0, 200) 
+            }, { status: 500 });
+        }
 
         if (!response.ok) {
             return Response.json({ error: data.error || 'Failed to send SMS', details: data }, { status: response.status });
