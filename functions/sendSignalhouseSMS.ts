@@ -47,13 +47,20 @@ Deno.serve(async (req) => {
 
         console.log('Request payload:', JSON.stringify(payload, null, 2));
 
+        // Add apiKey to the payload as SignalHouse requires it in the body
+        const requestPayload = {
+            ...payload,
+            apiKey: apiKey
+        };
+
+        console.log('Request with apiKey:', JSON.stringify(requestPayload, null, 2));
+
         const response = await fetch('https://api.signalhouse.io/message/sendSMS', {
             method: 'POST',
             headers: {
-                'x-api-key': apiKey,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(requestPayload)
         });
 
         console.log(`Status: ${response.status}`);
