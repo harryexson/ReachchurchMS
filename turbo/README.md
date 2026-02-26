@@ -1,1 +1,0 @@
-# Turbo Directory\nThis directory is for Turbo related configurations and scripts.
