@@ -19,11 +19,14 @@ Deno.serve(async (req) => {
         const accountId = Deno.env.get('SIGNALHOUSE_ACCOUNT_ID');
         const fromNumber = Deno.env.get('SIGNALHOUSE_PHONE_NUMBER');
 
+        console.log('apiKey set:', !!apiKey, 'length:', apiKey?.length);
+        console.log('accountId set:', !!accountId, 'length:', accountId?.length);
+        console.log('fromNumber set:', !!fromNumber, 'length:', fromNumber?.length);
+
         if (!apiKey || !accountId || !fromNumber) {
             return Response.json({ 
                 error: 'SignalHouse not configured',
-                details: 'Missing required environment variables',
-                help: 'SignalHouse requires API authentication through their portal. Please contact SignalHouse support for API integration details or use their webhook-based integrations instead.'
+                missing: { apiKey: !apiKey, accountId: !accountId, fromNumber: !fromNumber }
             }, { status: 500 });
         }
 
