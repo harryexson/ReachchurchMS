@@ -1,0 +1,1 @@
+{"pipeline": {"build": {"cmd": "npm run build"}, "dev": {"cmd": "npm run dev"}, "test": {"cmd": "npm test"}}}
