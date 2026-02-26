@@ -60,6 +60,9 @@ Deno.serve(async (req) => {
             shortLink: false
         };
         
+        console.log('Raw SIGNALHOUSE_PHONE_NUMBER:', JSON.stringify(fromNumber));
+        console.log('cleanFrom:', cleanFrom);
+        console.log('cleanTo:', cleanTo);
         console.log('Final payload:', JSON.stringify(payload));
 
         console.log('Request payload:', JSON.stringify(payload, null, 2));
