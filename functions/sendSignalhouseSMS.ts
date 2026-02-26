@@ -16,9 +16,10 @@ Deno.serve(async (req) => {
         }
 
         const apiKey = Deno.env.get('SIGNALHOUSE_API_KEY');
+        const authToken = Deno.env.get('SIGNALHOUSE_AUTH_TOKEN');
 
-        if (!apiKey) {
-            return Response.json({ error: 'SIGNALHOUSE_API_KEY not set' }, { status: 500 });
+        if (!authToken) {
+            return Response.json({ error: 'SIGNALHOUSE_AUTH_TOKEN not set' }, { status: 500 });
         }
 
         const toSignalhouseFormat = (num) => {
