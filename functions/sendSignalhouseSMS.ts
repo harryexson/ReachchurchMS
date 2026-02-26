@@ -50,23 +50,12 @@ Deno.serve(async (req) => {
         console.log('Formatted from:', cleanFrom);
         console.log('Formatted to:', cleanTo);
 
-        // Try groupId from JWT as 'from' if phone number fails E.164 validation
-        // The groupId embedded in the JWT token is the sender identifier for SignalHouse
-        let fromValue = cleanFrom;
-        try {
-            const jwtPayload = JSON.parse(atob(apiKey.split('.')[1]));
-            console.log('JWT groupId:', jwtPayload.groupId);
-            if (jwtPayload.groupId) {
-                fromValue = jwtPayload.groupId;
-            }
-        } catch (e) {
-            console.log('Could not parse JWT for groupId');
-        }
+        // SignalHouse uses Group ID as the 'from' sender identifier
+        const groupId = 'GG683P';
 
-        // SignalHouse API structure
         const payload = {
             apiKey: apiKey,
-            from: fromValue,
+            from: groupId,
             to: [cleanTo],
             body: message,
             verify: true,
