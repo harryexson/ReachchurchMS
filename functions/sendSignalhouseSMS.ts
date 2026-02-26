@@ -32,9 +32,23 @@ Deno.serve(async (req) => {
         console.log('From:', fromNumber);
         console.log('Account ID:', accountId);
 
-        // Ensure phone numbers are in E.164 format (with + prefix)
-        const cleanFrom = fromNumber.startsWith('+') ? fromNumber : `+${fromNumber}`;
-        const cleanTo = to.startsWith('+') ? to : `+${to}`;
+        // Helper to normalize any number to E.164 format
+        const toE164 = (num) => {
+            // Strip all non-digit characters
+            const digits = num.replace(/\D/g, '');
+            // If 10 digits, assume US number - add +1
+            if (digits.length === 10) return `+1${digits}`;
+            // If 11 digits starting with 1, add +
+            if (digits.length === 11 && digits.startsWith('1')) return `+${digits}`;
+            // Already has country code
+            return `+${digits}`;
+        };
+
+        const cleanFrom = toE164(fromNumber);
+        const cleanTo = toE164(to);
+
+        console.log('Formatted from:', cleanFrom);
+        console.log('Formatted to:', cleanTo);
 
         // SignalHouse API structure - requires E.164 format
         const payload = {
