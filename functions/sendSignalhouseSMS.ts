@@ -38,13 +38,15 @@ Deno.serve(async (req) => {
             body: message
         };
 
+        // Try with apiKey in body only (no Authorization header) - SignalHouse may use body auth
+        const payloadWithKey = { ...payload, apiKey: apiKey };
+
         const response = await fetch('https://api.signalhouse.io/message/sendSMS', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
+                'Content-Type': 'application/json'
             },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payloadWithKey)
         });
 
         const responseText = await response.text();
