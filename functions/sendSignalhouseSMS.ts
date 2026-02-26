@@ -29,12 +29,12 @@ Deno.serve(async (req) => {
             return digits;
         };
 
-        const fromNumber = '+15748893590';
-        const cleanTo = toE164(to);
+        const fromNumber = '15748893590';
+        const cleanTo = toSignalhouseFormat(to);
 
         const payload = {
             apiKey: apiKey,
-            from: '15748893590',
+            from: fromNumber,
             to: [cleanTo],
             body: message
         };
