@@ -44,8 +44,8 @@ Deno.serve(async (req) => {
 
         const debugInfo = { 
             url: 'https://api.signalhouse.io/message/sendSMS',
-            from: fromNumber, 
-            to: cleanTo,
+            from: fromFormatted, 
+            to: toFormatted,
             authType: 'Bearer JWT'
         };
 
