@@ -50,18 +50,17 @@ Deno.serve(async (req) => {
         console.log('Formatted from:', cleanFrom);
         console.log('Formatted to:', cleanTo);
 
-        console.log('Raw fromNumber secret value:', JSON.stringify(fromNumber));
-        console.log('cleanFrom:', cleanFrom);
-        console.log('cleanTo:', cleanTo);
-
-        // SignalHouse API structure - try without 'from' to let SignalHouse use default
+        // SignalHouse API structure - requires E.164 format
         const payload = {
             apiKey: apiKey,
+            from: cleanFrom,
             to: [cleanTo],
             body: message,
             verify: true,
             shortLink: false
         };
+        
+        console.log('Final payload:', JSON.stringify(payload));
 
         console.log('Request payload:', JSON.stringify(payload, null, 2));
 
