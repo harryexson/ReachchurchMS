@@ -1,1 +1,0 @@
-{\n  \"name\": \"api-client\",\n  \"version\": \"1.0.0\",\n  \"description\": \"API client for ReachchurchMS\",\n  \"main\": \"index.js\",\n  \"scripts\": {\n    \"test\": \"echo 'Error: no test specified' && exit 1\"\n  },\n  \"keywords\": [],\n  \"author\": \"harryexson\",\n  \"license\": \"ISC\"\n}
