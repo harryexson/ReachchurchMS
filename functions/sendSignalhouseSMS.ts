@@ -39,18 +39,17 @@ Deno.serve(async (req) => {
         };
 
         const debugInfo = { 
-            url: 'https://api.signalhouse.io/v1/messaging/sms',
+            url: 'https://api.signalhouse.io/message/sendSMS',
             from: fromNumber, 
             to: cleanTo,
             authType: 'Bearer JWT'
         };
 
-        const response = await fetch('https://api.signalhouse.io/v1/messaging/sms', {
+        const response = await fetch('https://api.signalhouse.io/message/sendSMS', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authToken}`,
-                'x-api-key': apiKey || ''
+                'Authorization': `Bearer ${authToken}`
             },
             body: JSON.stringify(payload)
         });
