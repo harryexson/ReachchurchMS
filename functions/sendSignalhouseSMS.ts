@@ -16,12 +16,12 @@ Deno.serve(async (req) => {
         }
 
         const apiKey = Deno.env.get('SIGNALHOUSE_API_KEY');
+        const authToken = Deno.env.get('SIGNALHOUSE_AUTH_TOKEN');
 
-        if (!apiKey) {
-            return Response.json({ error: 'SIGNALHOUSE_API_KEY not set' }, { status: 500 });
+        if (!apiKey || !authToken) {
+            return Response.json({ error: 'SIGNALHOUSE_API_KEY and SIGNALHOUSE_AUTH_TOKEN must both be set' }, { status: 500 });
         }
 
-        // SignalHouse E.164 format WITHOUT the + prefix (e.g. "15748893590")
         const toSignalhouseFormat = (num) => {
             const digits = num.replace(/\D/g, '');
             if (digits.length === 10) return `1${digits}`;
@@ -29,22 +29,23 @@ Deno.serve(async (req) => {
             return digits;
         };
 
-        const fromNumber = '+15748893590';
         const cleanTo = `+${toSignalhouseFormat(to)}`;
+        // Use Phone Number SID as the from identifier (fc39f15a-b0fc-43cd-9096-d7857c05069d)
+        const phoneNumberSid = 'fc39f15a-b0fc-43cd-9096-d7857c05069d';
 
-        // Try multiple from formats to identify which one SignalHouse accepts
         const payload = {
-            apiKey: apiKey,
-            from: fromNumber,
+            from: phoneNumberSid,
             to: [cleanTo],
             body: message
         };
+
+        const credentials = btoa(`${apiKey}:${authToken}`);
 
         const response = await fetch('https://api.signalhouse.io/message/sendSMS', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
+                'Authorization': `Basic ${credentials}`
             },
             body: JSON.stringify(payload)
         });
