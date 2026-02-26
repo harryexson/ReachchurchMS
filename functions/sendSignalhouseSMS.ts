@@ -32,26 +32,24 @@ Deno.serve(async (req) => {
         const cleanTo = `+${toSignalhouseFormat(to)}`;
         const fromNumber = '+15748893590';
 
-        // Try with 'text' field (some APIs use text instead of body)
-        const payload = {
-            from: fromNumber,
-            to: cleanTo,
-            text: message
-        };
-
         const credentials = btoa(`${apiKey}:${authToken}`);
 
-        // Log what we're sending for debugging
-        const debugInfo = { 
-            url: 'https://api.signalhouse.io/v1/messaging/sms',
-            from: fromNumber, 
-            to: cleanTo, 
-            payload,
-            authType: 'Basic',
-            credentialsPreview: `${apiKey.substring(0,6)}...:${authToken.substring(0,6)}...`
+        // Try both array and string format for 'to', and include apiKey in body
+        const payload = {
+            from: fromNumber,
+            to: [cleanTo],
+            body: message,
+            apiKey: apiKey
         };
 
-        const response = await fetch('https://api.signalhouse.io/v1/messaging/sms', {
+        const debugInfo = { 
+            url: 'https://api.signalhouse.io/message/sendSMS',
+            from: fromNumber, 
+            to: cleanTo,
+            authType: 'Basic + apiKey in body'
+        };
+
+        const response = await fetch('https://api.signalhouse.io/message/sendSMS', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
