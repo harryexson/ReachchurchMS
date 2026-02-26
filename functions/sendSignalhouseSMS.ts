@@ -50,24 +50,13 @@ Deno.serve(async (req) => {
         console.log('Formatted from:', cleanFrom);
         console.log('Formatted to:', cleanTo);
 
-        // SignalHouse uses Group ID as the 'from' sender identifier
-        const groupId = 'GG683P';
-
         const payload = {
-            apiKey: apiKey,
-            from: groupId,
+            from: cleanFrom,
             to: [cleanTo],
-            body: message,
-            verify: true,
-            shortLink: false
+            body: message
         };
-        
-        console.log('Raw SIGNALHOUSE_PHONE_NUMBER:', JSON.stringify(fromNumber));
-        console.log('cleanFrom:', cleanFrom);
-        console.log('cleanTo:', cleanTo);
-        console.log('Final payload:', JSON.stringify(payload));
 
-        console.log('Request payload:', JSON.stringify(payload, null, 2));
+        console.log('Payload:', JSON.stringify(payload));
 
         const response = await fetch('https://api.signalhouse.io/message/sendSMS', {
             method: 'POST',
