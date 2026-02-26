@@ -30,18 +30,28 @@ Deno.serve(async (req) => {
         };
 
         const cleanTo = `+${toSignalhouseFormat(to)}`;
-        // Use Phone Number SID as the from identifier (fc39f15a-b0fc-43cd-9096-d7857c05069d)
-        const phoneNumberSid = 'fc39f15a-b0fc-43cd-9096-d7857c05069d';
+        const fromNumber = '+15748893590';
 
+        // Try with 'text' field (some APIs use text instead of body)
         const payload = {
-            from: '+15748893590',
-            to: [cleanTo],
-            body: message
+            from: fromNumber,
+            to: cleanTo,
+            text: message
         };
 
         const credentials = btoa(`${apiKey}:${authToken}`);
 
-        const response = await fetch('https://api.signalhouse.io/message/sendSMS', {
+        // Log what we're sending for debugging
+        const debugInfo = { 
+            url: 'https://api.signalhouse.io/v1/messaging/sms',
+            from: fromNumber, 
+            to: cleanTo, 
+            payload,
+            authType: 'Basic',
+            credentialsPreview: `${apiKey.substring(0,6)}...:${authToken.substring(0,6)}...`
+        };
+
+        const response = await fetch('https://api.signalhouse.io/v1/messaging/sms', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -59,7 +69,8 @@ Deno.serve(async (req) => {
             return Response.json({ 
                 error: 'Invalid response from SignalHouse',
                 status: response.status,
-                raw: responseText.substring(0, 500)
+                raw: responseText.substring(0, 500),
+                debug: debugInfo
             }, { status: 500 });
         }
 
@@ -76,7 +87,7 @@ Deno.serve(async (req) => {
             error: data.message || data.error || 'Failed to send SMS',
             http_status: response.status,
             details: data,
-            debug: { from: phoneNumberSid, to: cleanTo, payload }
+            debug: debugInfo
         }, { status: response.status });
 
     } catch (error) {
