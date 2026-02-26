@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
         const phoneNumberSid = 'fc39f15a-b0fc-43cd-9096-d7857c05069d';
 
         const payload = {
-            from: phoneNumberSid,
+            from: '+15748893590',
             to: [cleanTo],
             body: message
         };
