@@ -29,8 +29,9 @@ Deno.serve(async (req) => {
 
         console.log('=== SignalHouse SMS Request ===');
         console.log('To:', to);
-        console.log('From:', fromNumber);
-        console.log('Account ID:', accountId);
+        console.log('Raw fromNumber from secret:', JSON.stringify(fromNumber));
+        console.log('fromNumber length:', fromNumber.length);
+        console.log('fromNumber chars:', [...fromNumber].map(c => c.charCodeAt(0)));
 
         // Helper to normalize any number to E.164 format
         const toE164 = (num) => {
