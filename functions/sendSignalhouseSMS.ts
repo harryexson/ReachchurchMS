@@ -16,10 +16,9 @@ Deno.serve(async (req) => {
         }
 
         const apiKey = Deno.env.get('SIGNALHOUSE_API_KEY');
-        const authToken = Deno.env.get('SIGNALHOUSE_AUTH_TOKEN');
 
-        if (!apiKey || !authToken) {
-            return Response.json({ error: 'SIGNALHOUSE_API_KEY and SIGNALHOUSE_AUTH_TOKEN must both be set' }, { status: 500 });
+        if (!apiKey) {
+            return Response.json({ error: 'SIGNALHOUSE_API_KEY not set' }, { status: 500 });
         }
 
         const toSignalhouseFormat = (num) => {
@@ -32,28 +31,24 @@ Deno.serve(async (req) => {
         const cleanTo = `+${toSignalhouseFormat(to)}`;
         const fromNumber = '+15748893590';
 
-        const credentials = btoa(`${apiKey}:${authToken}`);
-
-        // Try both array and string format for 'to', and include apiKey in body
         const payload = {
             from: fromNumber,
             to: [cleanTo],
-            body: message,
-            apiKey: apiKey
+            body: message
         };
 
         const debugInfo = { 
             url: 'https://api.signalhouse.io/message/sendSMS',
             from: fromNumber, 
             to: cleanTo,
-            authType: 'Basic + apiKey in body'
+            authType: 'Bearer apiKey'
         };
 
         const response = await fetch('https://api.signalhouse.io/message/sendSMS', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Basic ${credentials}`
+                'Authorization': `Bearer ${apiKey}`
             },
             body: JSON.stringify(payload)
         });
