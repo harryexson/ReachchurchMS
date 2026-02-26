@@ -32,12 +32,13 @@ Deno.serve(async (req) => {
         console.log('From:', fromNumber);
         console.log('Account ID:', accountId);
 
-        // Strip + prefix from phone numbers (SignalHouse expects numbers without +)
-        const cleanFrom = fromNumber.replace(/^\+/, '');
-        const cleanTo = to.replace(/^\+/, '');
+        // Ensure phone numbers are in E.164 format (with + prefix)
+        const cleanFrom = fromNumber.startsWith('+') ? fromNumber : `+${fromNumber}`;
+        const cleanTo = to.startsWith('+') ? to : `+${to}`;
 
-        // SignalHouse API structure based on their actual format
+        // SignalHouse API structure - requires E.164 format
         const payload = {
+            apiKey: apiKey,
             from: cleanFrom,
             to: [cleanTo],
             body: message,
