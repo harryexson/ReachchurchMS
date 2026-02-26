@@ -21,12 +21,12 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'SIGNALHOUSE_API_KEY not set' }, { status: 500 });
         }
 
-        // Normalize to E.164
-        const toE164 = (num) => {
+        // SignalHouse E.164 format WITHOUT the + prefix (e.g. "15748893590")
+        const toSignalhouseFormat = (num) => {
             const digits = num.replace(/\D/g, '');
-            if (digits.length === 10) return `+1${digits}`;
-            if (digits.length === 11 && digits.startsWith('1')) return `+${digits}`;
-            return `+${digits}`;
+            if (digits.length === 10) return `1${digits}`;
+            if (digits.length === 11 && digits.startsWith('1')) return digits;
+            return digits;
         };
 
         const fromNumber = '+15748893590';
