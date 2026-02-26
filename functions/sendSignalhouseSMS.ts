@@ -51,14 +51,19 @@ Deno.serve(async (req) => {
         console.log('Formatted to:', cleanTo);
 
         // SignalHouse API structure - requires E.164 format
+        // Only include 'from' if we have a valid phone number configured
         const payload = {
             apiKey: apiKey,
-            from: cleanFrom,
             to: [cleanTo],
             body: message,
             verify: true,
             shortLink: false
         };
+
+        // Only add 'from' if it looks like a real phone number
+        if (fromNumber && fromNumber.replace(/\D/g, '').length >= 10) {
+            payload.from = cleanFrom;
+        }
 
         console.log('Request payload:', JSON.stringify(payload, null, 2));
 
