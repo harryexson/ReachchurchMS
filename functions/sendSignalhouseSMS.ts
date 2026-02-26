@@ -33,9 +33,8 @@ Deno.serve(async (req) => {
         const cleanTo = toSignalhouseFormat(to);
 
         const payload = {
-            apiKey: apiKey,
-            from: fromNumber,
-            to: [cleanTo],
+            from: `+${fromNumber}`,
+            to: [`+${cleanTo}`],
             body: message
         };
 
