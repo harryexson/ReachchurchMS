@@ -32,9 +32,10 @@ Deno.serve(async (req) => {
         const fromNumber = '+15748893590';
         const cleanTo = toE164(to);
 
+        // Try without + prefix as some APIs expect digits only
         const payload = {
-            from: fromNumber,
-            to: [cleanTo],
+            from: '15748893590',
+            to: ['15749049749'],
             body: message
         };
 
