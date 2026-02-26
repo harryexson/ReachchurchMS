@@ -57,6 +57,9 @@ Deno.serve(async (req) => {
             body: message
         };
 
+        console.log('cleanFrom:', cleanFrom);
+        console.log('cleanTo:', cleanTo);
+        console.log('API Key (first 20 chars):', apiKey.substring(0, 20));
         console.log('Payload:', JSON.stringify(payload));
 
         const response = await fetch('https://api.signalhouse.io/message/sendSMS', {
