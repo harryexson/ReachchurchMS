@@ -32,9 +32,13 @@ Deno.serve(async (req) => {
         const cleanTo = `+${toSignalhouseFormat(to)}`;
         const fromNumber = '+15748893590';
 
+        // SignalHouse expects numbers WITHOUT the + prefix
+        const fromFormatted = fromNumber.replace('+', '');
+        const toFormatted = cleanTo.replace('+', '');
+
         const payload = {
-            from: fromNumber,
-            to: [cleanTo],
+            from: fromFormatted,
+            to: [toFormatted],
             body: message
         };
 
