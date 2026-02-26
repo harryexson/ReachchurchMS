@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
             return `+${digits}`;
         };
 
-        const cleanFrom = toE164(fromNumber);
+        const cleanFrom = '+15748893590'; // hardcoded for testing
         const cleanTo = toE164(to);
 
         console.log('Formatted from:', cleanFrom);
