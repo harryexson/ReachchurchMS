@@ -39,7 +39,8 @@ Deno.serve(async (req) => {
         const payload = {
             from: fromFormatted,
             to: [toFormatted],
-            body: message
+            body: message,
+            apiKey: apiKey || ''
         };
 
         const debugInfo = { 
