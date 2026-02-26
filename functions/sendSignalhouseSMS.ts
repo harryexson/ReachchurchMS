@@ -16,54 +16,27 @@ Deno.serve(async (req) => {
         }
 
         const apiKey = Deno.env.get('SIGNALHOUSE_API_KEY');
-        const accountId = Deno.env.get('SIGNALHOUSE_ACCOUNT_ID');
-        const fromNumber = Deno.env.get('SIGNALHOUSE_PHONE_NUMBER');
 
-        console.log('apiKey set:', !!apiKey, 'length:', apiKey?.length);
-        console.log('accountId set:', !!accountId, 'length:', accountId?.length);
-        console.log('fromNumber set:', !!fromNumber, 'length:', fromNumber?.length);
-
-        if (!apiKey || !accountId || !fromNumber) {
-            return Response.json({ 
-                error: 'SignalHouse not configured',
-                missing: { apiKey: !apiKey, accountId: !accountId, fromNumber: !fromNumber }
-            }, { status: 500 });
+        if (!apiKey) {
+            return Response.json({ error: 'SIGNALHOUSE_API_KEY not set' }, { status: 500 });
         }
 
-        console.log('=== SignalHouse SMS Request ===');
-        console.log('To:', to);
-        console.log('Raw fromNumber from secret:', JSON.stringify(fromNumber));
-        console.log('fromNumber length:', fromNumber.length);
-        console.log('fromNumber chars:', [...fromNumber].map(c => c.charCodeAt(0)));
-
-        // Helper to normalize any number to E.164 format
+        // Normalize to E.164
         const toE164 = (num) => {
-            // Strip all non-digit characters
             const digits = num.replace(/\D/g, '');
-            // If 10 digits, assume US number - add +1
             if (digits.length === 10) return `+1${digits}`;
-            // If 11 digits starting with 1, add +
             if (digits.length === 11 && digits.startsWith('1')) return `+${digits}`;
-            // Already has country code
             return `+${digits}`;
         };
 
-        const cleanFrom = '+15748893590'; // hardcoded for testing
+        const fromNumber = '+15748893590';
         const cleanTo = toE164(to);
 
-        console.log('Formatted from:', cleanFrom);
-        console.log('Formatted to:', cleanTo);
-
         const payload = {
-            from: cleanFrom,
+            from: fromNumber,
             to: [cleanTo],
             body: message
         };
-
-        console.log('cleanFrom:', cleanFrom);
-        console.log('cleanTo:', cleanTo);
-        console.log('API Key (first 20 chars):', apiKey.substring(0, 20));
-        console.log('Payload:', JSON.stringify(payload));
 
         const response = await fetch('https://api.signalhouse.io/message/sendSMS', {
             method: 'POST',
@@ -74,22 +47,20 @@ Deno.serve(async (req) => {
             body: JSON.stringify(payload)
         });
 
-        console.log(`Status: ${response.status}`);
         const responseText = await response.text();
-        console.log(`Response: ${responseText}`);
 
         let data;
         try {
             data = JSON.parse(responseText);
-        } catch (parseError) {
+        } catch {
             return Response.json({ 
                 error: 'Invalid response from SignalHouse',
-                raw_response: responseText.substring(0, 500)
+                status: response.status,
+                raw: responseText.substring(0, 500)
             }, { status: 500 });
         }
 
         if (response.ok) {
-            console.log('✅ SMS sent successfully!');
             return Response.json({ 
                 success: true, 
                 message_id: data.messageId || data.id,
@@ -98,17 +69,16 @@ Deno.serve(async (req) => {
             });
         }
 
-        console.error('API error:', data);
         return Response.json({ 
-            error: data.message || data.error || 'Failed to send SMS', 
-            details: data
+            error: data.message || data.error || 'Failed to send SMS',
+            http_status: response.status,
+            details: data,
+            debug: { from: fromNumber, to: cleanTo }
         }, { status: response.status });
 
     } catch (error) {
-        console.error('SMS error:', error);
         return Response.json({ 
-            error: error.message,
-            stack: error.stack 
+            error: error.message
         }, { status: 500 });
     }
 });
