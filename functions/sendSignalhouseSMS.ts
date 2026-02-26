@@ -29,24 +29,24 @@ Deno.serve(async (req) => {
             return digits;
         };
 
-        const fromNumber = '15748893590';
-        const cleanTo = toSignalhouseFormat(to);
+        const fromNumber = '+15748893590';
+        const cleanTo = `+${toSignalhouseFormat(to)}`;
 
+        // Try multiple from formats to identify which one SignalHouse accepts
         const payload = {
-            from: `+${fromNumber}`,
-            to: [`+${cleanTo}`],
+            apiKey: apiKey,
+            from: fromNumber,
+            to: [cleanTo],
             body: message
         };
-
-        // Try with apiKey in body only (no Authorization header) - SignalHouse may use body auth
-        const payloadWithKey = { ...payload, apiKey: apiKey };
 
         const response = await fetch('https://api.signalhouse.io/message/sendSMS', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
             },
-            body: JSON.stringify(payloadWithKey)
+            body: JSON.stringify(payload)
         });
 
         const responseText = await response.text();
