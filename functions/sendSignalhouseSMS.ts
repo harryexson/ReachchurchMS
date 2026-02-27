@@ -33,7 +33,7 @@ Deno.serve(async (req) => {
 
         // Exact payload format per SignalHouse docs
         const payload = {
-            from: '12312937786',  // temporary hardcoded to match their example - replace with actual number
+            from: '15748893590',
             to: [toFormatted],
             body: message,
             apiKey: apiKey,
