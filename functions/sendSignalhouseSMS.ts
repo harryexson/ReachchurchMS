@@ -31,11 +31,12 @@ Deno.serve(async (req) => {
         const apiKey = Deno.env.get('SIGNALHOUSE_API_KEY');
         const toFormatted = toSignalhouseFormat(to);
 
-        // SignalHouse uses apiKey as the "from" field
+        // Exact payload format per SignalHouse docs
         const payload = {
-            from: apiKey,
+            from: '12312937786',  // temporary hardcoded to match their example - replace with actual number
             to: [toFormatted],
             body: message,
+            apiKey: apiKey,
             verify: true,
             shortLink: false
         };
