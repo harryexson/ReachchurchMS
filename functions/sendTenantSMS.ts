@@ -55,10 +55,11 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Tenant SignalHouse phone number is missing or not in E.164 format' }, { status: 400 });
     }
 
-    // Prefer per-tenant token; fall back to shared token if provided in env
-    const bearerToken = tenant.signalhouse_api_token || Deno.env.get('SIGNALHOUSE_AUTH_TOKEN');
+    // Use shared SignalHouse token from environment (all tenants share the same account)
+    const bearerToken = Deno.env.get('SIGNALHOUSE_AUTH_TOKEN');
     if (!bearerToken) {
-      return Response.json({ error: 'SignalHouse API token not configured for tenant or environment' }, { status: 500 });
+      console.error('sendTenantSMS misconfiguration: missing SIGNALHOUSE_AUTH_TOKEN');
+      return Response.json({ error: 'SignalHouse API token not configured' }, { status: 500 });
     }
 
     const payload = {
