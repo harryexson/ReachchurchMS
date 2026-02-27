@@ -36,9 +36,14 @@ Deno.serve(async (req) => {
             from: '15748893590',
             to: [toFormatted],
             body: message,
+            apiKey: apiKey,
             verify: true,
             shortLink: false
         };
+
+        console.log('API Key first 8 chars:', apiKey ? apiKey.substring(0, 8) : 'MISSING');
+        console.log('API Key length:', apiKey ? apiKey.length : 0);
+        console.log('Payload:', JSON.stringify(payload));
 
         const response = await fetch('https://api.signalhouse.io/message/sendSMS', {
             method: 'POST',
