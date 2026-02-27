@@ -1,46 +1,56 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+// TCPA Compliance disclaimer
+const SMS_DISCLAIMER = "\n\nMsg & Data Rates may apply. Text STOP to opt-out. Text HELP for help.";
+
+// Helper: format phone to SignalHouse format (digits only, with country code)
+function formatPhone(num) {
+    const digits = num.replace(/\D/g, '');
+    if (digits.length === 10) return `1${digits}`;
+    if (digits.length === 11 && digits.startsWith('1')) return digits;
+    return digits;
+}
+
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
-        const user = await base44.auth.me();
 
-        if (!user) {
-            return Response.json({ error: 'Unauthorized' }, { status: 401 });
-        }
+        // Allow internal (service) calls without user auth
+        let user = null;
+        try { user = await base44.auth.me(); } catch (_) {}
 
-        const { to, message } = await req.json();
+        const { to, message, skipDisclaimer } = await req.json();
 
         if (!to || !message) {
             return Response.json({ error: 'to and message are required' }, { status: 400 });
         }
 
         const authToken = Deno.env.get('SIGNALHOUSE_AUTH_TOKEN');
+        const apiKey = Deno.env.get('SIGNALHOUSE_API_KEY');
+        const rawFrom = Deno.env.get('SIGNALHOUSE_PHONE_NUMBER') || '15748893590';
+
         if (!authToken) {
-            return Response.json({ error: 'SIGNALHOUSE_AUTH_TOKEN not set' }, { status: 500 });
+            return Response.json({ error: 'SIGNALHOUSE_AUTH_TOKEN not configured' }, { status: 500 });
         }
 
-        const toSignalhouseFormat = (num) => {
-            const digits = num.replace(/\D/g, '');
-            if (digits.length === 10) return `1${digits}`;
-            if (digits.length === 11 && digits.startsWith('1')) return digits;
-            return digits;
-        };
+        const toFormatted = formatPhone(to);
+        const from = formatPhone(rawFrom);
+        const finalMessage = skipDisclaimer ? message : message + SMS_DISCLAIMER;
 
-        const toFormatted = toSignalhouseFormat(to);
-        const rawFrom = Deno.env.get('SIGNALHOUSE_PHONE_NUMBER') || '15748893590';
-        const from = rawFrom.replace(/\D/g, '');
-
-        // SignalHouse requires apiKey in the body — use the auth token as the apiKey
+        // Build payload - apiKey in body only if we have a short API key
         const payload = {
             from,
             to: [toFormatted],
-            body: message,
-            apiKey: authToken
+            body: finalMessage
         };
 
-        console.log('SENDING SMS v2 - from:', from, 'to:', toFormatted);
-        console.log('authToken length:', authToken.length, 'first8:', authToken.substring(0, 8));
+        // Include apiKey in body if it's a short key (UUID format from dashboard)
+        if (apiKey && apiKey.length < 100) {
+            payload.apiKey = apiKey;
+        }
+
+        console.log('SignalHouse SMS - from:', from, 'to:', toFormatted);
+        console.log('Auth token length:', authToken?.length, 'API key length:', apiKey?.length);
 
         const response = await fetch('https://api.signalhouse.io/message/sendSMS', {
             method: 'POST',
@@ -58,7 +68,7 @@ Deno.serve(async (req) => {
         let data;
         try {
             data = JSON.parse(responseText);
-        } catch {
+        } catch (_) {
             return Response.json({
                 error: 'Invalid response from SignalHouse',
                 status: response.status,
@@ -69,19 +79,21 @@ Deno.serve(async (req) => {
         if (response.ok) {
             return Response.json({
                 success: true,
-                message_id: data.messageId || data.id,
+                message_id: data.messageId || data.id || data.data?.messageId,
                 status: data.status || 'sent',
                 data
             });
         }
 
         return Response.json({
-            error: data.message || data.error || 'Failed to send SMS',
+            success: false,
+            error: data.message || data.error || data.detail || 'Failed to send SMS',
             http_status: response.status,
             details: data
         }, { status: response.status });
 
     } catch (error) {
-        return Response.json({ error: error.message }, { status: 500 });
+        console.error('SignalHouse SMS error:', error);
+        return Response.json({ success: false, error: error.message }, { status: 500 });
     }
 });

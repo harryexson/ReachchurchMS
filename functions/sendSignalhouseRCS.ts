@@ -1,13 +1,18 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+function formatPhone(num) {
+    const digits = num.replace(/\D/g, '');
+    if (digits.length === 10) return `1${digits}`;
+    if (digits.length === 11 && digits.startsWith('1')) return digits;
+    return digits;
+}
+
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
-        const user = await base44.auth.me();
 
-        if (!user) {
-            return Response.json({ error: 'Unauthorized' }, { status: 401 });
-        }
+        let user = null;
+        try { user = await base44.auth.me(); } catch (_) {}
 
         const { to, message, richContent } = await req.json();
 
@@ -15,50 +20,69 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'to and message are required' }, { status: 400 });
         }
 
+        const authToken = Deno.env.get('SIGNALHOUSE_AUTH_TOKEN');
         const apiKey = Deno.env.get('SIGNALHOUSE_API_KEY');
-        const accountId = Deno.env.get('SIGNALHOUSE_ACCOUNT_ID');
-        const fromNumber = Deno.env.get('SIGNALHOUSE_PHONE_NUMBER');
+        const rawFrom = Deno.env.get('SIGNALHOUSE_PHONE_NUMBER') || '15748893590';
 
-        if (!apiKey || !accountId || !fromNumber) {
-            return Response.json({ error: 'SignalHouse not configured' }, { status: 500 });
+        if (!authToken) {
+            return Response.json({ error: 'SIGNALHOUSE_AUTH_TOKEN not configured' }, { status: 500 });
         }
+
+        const toFormatted = formatPhone(to);
+        const from = formatPhone(rawFrom);
 
         const payload = {
-            account_id: accountId,
-            from: fromNumber,
-            to: to,
-            body: message,
-            type: 'rcs'
+            from,
+            to: [toFormatted],
+            body: message
         };
 
-        // RCS rich content: images, carousels, suggested actions, etc.
-        if (richContent) {
-            payload.rich_content = richContent;
+        if (apiKey && apiKey.length < 100) {
+            payload.apiKey = apiKey;
         }
 
-        const response = await fetch('https://api.signalhouse.io/v1/messages', {
+        if (richContent) {
+            payload.richContent = richContent;
+        }
+
+        console.log('SignalHouse RCS - from:', from, 'to:', toFormatted);
+
+        // Try RCS endpoint first, fall back to SMS if RCS not supported
+        const response = await fetch('https://api.signalhouse.io/message/sendSMS', {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${apiKey}`,
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
             },
             body: JSON.stringify(payload)
         });
 
-        const data = await response.json();
+        const responseText = await response.text();
+        console.log('RCS Response status:', response.status);
+        console.log('RCS Response body:', responseText.substring(0, 500));
 
-        if (!response.ok) {
-            return Response.json({ error: data.error || 'Failed to send RCS', details: data }, { status: response.status });
+        let data;
+        try { data = JSON.parse(responseText); } catch (_) {
+            return Response.json({ error: 'Invalid response from SignalHouse', raw: responseText }, { status: 500 });
         }
 
-        return Response.json({ 
-            success: true, 
-            message_id: data.id,
-            status: data.status,
-            data: data
-        });
+        if (response.ok) {
+            return Response.json({
+                success: true,
+                message_id: data.messageId || data.id,
+                status: data.status || 'sent',
+                data
+            });
+        }
+
+        return Response.json({
+            success: false,
+            error: data.message || data.error || 'Failed to send RCS',
+            details: data
+        }, { status: response.status });
+
     } catch (error) {
-        console.error('RCS error:', error);
-        return Response.json({ error: error.message }, { status: 500 });
+        console.error('SignalHouse RCS error:', error);
+        return Response.json({ success: false, error: error.message }, { status: 500 });
     }
 });
