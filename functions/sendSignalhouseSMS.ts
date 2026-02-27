@@ -28,12 +28,12 @@ Deno.serve(async (req) => {
             return digits;
         };
 
-        const fromNumber = '15748893590';
+        const apiKey = Deno.env.get('SIGNALHOUSE_API_KEY');
         const toFormatted = toSignalhouseFormat(to);
 
-        // Match exact payload format from SignalHouse docs - no apiKey in body
+        // SignalHouse uses apiKey as the "from" field
         const payload = {
-            from: fromNumber,
+            from: apiKey,
             to: [toFormatted],
             body: message,
             verify: true,
