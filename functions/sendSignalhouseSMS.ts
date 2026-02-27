@@ -16,6 +16,7 @@ Deno.serve(async (req) => {
         }
 
         const authToken = Deno.env.get('SIGNALHOUSE_AUTH_TOKEN');
+        const apiKey = Deno.env.get('SIGNALHOUSE_API_KEY');
 
         if (!authToken) {
             return Response.json({ error: 'SIGNALHOUSE_AUTH_TOKEN not set' }, { status: 500 });
@@ -28,29 +29,29 @@ Deno.serve(async (req) => {
             return digits;
         };
 
-        const apiKey = Deno.env.get('SIGNALHOUSE_API_KEY');
         const toFormatted = toSignalhouseFormat(to);
+        const fromNumber = Deno.env.get('SIGNALHOUSE_PHONE_NUMBER') || '15748893590';
 
-        // Exact payload format per SignalHouse docs
+        // Use authToken as apiKey since they may be the same credential
+        const apiKeyToUse = apiKey || authToken;
+
         const payload = {
-            from: '15748893590',
+            from: fromNumber.replace(/\D/g, ''),
             to: [toFormatted],
             body: message,
-            apiKey: apiKey,
-            verify: true,
-            shortLink: false
+            apiKey: apiKeyToUse
         };
 
-        console.log('API Key first 8 chars:', apiKey ? apiKey.substring(0, 8) : 'MISSING');
-        console.log('API Key length:', apiKey ? apiKey.length : 0);
-        console.log('Payload:', JSON.stringify(payload));
+        console.log('Auth token first 8:', authToken.substring(0, 8), 'length:', authToken.length);
+        console.log('API key first 8:', apiKey ? apiKey.substring(0, 8) : 'MISSING', 'length:', apiKey ? apiKey.length : 0);
+        console.log('Using apiKey first 8:', apiKeyToUse.substring(0, 8));
+        console.log('Payload (no secrets):', JSON.stringify({ ...payload, apiKey: '[REDACTED]' }));
 
         const response = await fetch('https://api.signalhouse.io/message/sendSMS', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authToken}`,
-                'x-api-key': apiKey || ''
+                'Authorization': `Bearer ${authToken}`
             },
             body: JSON.stringify(payload)
         });
