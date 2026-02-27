@@ -31,22 +31,21 @@ Deno.serve(async (req) => {
         const rawFrom = Deno.env.get('SIGNALHOUSE_PHONE_NUMBER') || '15748893590';
         const from = rawFrom.replace(/\D/g, '');
 
-        // SignalHouse requires apiKey in the body — use the auth token as the apiKey
         const payload = {
             from,
             to: [toFormatted],
             body: message,
-            apiKey: authToken
+            apiKey
         };
 
-        console.log('SENDING SMS v2 - from:', from, 'to:', toFormatted);
-        console.log('authToken length:', authToken.length, 'first8:', authToken.substring(0, 8));
+        console.log('SENDING SMS - from:', from, 'to:', toFormatted);
+        console.log('apiKey length:', apiKey.length, 'first8:', apiKey.substring(0, 8));
 
         const response = await fetch('https://api.signalhouse.io/message/sendSMS', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authToken}`
+                'Authorization': `Bearer ${apiKey}`
             },
             body: JSON.stringify(payload)
         });
