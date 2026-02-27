@@ -75,7 +75,7 @@ Deno.serve(async (req) => {
             error: data.message || data.error || 'Failed to send SMS',
             http_status: response.status,
             details: data,
-            debug: { from: fromNumber, to: toFormatted }
+            debug: { to: toFormatted, apiKeyPresent: !!apiKey }
         }, { status: response.status });
 
     } catch (error) {
