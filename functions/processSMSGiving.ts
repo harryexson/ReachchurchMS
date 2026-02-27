@@ -67,7 +67,7 @@ Deno.serve(async (req) => {
             const baseUrl = 'https://base44.app/apps/68d38ad0f4d6d5d05900d129';
             const replyUrl = `${baseUrl}/PublicGiving?phone=${encodeURIComponent(from)}&amount=${amount}`;
             
-            await base44.asServiceRole.functions.invoke('sendSinchSMS', {
+            await base44.asServiceRole.functions.invoke('sendSignalhouseSMS', {
                 to: from,
                 message: `Thank you for your donation! To complete your $${amount} ${donationType} donation, please visit: ${replyUrl}\n\nReply STOP to unsubscribe.`
             });
@@ -88,7 +88,7 @@ Deno.serve(async (req) => {
         const checkoutUrl = `${baseUrl}/PublicGiving?phone=${encodeURIComponent(from)}&amount=${amount}&type=${donationType}&donor=${encodeURIComponent(donor.email || donor.name)}`;
 
         // Send SMS with payment link
-        await base44.asServiceRole.functions.invoke('sendSinchSMS', {
+        await base44.asServiceRole.functions.invoke('sendSignalhouseSMS', {
             to: from,
             message: `Hi ${donor.name || donor.first_name}! Click here to complete your $${amount} donation to ${churchName}: ${checkoutUrl}\n\nReply STOP to unsubscribe.`
         });
