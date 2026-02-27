@@ -219,7 +219,7 @@ async function sendSignalHouseReply(base44, to, message, skipDisclaimer = false)
         const finalMessage = skipDisclaimer ? message : message + SMS_DISCLAIMER;
 
         const payload = { from, to: [toFormatted], body: finalMessage };
-        if (apiKey && apiKey.length < 100) payload.apiKey = apiKey;
+        if (apiKey) payload.apiKey = apiKey;
 
         const response = await fetch('https://api.signalhouse.io/message/sendSMS', {
             method: 'POST',

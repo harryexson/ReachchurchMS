@@ -37,9 +37,10 @@ Deno.serve(async (req) => {
             body: message
         };
 
-        if (apiKey && apiKey.length < 100) {
-            payload.apiKey = apiKey;
+        if (!apiKey) {
+            return Response.json({ error: 'SIGNALHOUSE_API_KEY not configured' }, { status: 500 });
         }
+        payload.apiKey = apiKey;
 
         if (richContent) {
             payload.richContent = richContent;

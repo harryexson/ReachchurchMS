@@ -44,10 +44,11 @@ Deno.serve(async (req) => {
             body: finalMessage
         };
 
-        // Include apiKey in body if it's a short key (UUID format from dashboard)
-        if (apiKey && apiKey.length < 100) {
-            payload.apiKey = apiKey;
+        // SignalHouse requires apiKey in the body
+        if (!apiKey) {
+            return Response.json({ error: 'SIGNALHOUSE_API_KEY not configured' }, { status: 500 });
         }
+        payload.apiKey = apiKey;
 
         console.log('SignalHouse SMS - from:', from, 'to:', toFormatted);
         console.log('Auth token length:', authToken?.length, 'API key length:', apiKey?.length);
