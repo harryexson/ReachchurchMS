@@ -33,24 +33,25 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'SIGNALHOUSE_AUTH_TOKEN not configured' }, { status: 500 });
         }
 
-        const toFormatted = formatPhone(to);
+        // Support single or multiple recipients
+        const toList = Array.isArray(to) ? to.map(formatPhone) : [formatPhone(to)];
         const from = formatPhone(rawFrom);
         const finalMessage = skipDisclaimer ? message : message + SMS_DISCLAIMER;
 
-        // Build payload - apiKey in body only if we have a short API key
-        const payload = {
-            from,
-            to: [toFormatted],
-            body: finalMessage
-        };
-
-        // SignalHouse requires apiKey in the body
         if (!apiKey) {
             return Response.json({ error: 'SIGNALHOUSE_API_KEY not configured' }, { status: 500 });
         }
-        payload.apiKey = apiKey;
 
-        console.log('SignalHouse SMS - from:', from, 'to:', toFormatted);
+        const payload = {
+            from,
+            to: toList,
+            body: finalMessage,
+            apiKey,
+            verify: true,
+            shortLink: false
+        };
+
+        console.log('SignalHouse SMS - from:', from, 'to:', toList);
         console.log('Auth token length:', authToken?.length, 'API key length:', apiKey?.length);
 
         const response = await fetch('https://api.signalhouse.io/message/sendSMS', {
