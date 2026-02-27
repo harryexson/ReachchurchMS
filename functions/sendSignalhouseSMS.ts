@@ -32,20 +32,18 @@ Deno.serve(async (req) => {
         const toFormatted = toSignalhouseFormat(to);
         const fromNumber = Deno.env.get('SIGNALHOUSE_PHONE_NUMBER') || '15748893590';
 
-        // Use authToken as apiKey since they may be the same credential
-        const apiKeyToUse = apiKey || authToken;
+        const from = fromNumber.replace(/\D/g, '');
 
+        // Try with apiKey in body (required by SignalHouse) — use authToken as the apiKey value
         const payload = {
-            from: fromNumber.replace(/\D/g, ''),
+            from,
             to: [toFormatted],
             body: message,
-            apiKey: apiKeyToUse
+            apiKey: authToken
         };
 
-        console.log('Auth token first 8:', authToken.substring(0, 8), 'length:', authToken.length);
-        console.log('API key first 8:', apiKey ? apiKey.substring(0, 8) : 'MISSING', 'length:', apiKey ? apiKey.length : 0);
-        console.log('Using apiKey first 8:', apiKeyToUse.substring(0, 8));
-        console.log('Payload (no secrets):', JSON.stringify({ ...payload, apiKey: '[REDACTED]' }));
+        console.log('from:', from, 'to:', toFormatted);
+        console.log('authToken length:', authToken.length, 'apiKey env length:', apiKey ? apiKey.length : 0);
 
         const response = await fetch('https://api.signalhouse.io/message/sendSMS', {
             method: 'POST',
