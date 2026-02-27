@@ -83,6 +83,7 @@ Deno.serve(async (req) => {
                 success: true,
                 message_id: data.messageId || data.id || data.data?.messageId,
                 status: data.status || 'sent',
+                recipients: toList,
                 data
             });
         }
