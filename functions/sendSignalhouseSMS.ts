@@ -36,7 +36,6 @@ Deno.serve(async (req) => {
             from: '15748893590',
             to: [toFormatted],
             body: message,
-            apiKey: apiKey,
             verify: true,
             shortLink: false
         };
