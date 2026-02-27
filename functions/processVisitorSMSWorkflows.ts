@@ -9,13 +9,9 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
         }
 
-        console.log('🔄 Processing visitor SMS workflows...');
+        console.log('🔄 Processing visitor SMS workflows via SignalHouse...');
 
-        // Get all active workflows
         const workflows = await base44.asServiceRole.entities.VisitorSMSWorkflow.filter({ is_active: true });
-        console.log(`Found ${workflows.length} active workflows`);
-
-        // Get church settings for church name
         const settings = await base44.asServiceRole.entities.ChurchSettings.list();
         const churchName = settings[0]?.church_name || 'Our Church';
 
@@ -23,10 +19,7 @@ Deno.serve(async (req) => {
         let totalSent = 0;
         const results = [];
 
-        // Process pending executions (messages ready to send)
-        const pendingExecutions = await base44.asServiceRole.entities.VisitorSMSExecution.filter({
-            status: 'active'
-        });
+        const pendingExecutions = await base44.asServiceRole.entities.VisitorSMSExecution.filter({ status: 'active' });
 
         for (const execution of pendingExecutions) {
             try {
@@ -34,7 +27,6 @@ Deno.serve(async (req) => {
                 const nextSendTime = new Date(execution.next_send_time);
 
                 if (nextSendTime <= now) {
-                    // Get workflow and visitor details
                     const workflow = workflows.find(w => w.id === execution.workflow_id);
                     if (!workflow || !workflow.is_active) continue;
 
@@ -42,10 +34,8 @@ Deno.serve(async (req) => {
                     if (visitors.length === 0) continue;
                     const visitor = visitors[0];
 
-                    // Get current step message
                     const step = workflow.sms_sequence[execution.current_step];
                     if (!step) {
-                        // Workflow complete
                         await base44.asServiceRole.entities.VisitorSMSExecution.update(execution.id, {
                             status: 'completed',
                             completion_date: new Date().toISOString()
@@ -56,22 +46,19 @@ Deno.serve(async (req) => {
                         continue;
                     }
 
-                    // Personalize message
-                    let message = step.message_template
+                    const message = step.message_template
                         .replace(/{name}/g, visitor.name)
                         .replace(/{visit_date}/g, new Date(visitor.visit_date).toLocaleDateString())
                         .replace(/{church_name}/g, churchName);
 
-                    // Send SMS
-                    const smsResult = await base44.asServiceRole.functions.invoke('sendSinchSMS', {
+                    // Use SignalHouse instead of Sinch
+                    const smsResult = await base44.asServiceRole.functions.invoke('sendSignalhouseSMS', {
                         to: execution.visitor_phone,
-                        message: message
+                        message
                     });
 
                     if (smsResult.data?.success) {
                         totalSent++;
-
-                        // Calculate next send time
                         const nextStep = execution.current_step + 1;
                         let nextSend = null;
                         if (nextStep < workflow.sms_sequence.length) {
@@ -80,7 +67,6 @@ Deno.serve(async (req) => {
                             nextSend.setHours(nextSend.getHours() + nextStepData.delay_hours);
                         }
 
-                        // Update execution
                         await base44.asServiceRole.entities.VisitorSMSExecution.update(execution.id, {
                             current_step: nextStep,
                             messages_sent: (execution.messages_sent || 0) + 1,
@@ -96,20 +82,9 @@ Deno.serve(async (req) => {
                             });
                         }
 
-                        results.push({
-                            visitor: visitor.name,
-                            workflow: workflow.workflow_name,
-                            step: execution.current_step + 1,
-                            status: 'sent'
-                        });
+                        results.push({ visitor: visitor.name, workflow: workflow.workflow_name, step: execution.current_step + 1, status: 'sent' });
                     } else {
-                        results.push({
-                            visitor: visitor.name,
-                            workflow: workflow.workflow_name,
-                            step: execution.current_step + 1,
-                            status: 'failed',
-                            error: smsResult.data?.error
-                        });
+                        results.push({ visitor: visitor.name, workflow: workflow.workflow_name, step: execution.current_step + 1, status: 'failed', error: smsResult.data?.error });
                     }
 
                     totalProcessed++;
@@ -120,19 +95,10 @@ Deno.serve(async (req) => {
         }
 
         console.log(`✅ Processed ${totalProcessed} executions, sent ${totalSent} messages`);
-
-        return Response.json({
-            success: true,
-            processed: totalProcessed,
-            sent: totalSent,
-            results
-        });
+        return Response.json({ success: true, processed: totalProcessed, sent: totalSent, results });
 
     } catch (error) {
-        console.error('❌ Error processing workflows:', error);
-        return Response.json({ 
-            error: 'Failed to process workflows',
-            details: error.message 
-        }, { status: 500 });
+        console.error('Error processing visitor SMS workflows:', error);
+        return Response.json({ error: error.message }, { status: 500 });
     }
 });
