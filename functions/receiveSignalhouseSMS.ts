@@ -39,7 +39,7 @@ Deno.serve(async (req) => {
 
     // Prepare inserts (one record per recipient)
     const inserts = recipients.map((rcpt) => (
-      base44.asServiceRole.entities['sms_messages'].create({
+      base44.asServiceRole.entities.SmsMessage.create({
         sender: String(from || ''),
         recipient: String(rcpt || ''),
         message: String(text || ''),
