@@ -29,6 +29,9 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'tenantId, to, and message are required' }, { status: 400 });
     }
 
+    // Ensure tenantId is not spoofed by cross-checking any user-allowed list if present in profile
+    // If your app later adds per-user tenant assignments, validate here (e.g., user.tenant_ids includes tenantId)
+
     // Validate E.164 phone for recipient
     if (!isE164(to)) {
       return Response.json({ error: 'Recipient phone (to) must be in E.164 format, e.g., +15551234567' }, { status: 400 });
