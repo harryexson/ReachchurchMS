@@ -1,128 +1,71 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
-import twilio from 'npm:twilio';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
         const user = await base44.auth.me();
-
-        if (!user) {
-            return Response.json({ error: 'Unauthorized' }, { status: 401 });
-        }
+        if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
         const body = await req.json();
         const { test_phone_number } = body;
 
-        // Try to get Twilio credentials from environment variables first
-        let twilioAccountSid = Deno.env.get("TWILIO_ACCOUNT_SID");
-        let twilioAuthToken = Deno.env.get("TWILIO_AUTH_TOKEN");
-        let twilioPhoneNumber = Deno.env.get("TWILIO_PHONE_NUMBER");
-
-        const envSource = {
-            account_sid: twilioAccountSid ? 'env' : 'not_in_env',
-            auth_token: twilioAuthToken ? 'env' : 'not_in_env',
-            phone_number: twilioPhoneNumber ? 'env' : 'not_in_env'
-        };
-
-        // If not in env, try to get from ChurchSettings
-        if (!twilioAccountSid || !twilioAuthToken || !twilioPhoneNumber) {
-            const settings = await base44.entities.ChurchSettings.list();
-            if (settings.length > 0) {
-                const churchSettings = settings[0];
-                if (!twilioAccountSid && churchSettings.twilio_account_sid) {
-                    twilioAccountSid = churchSettings.twilio_account_sid;
-                    envSource.account_sid = 'church_settings';
-                }
-                if (!twilioAuthToken && churchSettings.twilio_auth_token) {
-                    twilioAuthToken = churchSettings.twilio_auth_token;
-                    envSource.auth_token = 'church_settings';
-                }
-                if (!twilioPhoneNumber && churchSettings.twilio_phone_number) {
-                    twilioPhoneNumber = churchSettings.twilio_phone_number;
-                    envSource.phone_number = 'church_settings';
-                }
-            }
-        }
+        const authToken = Deno.env.get('SIGNALHOUSE_AUTH_TOKEN');
+        const apiKey = Deno.env.get('SIGNALHOUSE_API_KEY');
+        const phoneNumber = Deno.env.get('SIGNALHOUSE_PHONE_NUMBER');
 
         const credentialsCheck = {
-            account_sid: twilioAccountSid ? `✅ Found (from ${envSource.account_sid})` : '❌ Missing',
-            auth_token: twilioAuthToken ? `✅ Found (from ${envSource.auth_token})` : '❌ Missing',
-            phone_number: twilioPhoneNumber ? `✅ ${twilioPhoneNumber} (from ${envSource.phone_number})` : '❌ Missing'
+            SIGNALHOUSE_AUTH_TOKEN: authToken ? '✅ Set' : '❌ Missing',
+            SIGNALHOUSE_API_KEY: apiKey ? '✅ Set' : '❌ Missing',
+            SIGNALHOUSE_PHONE_NUMBER: phoneNumber ? `✅ ${phoneNumber}` : '❌ Missing'
         };
 
-        if (!twilioAccountSid || !twilioAuthToken || !twilioPhoneNumber) {
-            return Response.json({ 
-                error: 'Incomplete Twilio configuration',
+        if (!authToken || !apiKey || !phoneNumber) {
+            return Response.json({
+                error: 'Incomplete SignalHouse configuration',
                 credentials_check: credentialsCheck,
-                instructions: 'Go to Settings → SMS/Twilio tab and save your credentials, then click "Save & Test Connection"'
+                instructions: 'Go to Base44 Dashboard → Settings → Secrets and set SIGNALHOUSE_AUTH_TOKEN, SIGNALHOUSE_API_KEY, and SIGNALHOUSE_PHONE_NUMBER'
             }, { status: 400 });
         }
 
-        // Test sending SMS
         if (test_phone_number) {
-            let formattedPhone = test_phone_number;
-            if (!test_phone_number.startsWith('+')) {
-                formattedPhone = '+' + test_phone_number;
-            }
+            const result = await base44.functions.invoke('sendSignalhouseSMS', {
+                to: test_phone_number,
+                message: '🎉 Test SMS from REACH Church Connect! Your SignalHouse SMS integration is working correctly.',
+                skipDisclaimer: true
+            });
 
-            try {
-                const client = twilio(twilioAccountSid, twilioAuthToken);
-                
-                const message = await client.messages.create({
-                    body: `🎉 Test SMS from ChurchConnect! Your SMS invites are working correctly. Meeting invitations will be sent from this number.`,
-                    from: twilioPhoneNumber,
-                    to: formattedPhone
-                });
-
-                // Log the message
+            if (result.data?.success) {
                 await base44.entities.TextMessage.create({
-                    phone_number: formattedPhone,
+                    phone_number: test_phone_number,
                     direction: 'outbound',
-                    message_body: 'Test SMS',
+                    message_body: 'Test SMS via SignalHouse',
                     status: 'sent',
-                    twilio_sid: message.sid,
-                    cost: parseFloat(message.price || 0)
+                    message_id: result.data.message_id
                 });
 
                 return Response.json({
                     success: true,
-                    message: 'Test SMS sent successfully!',
-                    details: {
-                        to: formattedPhone,
-                        from: twilioPhoneNumber,
-                        sid: message.sid,
-                        status: message.status
-                    },
+                    message: 'Test SMS sent successfully via SignalHouse!',
+                    details: { to: test_phone_number, from: phoneNumber, message_id: result.data.message_id },
                     credentials_check: credentialsCheck
                 });
-
-            } catch (twilioError) {
+            } else {
                 return Response.json({
                     error: 'Failed to send test SMS',
-                    twilio_error: twilioError.message,
-                    error_code: twilioError.code,
-                    credentials_check: credentialsCheck,
-                    suggestion: twilioError.code === 21211 ? 
-                        'Invalid phone number format. Make sure it includes country code (e.g., +15551234567)' :
-                        twilioError.code === 20003 ?
-                        'Authentication failed. Check your Account SID and Auth Token' :
-                        'Check Twilio console for more details'
+                    signalhouse_error: result.data?.error,
+                    credentials_check: credentialsCheck
                 }, { status: 400 });
             }
         }
 
         return Response.json({
             success: true,
-            message: 'Twilio configuration looks good!',
+            message: 'SignalHouse configuration looks good!',
             credentials_check: credentialsCheck,
             next_step: 'Provide a test_phone_number in the request body to send a test SMS'
         });
 
     } catch (error) {
-        console.error('Test SMS error:', error);
-        return Response.json({ 
-            error: 'Failed to test SMS',
-            details: error.message 
-        }, { status: 500 });
+        return Response.json({ error: 'Failed to test SMS', details: error.message }, { status: 500 });
     }
 });
