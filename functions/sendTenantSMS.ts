@@ -34,12 +34,18 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Recipient phone (to) must be in E.164 format, e.g., +15551234567' }, { status: 400 });
     }
 
-    // Fetch tenant by id
-    const tenants = await base44.entities.Tenant.filter({ id: tenantId });
+    // Fetch tenant by id with service role and validate ownership
+    const tenants = await base44.asServiceRole.entities.Tenant.filter({ id: tenantId });
     if (!tenants || tenants.length === 0) {
       return Response.json({ error: 'Tenant not found' }, { status: 404 });
     }
     const tenant = tenants[0];
+
+    // Enforce tenant ownership (prevent spoofing)
+    if (tenant.created_by !== user.email) {
+      console.error('sendTenantSMS forbidden: user does not own tenant', { user: user.email, tenantId });
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
+    }
 
     const from = tenant.signalhouse_phone_number;
     if (!from || !isE164(from)) {
