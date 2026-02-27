@@ -16,8 +16,6 @@ Deno.serve(async (req) => {
         }
 
         const authToken = Deno.env.get('SIGNALHOUSE_AUTH_TOKEN');
-        const apiKey = Deno.env.get('SIGNALHOUSE_API_KEY');
-
         if (!authToken) {
             return Response.json({ error: 'SIGNALHOUSE_AUTH_TOKEN not set' }, { status: 500 });
         }
@@ -30,11 +28,10 @@ Deno.serve(async (req) => {
         };
 
         const toFormatted = toSignalhouseFormat(to);
-        const fromNumber = Deno.env.get('SIGNALHOUSE_PHONE_NUMBER') || '15748893590';
+        const rawFrom = Deno.env.get('SIGNALHOUSE_PHONE_NUMBER') || '15748893590';
+        const from = rawFrom.replace(/\D/g, '');
 
-        const from = fromNumber.replace(/\D/g, '');
-
-        // Try with apiKey in body (required by SignalHouse) — use authToken as the apiKey value
+        // SignalHouse requires apiKey in the body — use the auth token as the apiKey
         const payload = {
             from,
             to: [toFormatted],
@@ -42,8 +39,8 @@ Deno.serve(async (req) => {
             apiKey: authToken
         };
 
-        console.log('from:', from, 'to:', toFormatted);
-        console.log('authToken length:', authToken.length, 'apiKey env length:', apiKey ? apiKey.length : 0);
+        console.log('SENDING SMS v2 - from:', from, 'to:', toFormatted);
+        console.log('authToken length:', authToken.length, 'first8:', authToken.substring(0, 8));
 
         const response = await fetch('https://api.signalhouse.io/message/sendSMS', {
             method: 'POST',
@@ -55,12 +52,14 @@ Deno.serve(async (req) => {
         });
 
         const responseText = await response.text();
+        console.log('Response status:', response.status);
+        console.log('Response body:', responseText.substring(0, 500));
 
         let data;
         try {
             data = JSON.parse(responseText);
         } catch {
-            return Response.json({ 
+            return Response.json({
                 error: 'Invalid response from SignalHouse',
                 status: response.status,
                 raw: responseText.substring(0, 500)
@@ -68,24 +67,21 @@ Deno.serve(async (req) => {
         }
 
         if (response.ok) {
-            return Response.json({ 
-                success: true, 
+            return Response.json({
+                success: true,
                 message_id: data.messageId || data.id,
                 status: data.status || 'sent',
-                data: data
+                data
             });
         }
 
-        return Response.json({ 
+        return Response.json({
             error: data.message || data.error || 'Failed to send SMS',
             http_status: response.status,
-            details: data,
-            debug: { to: toFormatted, apiKeyPresent: !!apiKey }
+            details: data
         }, { status: response.status });
 
     } catch (error) {
-        return Response.json({ 
-            error: error.message
-        }, { status: 500 });
+        return Response.json({ error: error.message }, { status: 500 });
     }
 });
