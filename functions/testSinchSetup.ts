@@ -1,40 +1,30 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+// Renamed: now checks SignalHouse setup instead of Sinch
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
         const user = await base44.auth.me();
+        if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-        if (!user) {
-            return Response.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
-        // Check environment variables
-        const sinchServicePlanId = Deno.env.get("SINCH_SERVICE_PLAN_ID");
-        const sinchApiToken = Deno.env.get("SINCH_API_TOKEN");
-        const sinchPhoneNumber = Deno.env.get("SINCH_PHONE_NUMBER");
+        const authToken = Deno.env.get('SIGNALHOUSE_AUTH_TOKEN');
+        const apiKey = Deno.env.get('SIGNALHOUSE_API_KEY');
+        const phoneNumber = Deno.env.get('SIGNALHOUSE_PHONE_NUMBER');
 
         const envCheck = {
-            SINCH_SERVICE_PLAN_ID: sinchServicePlanId ? '✅ Set' : '❌ Missing',
-            SINCH_API_TOKEN: sinchApiToken ? '✅ Set' : '❌ Missing',
-            SINCH_PHONE_NUMBER: sinchPhoneNumber ? `✅ ${sinchPhoneNumber}` : '❌ Missing'
+            SIGNALHOUSE_AUTH_TOKEN: authToken ? '✅ Set' : '❌ Missing',
+            SIGNALHOUSE_API_KEY: apiKey ? '✅ Set' : '❌ Missing',
+            SIGNALHOUSE_PHONE_NUMBER: phoneNumber ? `✅ ${phoneNumber}` : '❌ Missing'
         };
 
-        // Check keywords
         const keywords = await base44.entities.TextKeyword.list();
         const activeKeywords = keywords.filter(k => k.is_active);
-
-        // Check church settings
-        const settings = await base44.entities.ChurchSettings.list();
-        const sinchConfigured = settings.length > 0 ? settings[0].sinch_configured : false;
-
-        // Check recent messages
         const recentMessages = await base44.entities.TextMessage.list('-created_date', 5);
 
         return Response.json({
             success: true,
             environment_variables: envCheck,
-            all_configured: sinchServicePlanId && sinchApiToken && sinchPhoneNumber,
+            all_configured: !!(authToken && apiKey && phoneNumber),
             keywords: {
                 total: keywords.length,
                 active: activeKeywords.length,
@@ -45,9 +35,6 @@ Deno.serve(async (req) => {
                     is_active: k.is_active
                 }))
             },
-            church_settings: {
-                sinch_configured: sinchConfigured
-            },
             recent_messages: recentMessages.map(m => ({
                 direction: m.direction,
                 phone: m.phone_number,
@@ -56,24 +43,19 @@ Deno.serve(async (req) => {
                 status: m.status,
                 date: m.created_date
             })),
-            webhook_url: `https://base44.app/api/apps/68d38ad0f4d6d5d05900d129/functions/handleIncomingSinchSMS`,
-            instructions: !sinchServicePlanId || !sinchApiToken || !sinchPhoneNumber ? [
-                "Go to Base44 Dashboard → Settings → Environment Variables",
-                "Add SINCH_SERVICE_PLAN_ID, SINCH_API_TOKEN, and SINCH_PHONE_NUMBER"
+            webhook_url: `Configure inbound webhook in SignalHouse dashboard → Settings → Webhooks → handleSignalhouseWebhook`,
+            instructions: !(authToken && apiKey && phoneNumber) ? [
+                'Go to Base44 Dashboard → Settings → Secrets',
+                'Add SIGNALHOUSE_AUTH_TOKEN, SIGNALHOUSE_API_KEY, and SIGNALHOUSE_PHONE_NUMBER'
             ] : [
-                "Environment variables are set ✅",
-                "Make sure webhook URL is configured in Sinch Dashboard",
-                "Go to: https://dashboard.sinch.com",
-                "Navigate to Numbers → Click your number → Set webhook URL",
-                "Test by texting one of your keywords to your church number"
+                'SignalHouse credentials are set ✅',
+                'Make sure webhook URL is configured in SignalHouse Dashboard',
+                'Go to: https://app.signalhouse.io → Settings → Webhooks',
+                'Set inbound webhook to your handleSignalhouseWebhook function URL'
             ]
         });
 
     } catch (error) {
-        console.error('Test setup error:', error);
-        return Response.json({ 
-            error: 'Failed to check setup',
-            details: error.message 
-        }, { status: 500 });
+        return Response.json({ error: 'Failed to check setup', details: error.message }, { status: 500 });
     }
 });

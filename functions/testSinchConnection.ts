@@ -1,109 +1,53 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+// Renamed: now tests SignalHouse connection instead of Sinch
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
         const user = await base44.auth.me();
+        if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-        if (!user) {
-            return Response.json({ error: 'Unauthorized' }, { status: 401 });
-        }
+        const authToken = Deno.env.get('SIGNALHOUSE_AUTH_TOKEN');
+        const apiKey = Deno.env.get('SIGNALHOUSE_API_KEY');
+        const phoneNumber = Deno.env.get('SIGNALHOUSE_PHONE_NUMBER');
 
-        // Get credentials from environment
-        const envPlanId = Deno.env.get("SINCH_SERVICE_PLAN_ID");
-        const envToken = Deno.env.get("SINCH_API_TOKEN");
-        const envPhone = Deno.env.get("SINCH_PHONE_NUMBER");
-
-        // Get credentials from database
-        let dbPlanId, dbToken, dbPhone;
-        try {
-            const settings = await base44.entities.ChurchSettings.list();
-            if (settings.length > 0) {
-                dbPlanId = settings[0].sinch_service_plan_id;
-                dbToken = settings[0].sinch_api_token;
-                dbPhone = settings[0].sinch_phone_number;
-            }
-        } catch (dbError) {
-            console.error('Failed to load from database:', dbError);
-        }
-
-        // Use env first, fallback to DB
-        const finalPlanId = envPlanId || dbPlanId;
-        const finalToken = envToken || dbToken;
-        const finalPhone = envPhone || dbPhone;
-
-        if (!finalPlanId || !finalToken || !finalPhone) {
+        if (!authToken || !apiKey || !phoneNumber) {
             return Response.json({
                 success: false,
-                error: 'Missing credentials',
+                error: 'Missing SignalHouse credentials',
                 details: {
-                    service_plan_id: finalPlanId ? 'SET' : 'MISSING',
-                    api_token: finalToken ? 'SET' : 'MISSING',
-                    phone_number: finalPhone || 'MISSING',
-                    source_env: {
-                        service_plan_id: !!envPlanId,
-                        api_token: !!envToken,
-                        phone_number: !!envPhone
-                    },
-                    source_db: {
-                        service_plan_id: !!dbPlanId,
-                        api_token: !!dbToken,
-                        phone_number: !!dbPhone
-                    }
+                    SIGNALHOUSE_AUTH_TOKEN: authToken ? 'SET' : 'MISSING',
+                    SIGNALHOUSE_API_KEY: apiKey ? 'SET' : 'MISSING',
+                    SIGNALHOUSE_PHONE_NUMBER: phoneNumber || 'MISSING'
                 }
             });
         }
 
         // Test API connection
-        const sinchUrl = `https://us.sms.api.sinch.com/xms/v1/${finalPlanId}/batches`;
-
-        try {
-            const testResponse = await fetch(sinchUrl, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${finalToken}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            const responseData = await testResponse.json();
-
-            if (testResponse.ok) {
-                return Response.json({
-                    success: true,
-                    message: '✅ Sinch connection successful!',
-                    details: {
-                        api_status: testResponse.status,
-                        phone_number: finalPhone,
-                        credentials_from: envPlanId ? 'environment' : 'database'
-                    }
-                });
-            } else {
-                return Response.json({
-                    success: false,
-                    error: 'API authentication failed',
-                    details: {
-                        status: testResponse.status,
-                        response: responseData
-                    }
-                });
+        const testResponse = await fetch('https://api.signalhouse.io/numbers', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
             }
-        } catch (apiError) {
+        });
+
+        if (testResponse.ok) {
+            return Response.json({
+                success: true,
+                message: '✅ SignalHouse connection successful!',
+                details: { api_status: testResponse.status, phone_number: phoneNumber }
+            });
+        } else {
+            const err = await testResponse.text();
             return Response.json({
                 success: false,
-                error: 'Failed to connect to Sinch API',
-                details: {
-                    error_message: apiError.message
-                }
+                error: 'SignalHouse API authentication failed',
+                details: { status: testResponse.status, response: err }
             });
         }
 
     } catch (error) {
-        console.error('Test Connection Error:', error);
-        return Response.json({
-            success: false,
-            error: 'Test failed',
-            details: error.message
-        }, { status: 500 });
+        return Response.json({ success: false, error: error.message }, { status: 500 });
     }
 });
