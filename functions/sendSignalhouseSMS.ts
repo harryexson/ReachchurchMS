@@ -15,9 +15,9 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'to and message are required' }, { status: 400 });
         }
 
-        const apiKey = Deno.env.get('SIGNALHOUSE_API_KEY');
-        if (!apiKey) {
-            return Response.json({ error: 'SIGNALHOUSE_API_KEY not set' }, { status: 500 });
+        const authToken = Deno.env.get('SIGNALHOUSE_AUTH_TOKEN');
+        if (!authToken) {
+            return Response.json({ error: 'SIGNALHOUSE_AUTH_TOKEN not set' }, { status: 500 });
         }
 
         const toSignalhouseFormat = (num) => {
@@ -31,21 +31,22 @@ Deno.serve(async (req) => {
         const rawFrom = Deno.env.get('SIGNALHOUSE_PHONE_NUMBER') || '15748893590';
         const from = rawFrom.replace(/\D/g, '');
 
+        // SignalHouse requires apiKey in the body — use the auth token as the apiKey
         const payload = {
             from,
             to: [toFormatted],
             body: message,
-            apiKey
+            apiKey: authToken
         };
 
-        console.log('SENDING SMS - from:', from, 'to:', toFormatted);
-        console.log('apiKey length:', apiKey.length, 'first8:', apiKey.substring(0, 8));
+        console.log('SENDING SMS v2 - from:', from, 'to:', toFormatted);
+        console.log('authToken length:', authToken.length, 'first8:', authToken.substring(0, 8));
 
         const response = await fetch('https://api.signalhouse.io/message/sendSMS', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
+                'Authorization': `Bearer ${authToken}`
             },
             body: JSON.stringify(payload)
         });
