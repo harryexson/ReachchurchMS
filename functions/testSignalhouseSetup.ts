@@ -5,46 +5,46 @@ Deno.serve(async (req) => {
         const base44 = createClientFromRequest(req);
 
         const apiKey = Deno.env.get("SIGNALHOUSE_API_KEY");
-        const accountId = Deno.env.get("SIGNALHOUSE_ACCOUNT_ID");
+        const authToken = Deno.env.get("SIGNALHOUSE_AUTH_TOKEN");
         const phoneNumber = Deno.env.get("SIGNALHOUSE_PHONE_NUMBER");
 
         const envVars = {
             SIGNALHOUSE_API_KEY: apiKey ? '✅ Configured' : '❌ Missing',
-            SIGNALHOUSE_ACCOUNT_ID: accountId ? '✅ Configured' : '❌ Missing',
+            SIGNALHOUSE_AUTH_TOKEN: authToken ? '✅ Configured' : '❌ Missing',
             SIGNALHOUSE_PHONE_NUMBER: phoneNumber ? '✅ Configured' : '❌ Missing',
         };
 
-        let allConfigured = true;
+        let allConfigured = !!(apiKey && authToken);
         let instructions = [];
 
-        if (!apiKey) {
-            allConfigured = false;
-            instructions.push("Missing SIGNALHOUSE_API_KEY. Please add it to your environment variables.");
-        }
-        if (!accountId) {
-            allConfigured = false;
-            instructions.push("Missing SIGNALHOUSE_ACCOUNT_ID. Please add it to your environment variables.");
-        }
-        if (!phoneNumber) {
-            allConfigured = false;
-            instructions.push("Missing SIGNALHOUSE_PHONE_NUMBER. Please add it to your environment variables.");
-        }
+        if (!apiKey) instructions.push("Missing SIGNALHOUSE_API_KEY. Please add it to your environment variables.");
+        if (!authToken) instructions.push("Missing SIGNALHOUSE_AUTH_TOKEN. Please add it to your environment variables.");
+        if (!phoneNumber) instructions.push("Missing SIGNALHOUSE_PHONE_NUMBER (optional but recommended).");
 
         let connectionTestSuccess = false;
         let connectionTestError = null;
 
         if (allConfigured) {
             try {
-                const response = await fetch('https://api.signalhouse.io/v1/accounts/' + accountId, {
+                // Test connection by calling the numbers endpoint
+                const response = await fetch('https://api.signalhouse.io/numbers', {
+                    method: 'GET',
                     headers: {
-                        'Authorization': `Bearer ${apiKey}`,
+                        'Authorization': `Bearer ${authToken}`,
+                        'x-api-key': apiKey,
                         'Content-Type': 'application/json'
                     }
                 });
+
+                const responseText = await response.text();
+                console.log('Connection test status:', response.status);
+                console.log('Connection test response:', responseText.substring(0, 300));
+
                 if (response.ok) {
                     connectionTestSuccess = true;
                 } else {
-                    const errorData = await response.json();
+                    let errorData;
+                    try { errorData = JSON.parse(responseText); } catch { errorData = { message: responseText }; }
                     connectionTestError = `SignalHouse API error: ${response.status} - ${errorData.message || errorData.error || 'Unknown error'}`;
                     allConfigured = false;
                 }
