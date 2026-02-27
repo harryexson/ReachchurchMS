@@ -96,7 +96,7 @@ Deno.serve(async (req) => {
         // Log the SMS giving attempt
         await base44.asServiceRole.entities.TextMessage.create({
             from_number: from,
-            to_number: Deno.env.get('SINCH_PHONE_NUMBER'),
+            to_number: Deno.env.get('SIGNALHOUSE_PHONE_NUMBER'),
             message_body: body,
             direction: 'inbound',
             status: 'processed',
