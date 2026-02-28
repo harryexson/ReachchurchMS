@@ -34,8 +34,8 @@ Deno.serve(async (req) => {
         }
 
         // Support single or multiple recipients - always send as array
-        const toList = Array.isArray(to) ? to : [to];
-        const from = rawFrom.startsWith('+') ? rawFrom : `+${rawFrom.replace(/\D/g, '')}`;
+        const toList = Array.isArray(to) ? to.map(formatPhone) : [formatPhone(to)];
+        const from = formatPhone(rawFrom);
         const finalMessage = skipDisclaimer ? message : message + SMS_DISCLAIMER;
 
         if (!apiKey) {
