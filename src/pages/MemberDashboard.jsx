@@ -54,7 +54,7 @@ export default function MemberDashboard() {
             setRecentCampaigns(campaigns);
             setYearEndStatements(statements);
             setMemberProfile(memberRecord[0] || null);
-            // eslint-disable-next-line no-unused-vars
+
             setUpcomingSermons(sermons);
 
             // Show ALL upcoming events (not just ones the member registered for)
