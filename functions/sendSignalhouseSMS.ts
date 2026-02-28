@@ -44,17 +44,19 @@ Deno.serve(async (req) => {
 
         const payload = {
             from,
-            to: toList.map((p) => ({ phone_number: p.startsWith('+') ? p : `+${p}` })),
-            text: finalMessage,
+            to: toList,
+            body: finalMessage,
+            apiKey,
         };
 
-        console.log('SignalHouse SMS payload:', JSON.stringify(payload));
+        console.log('SignalHouse SMS payload:', JSON.stringify({ from, to: toList, bodyLength: finalMessage.length }));
 
-        const response = await fetch('https://app.signalhouse.io/api/v1/messages', {
+        const response = await fetch('https://api.signalhouse.io/message/sendSMS', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${authToken}`,
+                'x-api-key': apiKey,
             },
             body: JSON.stringify(payload)
         });
