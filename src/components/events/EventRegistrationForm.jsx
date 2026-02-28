@@ -142,30 +142,35 @@ REACH ChurchConnect Team`;
     };
 
     if (isSuccess) {
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(registrationCode)}`;
         return (
             <Dialog open={isOpen} onOpenChange={handleClose}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <div className="flex items-center gap-3 mb-4">
+                        <div className="flex items-center gap-3 mb-2">
                             <CheckCircle className="w-8 h-8 text-green-600" />
-                            <DialogTitle className="text-2xl">Registration Confirmed!</DialogTitle>
+                            <DialogTitle className="text-xl">Registration Confirmed!</DialogTitle>
                         </div>
                     </DialogHeader>
                     <div className="text-center space-y-4">
-                        <p>Thank you for registering for <strong>{event.title}</strong>!</p>
-                        <div className="bg-slate-100 p-4 rounded-lg">
-                            <p className="font-medium">Your Registration Code:</p>
-                            <p className="text-lg font-mono font-bold text-blue-600">{registrationCode}</p>
+                        <p className="text-slate-700">You're registered for <strong>{event.title}</strong>!</p>
+
+                        {/* QR Code */}
+                        <div className="flex flex-col items-center gap-2 bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+                            <img src={qrUrl} alt="Check-in QR Code" className="w-48 h-48" />
+                            <p className="text-xs text-slate-500">Scan at the check-in desk</p>
+                            <p className="font-mono font-bold text-blue-600 text-sm tracking-wide">{registrationCode}</p>
                         </div>
-                        <p className="text-sm text-slate-600">
-                            A confirmation email has been sent to {formData.registrant_email}.
-                        </p>
-                        <p className="text-sm text-green-600 font-medium">
-                            We'll also remind you as the event approaches!
-                        </p>
+
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-800 space-y-1 text-left">
+                            <p>✅ Confirmation email sent to <strong>{formData.registrant_email}</strong></p>
+                            {formData.registrant_phone && <p>✅ SMS sent to <strong>{formData.registrant_phone}</strong></p>}
+                            <p>✅ QR code saved to your in-app messages</p>
+                        </div>
+                        <p className="text-xs text-slate-500">Present this QR code from your phone screen or email at check-in.</p>
                     </div>
                     <DialogFooter>
-                        <Button onClick={handleClose} className="w-full">Close</Button>
+                        <Button onClick={handleClose} className="w-full bg-blue-600 hover:bg-blue-700">Done</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
