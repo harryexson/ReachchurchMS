@@ -33,11 +33,10 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'SIGNALHOUSE_AUTH_TOKEN not configured' }, { status: 500 });
         }
 
-        // Support single or multiple recipients
+        // Support single or multiple recipients - always send as array
         const toList = Array.isArray(to) ? to.map(formatPhone) : [formatPhone(to)];
         const from = formatPhone(rawFrom);
         const finalMessage = skipDisclaimer ? message : message + SMS_DISCLAIMER;
-        const toField = Array.isArray(to) ? toList : toList[0];
 
         if (!apiKey) {
             return Response.json({ error: 'SIGNALHOUSE_API_KEY not configured' }, { status: 500 });
@@ -45,7 +44,7 @@ Deno.serve(async (req) => {
 
         const payload = {
             from,
-            to: toField,
+            to: toList,       // always an array
             body: finalMessage,
             apiKey,           // camelCase for newer API
             api_key: apiKey,  // snake_case for compatibility
