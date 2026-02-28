@@ -25,6 +25,7 @@ import EventFeedbackForm from "../components/events/EventFeedbackForm";
 import EventCommunicationManager from "../components/events/EventCommunicationManager";
 import EventInvitationManager from "../components/events/EventInvitationManager";
 import EventQRCodeGenerator from "../components/events/EventQRCodeGenerator";
+import EventCheckInQRCode from "../components/events/EventCheckInQRCode";
 import AttendanceReport from "../components/events/AttendanceReport";
 
 export default function EventsPage() {
@@ -56,6 +57,8 @@ export default function EventsPage() {
     const [selectedEventForInvite, setSelectedEventForInvite] = useState(null);
     const [showQRCode, setShowQRCode] = useState(false);
     const [qrCodeEvent, setQRCodeEvent] = useState(null);
+    const [showCheckInQR, setShowCheckInQR] = useState(false);
+    const [checkInQREvent, setCheckInQREvent] = useState(null);
 
     useEffect(() => {
         loadData();
@@ -482,19 +485,32 @@ REACH Church Team`);
                                                         </Button>
                                                         
                                                         {event.registration_required && (
-                                                            <>
-                                                                <Button
-                                                                    variant="outline"
-                                                                    size="sm"
-                                                                    onClick={() => {
-                                                                        setQRCodeEvent(event);
-                                                                        setShowQRCode(true);
-                                                                    }}
-                                                                    className="text-indigo-700 border-indigo-200 hover:bg-indigo-50"
-                                                                >
-                                                                    <QrCode className="w-4 h-4 mr-1" />
-                                                                    QR Code & Share
-                                                                </Button>
+                                                             <>
+                                                                 <Button
+                                                                     variant="outline"
+                                                                     size="sm"
+                                                                     onClick={() => {
+                                                                         setQRCodeEvent(event);
+                                                                         setShowQRCode(true);
+                                                                     }}
+                                                                     className="text-indigo-700 border-indigo-200 hover:bg-indigo-50"
+                                                                 >
+                                                                     <QrCode className="w-4 h-4 mr-1" />
+                                                                     QR Code & Share
+                                                                 </Button>
+
+                                                                 <Button
+                                                                     variant="outline"
+                                                                     size="sm"
+                                                                     onClick={() => {
+                                                                         setCheckInQREvent(event);
+                                                                         setShowCheckInQR(true);
+                                                                     }}
+                                                                     className="text-green-700 border-green-200 hover:bg-green-50"
+                                                                 >
+                                                                     <QrCode className="w-4 h-4 mr-1" />
+                                                                     Check-In QR
+                                                                 </Button>
 
                                                                 <EventPromotion event={event} registrationUrl={regUrl} />
 
@@ -806,7 +822,7 @@ REACH Church Team`);
                     />
                 )}
 
-                {/* QR Code Modal */}
+                {/* Registration QR Code Modal */}
                 {showQRCode && qrCodeEvent && (
                     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
                         <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -823,6 +839,16 @@ REACH Church Team`);
                         </div>
                     </div>
                 )}
+
+                {/* Check-In QR Code Modal */}
+                <EventCheckInQRCode 
+                    event={checkInQREvent}
+                    isOpen={showCheckInQR}
+                    onClose={() => {
+                        setShowCheckInQR(false);
+                        setCheckInQREvent(null);
+                    }}
+                />
             </div>
         </div>
     );
