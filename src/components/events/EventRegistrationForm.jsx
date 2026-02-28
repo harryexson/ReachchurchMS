@@ -42,6 +42,7 @@ export default function EventRegistrationForm({ event, isOpen, setIsOpen, onRegi
             const registrationData = {
                 event_id: event.id,
                 event_title: event.title,
+                church_admin_email: event.church_admin_email || event.created_by || "",
                 registration_code: regCode,
                 registration_date: new Date().toISOString().split('T')[0],
                 qr_code_url: qrCodeUrl,
