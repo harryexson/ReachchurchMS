@@ -37,11 +37,8 @@ export default function EventRegistrationForm({ event, isOpen, setIsOpen, onRegi
 
         try {
             const regCode = generateRegistrationCode();
-            
-            // Generate QR code using free QR API (no AI image gen needed)
             const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(regCode)}`;
 
-            // Create the registration
             const registrationData = {
                 event_id: event.id,
                 event_title: event.title,
@@ -52,41 +49,73 @@ export default function EventRegistrationForm({ event, isOpen, setIsOpen, onRegi
                 ...formData
             };
 
-            await EventRegistration.create(registrationData);
+            await base44.entities.EventRegistration.create(registrationData);
 
-            // Send confirmation email
-            const emailBody = `
-Dear ${formData.registrant_name},
+            const eventDate = format(new Date(event.start_datetime), 'EEEE, MMMM d, yyyy');
+            const eventTime = format(new Date(event.start_datetime), 'h:mm a');
+            const location = event.location || 'To be announced';
+
+            // 1. Send confirmation EMAIL with QR code image
+            const emailBody = `Dear ${formData.registrant_name},
 
 Thank you for registering for "${event.title}"!
 
-Event Details:
-📅 Date: ${format(new Date(event.start_datetime), 'EEEE, MMMM d, yyyy')}
-🕐 Time: ${format(new Date(event.start_datetime), 'h:mm a')}
-📍 Location: ${event.location || 'To be announced'}
-🎫 Your Registration Code: ${regCode}
+📅 Date: ${eventDate}
+🕐 Time: ${eventTime}
+📍 Location: ${location}
+🎫 Registration Code: ${regCode}
 
-${formData.special_requirements ? `Special Requirements Noted: ${formData.special_requirements}\n` : ''}${event.pastor_speaker ? `Speaker: ${event.pastor_speaker}\n` : ''}
-Please save this email and bring your registration code to the event for check-in.
+Your QR Code for check-in:
+${qrCodeUrl}
+
+Please present this QR code (or your registration code) at the check-in desk. You can scan it directly from your phone screen.
+${formData.special_requirements ? `\nSpecial Requirements Noted: ${formData.special_requirements}` : ''}${event.pastor_speaker ? `\nSpeaker: ${event.pastor_speaker}` : ''}
 
 We look forward to seeing you there!
 
 Blessings,
-REACH ChurchConnect Team
-            `;
+REACH ChurchConnect Team`;
 
-            await base44.integrations.Core.SendEmail({
-                to: formData.registrant_email,
-                subject: `Registration Confirmed - ${event.title}`,
-                body: emailBody
-            });
+            // 2. Send SMS if phone provided
+            const smsText = `Hi ${formData.registrant_name}! You're registered for "${event.title}" on ${eventDate} at ${eventTime}. Location: ${location}. Your QR code: ${qrCodeUrl} (Code: ${regCode}). Show this at check-in. - REACH Church`;
 
-            // Schedule reminder emails
-            await scheduleReminders(registrationData);
+            // 3. Create in-app message
+            const inAppMsg = {
+                recipient_email: formData.registrant_email,
+                sender_name: 'Church Events',
+                subject: `Registration Confirmed: ${event.title}`,
+                message: `You're registered for **${event.title}**!\n\n📅 ${eventDate} at ${eventTime}\n📍 ${location}\n\n🎫 **Registration Code:** ${regCode}\n\n![QR Code](${qrCodeUrl})\n\nPresent this QR code or your registration code at the check-in desk.`,
+                message_type: 'event_registration',
+                is_read: false,
+                sent_at: new Date().toISOString()
+            };
+
+            // Fire all three in parallel
+            const tasks = [
+                base44.integrations.Core.SendEmail({
+                    to: formData.registrant_email,
+                    subject: `Registration Confirmed - ${event.title}`,
+                    body: emailBody
+                }),
+                base44.entities.InAppMessage.create(inAppMsg)
+            ];
+
+            // Only send SMS if phone number provided
+            if (formData.registrant_phone && formData.registrant_phone.trim()) {
+                tasks.push(
+                    base44.functions.invoke('sendSignalhouseSMS', {
+                        recipients: [formData.registrant_phone.trim()],
+                        message: smsText,
+                        skip_disclaimer: true
+                    }).catch(err => console.warn('SMS send failed (non-critical):', err))
+                );
+            }
+
+            await Promise.all(tasks);
 
             setRegistrationCode(regCode);
             setIsSuccess(true);
-            
+
             if (onRegistrationComplete) {
                 onRegistrationComplete(registrationData);
             }
