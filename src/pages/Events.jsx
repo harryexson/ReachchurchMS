@@ -25,6 +25,7 @@ import EventFeedbackForm from "../components/events/EventFeedbackForm";
 import EventCommunicationManager from "../components/events/EventCommunicationManager";
 import EventInvitationManager from "../components/events/EventInvitationManager";
 import EventQRCodeGenerator from "../components/events/EventQRCodeGenerator";
+import AttendanceReport from "../components/events/AttendanceReport";
 
 export default function EventsPage() {
     const [events, setEvents] = useState([]);
