@@ -1,4 +1,4 @@
-// v3 - read body FIRST before SDK client
+// v4 - include authToken in body payload
 const SMS_DISCLAIMER = "\n\nMsg & Data Rates may apply. Text STOP to opt-out. Text HELP for help.";
 
 function formatPhone(num) {
@@ -9,17 +9,18 @@ function formatPhone(num) {
 }
 
 Deno.serve(async (req) => {
-    // Debug: log all env vars at startup
-    console.log('[v3] ENV CHECK authToken:', Deno.env.get('SIGNALHOUSE_AUTH_TOKEN') ? 'SET(len=' + Deno.env.get('SIGNALHOUSE_AUTH_TOKEN').length + ')' : 'MISSING');
-    console.log('[v3] ENV CHECK apiKey:', Deno.env.get('SIGNALHOUSE_API_KEY') ? 'SET(len=' + Deno.env.get('SIGNALHOUSE_API_KEY').length + ')' : 'MISSING');
+    const authToken = Deno.env.get('SIGNALHOUSE_AUTH_TOKEN') || '';
+    const apiKey = Deno.env.get('SIGNALHOUSE_API_KEY') || '';
+    const rawFrom = Deno.env.get('SIGNALHOUSE_PHONE_NUMBER') || '';
+
+    console.log('[v4] ENV: authToken_len=' + authToken.length + ' apiKey_len=' + apiKey.length + ' apiKey[0:12]=' + apiKey.substring(0,12) + ' authToken[0:12]=' + authToken.substring(0,12));
 
     if (req.method !== 'POST') {
         return Response.json({ error: 'Method Not Allowed' }, { status: 405 });
     }
 
-    // Read body text FIRST before anything else touches the stream
     const rawBody = await req.text();
-    console.log('[v3] raw body received, length:', rawBody.length);
+    console.log('[v4] body len:', rawBody.length);
 
     let body;
     try { body = JSON.parse(rawBody); } catch (e) {
@@ -34,13 +35,6 @@ Deno.serve(async (req) => {
         return Response.json({ error: 'to and message are required' }, { status: 400 });
     }
 
-    const authToken = Deno.env.get('SIGNALHOUSE_AUTH_TOKEN') || '';
-    const apiKey = Deno.env.get('SIGNALHOUSE_API_KEY') || '';
-    const rawFrom = Deno.env.get('SIGNALHOUSE_PHONE_NUMBER') || '';
-
-    console.log('[v3] authToken_len:', authToken.length, 'authToken[0:20]:', authToken.substring(0,20), 'apiKey_len:', apiKey.length, 'apiKey[0:8]:', apiKey.substring(0,8), 'from:', rawFrom);
-
-    console.log('[v3] ALL ENV authToken:', JSON.stringify(authToken).substring(0,30), 'apiKey:', JSON.stringify(apiKey).substring(0,20));
     if (!authToken) return Response.json({ error: 'SIGNALHOUSE_AUTH_TOKEN not configured' }, { status: 500 });
     if (!apiKey) return Response.json({ error: 'SIGNALHOUSE_API_KEY not configured' }, { status: 500 });
     if (!rawFrom) return Response.json({ error: 'SIGNALHOUSE_PHONE_NUMBER not configured' }, { status: 500 });
@@ -49,11 +43,10 @@ Deno.serve(async (req) => {
     const from = formatPhone(rawFrom);
     const finalMessage = skipDisclaimer ? message : message + SMS_DISCLAIMER;
 
-    // SignalHouse expects both apiKey and authToken in the body
+    // Include both apiKey and authToken in the request body as SignalHouse requires
     const payload = { from, to: toList, body: finalMessage, apiKey, authToken };
-    console.log('[v3] payload keys:', Object.keys(payload).join(','), 'authTokenLen:', authToken.length);
 
-    console.log('[v3] sending payload:', JSON.stringify({ from, to: toList, bodyLen: finalMessage.length, apiKeyLen: apiKey.length, apiKeyFirst8: apiKey.substring(0,8) }));
+    console.log('[v4] sending to SignalHouse, payload keys:', Object.keys(payload).join(','));
 
     const response = await fetch('https://api.signalhouse.io/message/sendSMS', {
         method: 'POST',
@@ -61,14 +54,12 @@ Deno.serve(async (req) => {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + authToken,
             'x-api-key': apiKey,
-            'api-key': apiKey,
-            'ApiKey': apiKey,
         },
         body: JSON.stringify(payload)
     });
 
     const responseText = await response.text();
-    console.log('[v3] SH status:', response.status, 'body:', responseText.substring(0, 500));
+    console.log('[v4] SH status:', response.status, 'body:', responseText.substring(0, 500));
 
     let data;
     try { data = JSON.parse(responseText); } catch (_) {
