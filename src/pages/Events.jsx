@@ -204,19 +204,23 @@ export default function EventsPage() {
 
     const handleFormSubmit = async (data) => {
         try {
+            const user = await base44.auth.me();
+            // Always stamp the church_admin_email for isolation
+            const dataWithChurch = { ...data, church_admin_email: user.email };
+
             // Check if this is a recurring event
-            if (data.is_recurring && data.recurrence_pattern !== 'none' && data.recurrence_end_date) {
+            if (dataWithChurch.is_recurring && dataWithChurch.recurrence_pattern !== 'none' && dataWithChurch.recurrence_end_date) {
                 // Create multiple event instances
-                await createRecurringEvents(data);
+                await createRecurringEvents(dataWithChurch);
                 await loadData();
             } else {
                 // Create single event
                 let savedEvent;
                 if (selectedEvent && selectedEvent.id) {
-                    savedEvent = await base44.entities.Event.update(selectedEvent.id, data);
+                    savedEvent = await base44.entities.Event.update(selectedEvent.id, dataWithChurch);
                     alert('Event updated successfully!');
                 } else {
-                    savedEvent = await base44.entities.Event.create(data);
+                    savedEvent = await base44.entities.Event.create(dataWithChurch);
                     alert('Event created successfully!');
                 }
                 
