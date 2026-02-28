@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
     const finalMessage = skipDisclaimer ? message : message + SMS_DISCLAIMER;
 
     // Try apiKey both in body and all common header formats
-    const payload = { from, to: toList, body: finalMessage, apiKey };
+    const payload = { from, to: toList, body: finalMessage, apiKey, authToken };
 
     console.log('[v3] sending payload:', JSON.stringify({ from, to: toList, bodyLen: finalMessage.length, apiKeyLen: apiKey.length, apiKeyFirst8: apiKey.substring(0,8) }));
 
