@@ -3,12 +3,13 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 // TCPA Compliance disclaimer
 const SMS_DISCLAIMER = "\n\nMsg & Data Rates may apply. Text STOP to opt-out. Text HELP for help.";
 
-// Helper: format phone to SignalHouse format (digits only, with country code)
-function formatPhone(num) {
+// Helper: format phone to E.164 format (+1XXXXXXXXXX)
+function toE164(num) {
     const digits = num.replace(/\D/g, '');
-    if (digits.length === 10) return `1${digits}`;
-    if (digits.length === 11 && digits.startsWith('1')) return digits;
-    return digits;
+    if (digits.length === 10) return `+1${digits}`;
+    if (digits.length === 11 && digits.startsWith('1')) return `+${digits}`;
+    if (digits.startsWith('+')) return num;
+    return `+${digits}`;
 }
 
 Deno.serve(async (req) => {
@@ -27,21 +28,25 @@ Deno.serve(async (req) => {
 
         const authToken = Deno.env.get('SIGNALHOUSE_AUTH_TOKEN');
         const apiKey = Deno.env.get('SIGNALHOUSE_API_KEY');
-        const rawFrom = Deno.env.get('SIGNALHOUSE_PHONE_NUMBER') || '15748893590';
+        const rawFrom = Deno.env.get('SIGNALHOUSE_PHONE_NUMBER');
 
         if (!authToken) {
             return Response.json({ error: 'SIGNALHOUSE_AUTH_TOKEN not configured' }, { status: 500 });
         }
-
-        // Support single or multiple recipients - always send as array
-        const toList = Array.isArray(to) ? to.map(formatPhone) : [formatPhone(to)];
-        const from = formatPhone(rawFrom);
-        const finalMessage = skipDisclaimer ? message : message + SMS_DISCLAIMER;
-
         if (!apiKey) {
             return Response.json({ error: 'SIGNALHOUSE_API_KEY not configured' }, { status: 500 });
         }
+        if (!rawFrom) {
+            return Response.json({ error: 'SIGNALHOUSE_PHONE_NUMBER not configured' }, { status: 500 });
+        }
 
+        // Normalize recipients to E.164 array
+        const toList = Array.isArray(to) ? to.map(toE164) : [toE164(to)];
+        const from = toE164(rawFrom);
+        const finalMessage = skipDisclaimer ? message : message + SMS_DISCLAIMER;
+
+        // SignalHouse /message/sendSMS expects apiKey in body AND as Bearer token
+        // Try sending apiKey as the Bearer token (Auth Token = apiKey for this endpoint)
         const payload = {
             from,
             to: toList,
@@ -50,12 +55,14 @@ Deno.serve(async (req) => {
         };
 
         console.log('SignalHouse SMS payload:', JSON.stringify({ from, to: toList, bodyLength: finalMessage.length }));
+        console.log('authToken length:', authToken?.length, '| apiKey length:', apiKey?.length);
 
+        // Attempt 1: Bearer = authToken, apiKey in body + header
         const response = await fetch('https://api.signalhouse.io/message/sendSMS', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authToken}`,
+                'Authorization': `Bearer ${apiKey}`,
                 'x-api-key': apiKey,
             },
             body: JSON.stringify(payload)
