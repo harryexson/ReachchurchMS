@@ -99,10 +99,8 @@ REACH Church Team
         try {
             const regCode = generateRegistrationCode();
             
-            // Generate QR code image with registration details
-            const qrResult = await GenerateImage({
-                prompt: `Create a clean, professional QR code image with the text "${regCode}" encoded. The QR code should be large, clear, and easily scannable. Include small text below showing "Registration Code: ${regCode}" and "Event: ${event.title}". Use a white background with black QR code. Make it suitable for email and printing.`
-            });
+            // Generate QR code using free QR API (no AI image gen needed)
+            const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(regCode)}`;
 
             // Create the registration
             const registrationData = {
@@ -110,7 +108,7 @@ REACH Church Team
                 event_title: event.title,
                 registration_code: regCode,
                 registration_date: new Date().toISOString().split('T')[0],
-                qr_code_url: qrResult.url,
+                qr_code_url: qrCodeUrl,
                 checked_in: false,
                 ...formData
             };
@@ -129,28 +127,20 @@ Event Details:
 📍 Location: ${event.location || 'To be announced'}
 🎫 Your Registration Code: ${regCode}
 
-${formData.special_requirements ? `\nSpecial Requirements Noted: ${formData.special_requirements}\n` : ''}
-
-${event.pastor_speaker ? `Speaker: ${event.pastor_speaker}\n` : ''}
-
-Please save this email and bring it with you to the event. You can show the QR code below at check-in for faster entry.
-
-We'll send you reminder emails as the event approaches!
+${formData.special_requirements ? `Special Requirements Noted: ${formData.special_requirements}\n` : ''}${event.pastor_speaker ? `Speaker: ${event.pastor_speaker}\n` : ''}
+Please save this email and bring your registration code to the event for check-in.
 
 We look forward to seeing you there!
 
 Blessings,
 REACH ChurchConnect Team
-
----
-QR Code for Check-in: ${qrResult.url}
             `;
-            
-            // This is a workaround for the platform limitation of not being able to send emails to non-users.
-            // Instead of calling SendEmail, we'll open a mailto link for the user to send it from their client.
-             const mailtoHref = `mailto:${formData.registrant_email}?subject=${encodeURIComponent(`Registration Confirmed - ${event.title}`)}&body=${encodeURIComponent(emailBody)}`;
-             window.open(mailtoHref, '_blank');
 
+            await base44.integrations.Core.SendEmail({
+                to: formData.registrant_email,
+                subject: `Registration Confirmed - ${event.title}`,
+                body: emailBody
+            });
 
             // Schedule reminder emails
             await scheduleReminders(registrationData);
