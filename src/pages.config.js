@@ -79,7 +79,6 @@ import DonationStatements from './pages/DonationStatements';
 import DonorCommunications from './pages/DonorCommunications';
 import DonorPortal from './pages/DonorPortal';
 import EditMMSCampaign from './pages/EditMMSCampaign';
-import EventCheckIn from './pages/EventCheckIn';
 import EventRegistration from './pages/EventRegistration';
 import Events from './pages/Events';
 import FAQ from './pages/FAQ';
@@ -194,6 +193,7 @@ import Volunteers from './pages/Volunteers';
 import WhyReach from './pages/WhyReach';
 import WorkflowBuilder from './pages/WorkflowBuilder';
 import backoffice from './pages/backoffice';
+import EventCheckIn from './pages/EventCheckIn';
 import __Layout from './Layout.jsx';
 
 
@@ -230,7 +230,6 @@ export const PAGES = {
     "DonorCommunications": DonorCommunications,
     "DonorPortal": DonorPortal,
     "EditMMSCampaign": EditMMSCampaign,
-    "EventCheckIn": EventCheckIn,
     "EventRegistration": EventRegistration,
     "Events": Events,
     "FAQ": FAQ,
@@ -345,6 +344,7 @@ export const PAGES = {
     "WhyReach": WhyReach,
     "WorkflowBuilder": WorkflowBuilder,
     "backoffice": backoffice,
+    "EventCheckIn": EventCheckIn,
 }
 
 export const pagesConfig = {

@@ -568,7 +568,7 @@ export default function Layout({ children, currentPageName }) {
       icon: UserCheck,
     },
     {
-      title: "Events Management",
+      title: "Events",
       url: createPageUrl("Events"),
       icon: Calendar,
     },
