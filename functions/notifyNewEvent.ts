@@ -17,39 +17,63 @@ Deno.serve(async (req) => {
             return Response.json({ message: 'Event not found or cancelled' });
         }
 
-        // Get all members who want event notifications
-        const allPrefs = await base44.asServiceRole.entities.NotificationPreference.filter({
-            event_notifications: true
+        const eventDate = new Date(eventRecord.start_datetime).toLocaleDateString('en-US', {
+            weekday: 'long',
+            month: 'long',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit'
         });
 
-        const recipientEmails = allPrefs.map(p => p.user_email);
+        const notificationTitle = event.type === 'create'
+            ? `📅 New Event: ${eventRecord.title}`
+            : `📅 Event Updated: ${eventRecord.title}`;
 
-        if (recipientEmails.length > 0) {
-            const title = event.type === 'create' 
-                ? `📅 New Event: ${eventRecord.title}`
-                : `📅 Event Updated: ${eventRecord.title}`;
+        const notificationMessage = `${eventRecord.description || ''}\n\nWhen: ${eventDate}\nWhere: ${eventRecord.location || 'TBA'}`;
 
-            const eventDate = new Date(eventRecord.start_datetime).toLocaleDateString('en-US', {
-                weekday: 'long',
-                month: 'long',
-                day: 'numeric',
-                hour: 'numeric',
-                minute: '2-digit'
-            });
+        // Get all members to notify
+        const [allPrefs, allMembers] = await Promise.all([
+            base44.asServiceRole.entities.NotificationPreference.filter({ event_notifications: true }),
+            base44.asServiceRole.entities.Member.list()
+        ]);
 
+        const prefEmails = allPrefs.map(p => p.user_email);
+        const memberEmails = allMembers.map(m => m.email).filter(Boolean);
+
+        // Combine unique emails
+        const allEmails = [...new Set([...prefEmails, ...memberEmails])];
+
+        // Send in-app notifications
+        if (allEmails.length > 0) {
             await base44.asServiceRole.functions.invoke('sendNotifications', {
-                recipient_emails: recipientEmails,
-                title,
-                message: `${eventRecord.description || ''}\n\nWhen: ${eventDate}\nWhere: ${eventRecord.location || 'TBA'}`,
+                recipient_emails: allEmails,
+                title: notificationTitle,
+                message: notificationMessage,
                 type: 'event',
                 priority: 'normal',
-                action_url: `/events?event=${eventRecord.id}`
+                action_url: `/public-events-calendar`
             });
+        }
+
+        // Create in-app messages for all members (only on new event creation)
+        if (event.type === 'create' && allEmails.length > 0) {
+            const inAppMessages = allEmails.map(email => ({
+                recipient_email: email,
+                sender_name: 'Church Events',
+                subject: notificationTitle,
+                message: notificationMessage,
+                message_type: 'event_announcement',
+                is_read: false,
+                sent_at: new Date().toISOString()
+            }));
+
+            // Bulk create in-app messages
+            await base44.asServiceRole.entities.InAppMessage.bulkCreate(inAppMessages);
         }
 
         return Response.json({
             success: true,
-            notifications_sent: recipientEmails.length
+            notifications_sent: allEmails.length
         });
 
     } catch (error) {
