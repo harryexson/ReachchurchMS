@@ -44,9 +44,10 @@ Deno.serve(async (req) => {
     const from = formatPhone(rawFrom);
     const finalMessage = skipDisclaimer ? message : message + SMS_DISCLAIMER;
 
+    // Try apiKey both in body and all common header formats
     const payload = { from, to: toList, body: finalMessage, apiKey };
 
-    console.log('[v3] sending payload:', JSON.stringify({ from, to: toList, bodyLen: finalMessage.length, apiKeyLen: apiKey.length }));
+    console.log('[v3] sending payload:', JSON.stringify({ from, to: toList, bodyLen: finalMessage.length, apiKeyLen: apiKey.length, apiKeyFirst8: apiKey.substring(0,8) }));
 
     const response = await fetch('https://api.signalhouse.io/message/sendSMS', {
         method: 'POST',
@@ -54,6 +55,8 @@ Deno.serve(async (req) => {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + authToken,
             'x-api-key': apiKey,
+            'api-key': apiKey,
+            'ApiKey': apiKey,
         },
         body: JSON.stringify(payload)
     });
