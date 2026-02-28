@@ -1,6 +1,4 @@
-// v2-fresh
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
-
+// v3 - read body FIRST before SDK client
 const SMS_DISCLAIMER = "\n\nMsg & Data Rates may apply. Text STOP to opt-out. Text HELP for help.";
 
 function formatPhone(num) {
@@ -15,10 +13,15 @@ Deno.serve(async (req) => {
         return Response.json({ error: 'Method Not Allowed' }, { status: 405 });
     }
 
-    const base44 = createClientFromRequest(req);
-    try { await base44.auth.me(); } catch (_) {}
+    // Read body text FIRST before anything else touches the stream
+    const rawBody = await req.text();
+    console.log('[v3] raw body received, length:', rawBody.length);
 
-    const body = await req.json();
+    let body;
+    try { body = JSON.parse(rawBody); } catch (e) {
+        return Response.json({ error: 'Invalid JSON: ' + e.message }, { status: 400 });
+    }
+
     const to = body.to;
     const message = body.message;
     const skipDisclaimer = body.skipDisclaimer;
@@ -31,9 +34,7 @@ Deno.serve(async (req) => {
     const apiKey = Deno.env.get('SIGNALHOUSE_API_KEY') || '';
     const rawFrom = Deno.env.get('SIGNALHOUSE_PHONE_NUMBER') || '';
 
-    // DIAGNOSTIC: always log env state
-    const envDiag = { authToken_len: authToken.length, apiKey_len: apiKey.length, apiKey_first8: apiKey.substring(0,8), rawFrom };
-    console.log('ENV DIAG', JSON.stringify(envDiag));
+    console.log('[v3] authToken_len:', authToken.length, 'apiKey_len:', apiKey.length, 'apiKey[0:8]:', apiKey.substring(0,8), 'from:', rawFrom);
 
     if (!authToken) return Response.json({ error: 'SIGNALHOUSE_AUTH_TOKEN not configured' }, { status: 500 });
     if (!apiKey) return Response.json({ error: 'SIGNALHOUSE_API_KEY not configured' }, { status: 500 });
@@ -43,14 +44,9 @@ Deno.serve(async (req) => {
     const from = formatPhone(rawFrom);
     const finalMessage = skipDisclaimer ? message : message + SMS_DISCLAIMER;
 
-    const payload = {
-        from,
-        to: toList,
-        body: finalMessage,
-        apiKey,
-    };
+    const payload = { from, to: toList, body: finalMessage, apiKey };
 
-    console.log('PAYLOAD', JSON.stringify({ from, to: toList, apiKey_len: apiKey.length }));
+    console.log('[v3] sending payload:', JSON.stringify({ from, to: toList, bodyLen: finalMessage.length, apiKeyLen: apiKey.length }));
 
     const response = await fetch('https://api.signalhouse.io/message/sendSMS', {
         method: 'POST',
@@ -63,11 +59,11 @@ Deno.serve(async (req) => {
     });
 
     const responseText = await response.text();
-    console.log('RESPONSE', response.status, responseText.substring(0, 500));
+    console.log('[v3] SH status:', response.status, 'body:', responseText.substring(0, 500));
 
     let data;
     try { data = JSON.parse(responseText); } catch (_) {
-        return Response.json({ error: 'Non-JSON from SignalHouse', raw: responseText.substring(0, 300), status: response.status }, { status: 500 });
+        return Response.json({ error: 'Non-JSON from SignalHouse', raw: responseText.substring(0,300), http_status: response.status }, { status: 500 });
     }
 
     if (response.ok) {
