@@ -37,6 +37,7 @@ Deno.serve(async (req) => {
         const toList = Array.isArray(to) ? to.map(formatPhone) : [formatPhone(to)];
         const from = formatPhone(rawFrom);
         const finalMessage = skipDisclaimer ? message : message + SMS_DISCLAIMER;
+        const toField = Array.isArray(to) ? toList : toList[0];
 
         if (!apiKey) {
             return Response.json({ error: 'SIGNALHOUSE_API_KEY not configured' }, { status: 500 });
@@ -44,9 +45,10 @@ Deno.serve(async (req) => {
 
         const payload = {
             from,
-            to: toList,
+            to: toField,
             body: finalMessage,
-            apiKey,
+            apiKey,           // camelCase for newer API
+            api_key: apiKey,  // snake_case for compatibility
             verify: true,
             shortLink: false
         };
