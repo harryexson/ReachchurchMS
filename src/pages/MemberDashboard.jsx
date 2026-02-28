@@ -31,13 +31,20 @@ export default function MemberDashboard() {
             setCurrentUser(user);
 
             // Load all member data
-            const [donations, announcements, campaigns, statements, allEvents, memberRecord, groupAssignments, sermons] = await Promise.all([
+            // Find which church this member belongs to
+            const memberRecord = await base44.entities.Member.filter({ email: user.email });
+            const churchAdminEmail = memberRecord[0]?.church_admin_email || null;
+
+            const eventsQuery = churchAdminEmail
+                ? base44.entities.Event.filter({ church_admin_email: churchAdminEmail }, '-start_datetime', 20)
+                : Promise.resolve([]);
+
+            const [donations, announcements, campaigns, statements, allEvents, groupAssignments, sermons] = await Promise.all([
                 base44.entities.Donation.filter({ donor_email: user.email }),
                 base44.entities.Announcement.filter({ status: 'published' }, '-publish_date', 5),
                 base44.entities.MMSCampaign.filter({ status: 'sent' }, '-sent_date', 3),
                 base44.entities.DonationStatement.filter({ donor_email: user.email }, '-statement_year', 3),
-                base44.entities.Event.list('-start_datetime', 20),
-                base44.entities.Member.filter({ email: user.email }),
+                eventsQuery,
                 base44.entities.MemberGroupAssignment.filter({ member_email: user.email }),
                 base44.entities.Sermon.list('-sermon_date', 5)
             ]);
@@ -47,6 +54,7 @@ export default function MemberDashboard() {
             setRecentCampaigns(campaigns);
             setYearEndStatements(statements);
             setMemberProfile(memberRecord[0] || null);
+            // eslint-disable-next-line no-unused-vars
             setUpcomingSermons(sermons);
 
             // Show ALL upcoming events (not just ones the member registered for)
