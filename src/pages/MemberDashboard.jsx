@@ -31,12 +31,12 @@ export default function MemberDashboard() {
             setCurrentUser(user);
 
             // Load all member data
-            const [donations, announcements, campaigns, statements, events, memberRecord, groupAssignments, sermons] = await Promise.all([
+            const [donations, announcements, campaigns, statements, allEvents, memberRecord, groupAssignments, sermons] = await Promise.all([
                 base44.entities.Donation.filter({ donor_email: user.email }),
                 base44.entities.Announcement.filter({ status: 'published' }, '-publish_date', 5),
                 base44.entities.MMSCampaign.filter({ status: 'sent' }, '-sent_date', 3),
                 base44.entities.DonationStatement.filter({ donor_email: user.email }, '-statement_year', 3),
-                base44.entities.EventRegistration.filter({ registrant_email: user.email }),
+                base44.entities.Event.list('-start_datetime', 20),
                 base44.entities.Member.filter({ email: user.email }),
                 base44.entities.MemberGroupAssignment.filter({ member_email: user.email }),
                 base44.entities.Sermon.list('-sermon_date', 5)
@@ -49,15 +49,12 @@ export default function MemberDashboard() {
             setMemberProfile(memberRecord[0] || null);
             setUpcomingSermons(sermons);
 
-            // Get upcoming events
-            const upcomingEventIds = events.map(e => e.event_id);
-            if (upcomingEventIds.length > 0) {
-                const eventDetails = await base44.entities.Event.filter({
-                    id: { $in: upcomingEventIds }
-                });
-                const upcoming = eventDetails.filter(e => new Date(e.start_datetime) > new Date());
-                setMyEvents(upcoming);
-            }
+            // Show ALL upcoming events (not just ones the member registered for)
+            const now = new Date();
+            const upcoming = allEvents
+                .filter(e => e.start_datetime && new Date(e.start_datetime) > now && e.status !== 'cancelled')
+                .sort((a, b) => new Date(a.start_datetime) - new Date(b.start_datetime));
+            setMyEvents(upcoming);
 
             // Get group details
             if (groupAssignments.length > 0) {
