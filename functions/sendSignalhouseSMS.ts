@@ -45,8 +45,6 @@ Deno.serve(async (req) => {
         const from = toE164(rawFrom);
         const finalMessage = skipDisclaimer ? message : message + SMS_DISCLAIMER;
 
-        // SignalHouse /message/sendSMS expects apiKey in body AND as Bearer token
-        // Try sending apiKey as the Bearer token (Auth Token = apiKey for this endpoint)
         const payload = {
             from,
             to: toList,
@@ -57,12 +55,11 @@ Deno.serve(async (req) => {
         console.log('SignalHouse SMS payload:', JSON.stringify({ from, to: toList, bodyLength: finalMessage.length }));
         console.log('authToken length:', authToken?.length, '| apiKey length:', apiKey?.length);
 
-        // Attempt 1: Bearer = authToken, apiKey in body + header
         const response = await fetch('https://api.signalhouse.io/message/sendSMS', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`,
+                'Authorization': `Bearer ${authToken}`,
                 'x-api-key': apiKey,
             },
             body: JSON.stringify(payload)
