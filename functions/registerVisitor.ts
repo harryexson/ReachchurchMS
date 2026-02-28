@@ -106,9 +106,7 @@ Deno.serve(async (req) => {
 
         // Check for duplicate visitor in this organization (only if email/phone provided)
         if (visitorData.email || visitorData.phone) {
-            const allVisitors = await base44.asServiceRole.entities.Visitor.filter({
-                created_by: orgAdminEmail
-            });
+            const allVisitors = await base44.asServiceRole.entities.Visitor.list();
 
             const duplicate = allVisitors.find(v => {
                 if (visitorData.email && v.email === visitorData.email) return true;
@@ -125,11 +123,10 @@ Deno.serve(async (req) => {
             }
         }
 
-        // Create visitor record - SDK handles data wrapping automatically
+        // Create visitor record with church_admin_email for data isolation
         const newVisitor = await base44.asServiceRole.entities.Visitor.create({
             ...visitorData,
-            follow_up_status: "new",
-            created_by: orgAdminEmail
+            follow_up_status: "new"
         });
 
         // Send welcome email to visitor
