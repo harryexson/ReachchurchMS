@@ -117,10 +117,13 @@ export default function TextMessagingPage() {
                 await loadData();
             }
         } catch (error) {
-            console.error('Test SMS error:', error);
-            setTestResult({ 
-                success: false, 
-                error: error.response?.data?.error || error.message || 'Failed to send test SMS'
+            // Enhanced logging to surface exact SignalHouse error details
+            console.error('Test SMS error:', error, error?.response?.data);
+            setTestResult({
+                success: false,
+                error: error?.response?.data?.error || error?.response?.data?.message || error?.message || 'Failed to send test SMS',
+                details: error?.response?.data?.details || error?.response?.data || String(error),
+                http_status: error?.response?.status,
             });
         }
         
