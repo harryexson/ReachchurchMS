@@ -89,13 +89,12 @@ export default function EventsPage() {
     const loadData = async () => {
         setIsLoading(true);
         try {
-            // Get current user to filter by organization
             const user = await base44.auth.me();
             
             const [eventsList, volunteersList, registrationsList] = await Promise.all([
-                base44.entities.Event.filter({ created_by: user.email }, "-start_datetime"),
+                base44.entities.Event.list("-start_datetime"),  // Load ALL events, not filtered by creator
                 base44.entities.Volunteer.filter({ created_by: user.email }),
-                base44.entities.EventRegistration.list() // Keep all registrations for now
+                base44.entities.EventRegistration.list()
             ]);
             setEvents(eventsList);
             setVolunteers(volunteersList);
