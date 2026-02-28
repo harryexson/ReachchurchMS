@@ -18,7 +18,14 @@ Deno.serve(async (req) => {
         // Allow internal (service) calls without user auth
         try { await base44.auth.me(); } catch (_) {}
 
-        const body = await req.json();
+        let body;
+        try {
+            body = await req.json();
+        } catch (parseErr) {
+            console.error('Failed to parse request body:', parseErr.message);
+            return Response.json({ error: 'Invalid JSON body' }, { status: 400 });
+        }
+        console.log('Request body received:', JSON.stringify(body));
         const { to, message, skipDisclaimer } = body;
 
         if (!to || !message) {
