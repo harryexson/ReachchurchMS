@@ -91,8 +91,8 @@ export default function VolunteerRegistrationPage() {
                 ...formData,
                 event_id: event.id,
                 event_title: event.title,
-                registration_date: new Date().toISOString().split('T')[0],
-                created_by: event.created_by // CRITICAL: Inherit organization from event
+                church_admin_email: event.church_admin_email || event.created_by || "",
+                registration_date: new Date().toISOString().split('T')[0]
             });
 
             // Send notification email to the event planner
