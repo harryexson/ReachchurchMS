@@ -38,17 +38,15 @@ Deno.serve(async (req) => {
         const from = formatPhone(rawFrom);
         const finalMessage = skipDisclaimer ? message : message + SMS_DISCLAIMER;
 
-        // Build payload matching the confirmed SignalHouse sendSMS schema
+        // Build payload — try both string array and object array for `to`
         const payload = {
             from,
             to: toList,
             body: finalMessage,
             apiKey,
-            verify: false,
-            shortLink: false,
         };
 
-        console.log('Sending to SignalHouse:', JSON.stringify({ from, to: toList, bodyLength: finalMessage.length, apiKeyLength: apiKey.length }));
+        console.log('Full payload being sent:', JSON.stringify(payload));
 
         const response = await fetch('https://api.signalhouse.io/message/sendSMS', {
             method: 'POST',
