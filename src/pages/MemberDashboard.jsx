@@ -194,10 +194,15 @@ export default function MemberDashboard() {
                     )}
 
                     {/* Upcoming Events */}
-                    {myEvents.length > 0 && (
-                        <div className="space-y-3">
-                            <h3 className="text-sm font-semibold text-slate-700">My Upcoming Events</h3>
-                            {myEvents.slice(0, 3).map(event => (
+                    <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-sm font-semibold text-slate-700">Upcoming Events</h3>
+                            <Link to={createPageUrl('PublicEventsCalendar')}>
+                                <button className="text-xs text-blue-600 hover:text-blue-700 font-medium">View All →</button>
+                            </Link>
+                        </div>
+                        {myEvents.length > 0 ? (
+                            myEvents.slice(0, 5).map(event => (
                                 <Card key={event.id} className="border-0 shadow-sm">
                                     <CardContent className="p-4">
                                         <div className="flex items-start gap-3">
@@ -209,14 +214,25 @@ export default function MemberDashboard() {
                                                 <p className="text-sm text-slate-600">
                                                     {format(new Date(event.start_datetime), 'MMM d, yyyy • h:mm a')}
                                                 </p>
-                                                <p className="text-xs text-slate-500 mt-1">{event.location}</p>
+                                                {event.location && <p className="text-xs text-slate-500 mt-1">{event.location}</p>}
+                                                {event.registration_required && (
+                                                    <Link to={`${createPageUrl('EventRegistration')}?eventId=${event.id}`}>
+                                                        <button className="text-xs text-blue-600 hover:text-blue-700 font-medium mt-1">Register →</button>
+                                                    </Link>
+                                                )}
                                             </div>
                                         </div>
                                     </CardContent>
                                 </Card>
-                            ))}
-                        </div>
-                    )}
+                            ))
+                        ) : (
+                            <Card className="border-0 shadow-sm">
+                                <CardContent className="p-4 text-center text-slate-500 text-sm">
+                                    No upcoming events scheduled
+                                </CardContent>
+                            </Card>
+                        )}
+                    </div>
 
                     {/* Explore Section - Card-Based Actions */}
                     <div className="space-y-3">
