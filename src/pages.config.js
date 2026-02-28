@@ -193,6 +193,7 @@ import Volunteers from './pages/Volunteers';
 import WhyReach from './pages/WhyReach';
 import WorkflowBuilder from './pages/WorkflowBuilder';
 import backoffice from './pages/backoffice';
+import EventCheckIn from './pages/EventCheckIn';
 import __Layout from './Layout.jsx';
 
 
@@ -343,6 +344,7 @@ export const PAGES = {
     "WhyReach": WhyReach,
     "WorkflowBuilder": WorkflowBuilder,
     "backoffice": backoffice,
+    "EventCheckIn": EventCheckIn,
 }
 
 export const pagesConfig = {
