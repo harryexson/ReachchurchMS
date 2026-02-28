@@ -77,13 +77,13 @@ Deno.serve(async (req) => {
 
     const payload = {
       from,
-      to: recipients,
+      to: recipients.map((p) => ({ phone_number: p })),
       text: message,
     };
 
     console.log("SignalHouse Payload:", {
       from: tenant.signalhouse_phone_number,
-      to: recipients,
+      to: recipients.map((p) => ({ phone_number: p })),
       text: message
     });
 
