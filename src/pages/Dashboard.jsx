@@ -57,7 +57,7 @@ export default function Dashboard() {
       });
 
       const unsubscribeEvents = base44.entities.Event.subscribe((event) => {
-        if (event.data.created_by === user.email) {
+        if (!event.data || event.data.church_admin_email === user.email) {
           console.log('🔄 Event data updated in real-time:', event.type);
           loadDashboardData(abortController.signal);
         }
@@ -140,8 +140,12 @@ export default function Dashboard() {
       if (signal?.aborted) return;
 
       try {
-        // Load ALL events so every church's events appear on the dashboard
-        events = await base44.entities.Event.list("-start_datetime", 50);
+        // CRITICAL: Load only this church's events for strict data isolation
+        events = await base44.entities.Event.filter(
+          { church_admin_email: user.email },
+          "-start_datetime",
+          50
+        );
       } catch (error) {
         if (!signal?.aborted) {
           console.error("Error loading events:", error);
