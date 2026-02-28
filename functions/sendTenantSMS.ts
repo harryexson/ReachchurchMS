@@ -32,9 +32,22 @@ Deno.serve(async (req) => {
     // Ensure tenantId is not spoofed by cross-checking any user-allowed list if present in profile
     // If your app later adds per-user tenant assignments, validate here (e.g., user.tenant_ids includes tenantId)
 
-    // Validate E.164 phone for recipient
-    if (!isE164(to)) {
-      return Response.json({ error: 'Recipient phone (to) must be in E.164 format, e.g., +15551234567' }, { status: 400 });
+    // Normalize recipients to array and validate E.164 (+...) format
+    let recipients;
+    if (Array.isArray(to)) {
+      if (to.length === 0) {
+        return Response.json({ error: 'Recipient list (to) must not be empty' }, { status: 400 });
+      }
+      const invalid = to.find((p) => !isE164(p));
+      if (invalid) {
+        return Response.json({ error: `Invalid recipient phone '${invalid}'. Must be E.164 format, e.g., +15551234567` }, { status: 400 });
+      }
+      recipients = to; // keep unchanged if already array
+    } else {
+      if (!isE164(to)) {
+        return Response.json({ error: 'Recipient phone (to) must be in E.164 format, e.g., +15551234567' }, { status: 400 });
+      }
+      recipients = [to]; // wrap single value in array
     }
 
     // Fetch tenant by id with service role and validate ownership
@@ -64,7 +77,7 @@ Deno.serve(async (req) => {
 
     const payload = {
       from,
-      to,
+      to: recipients,
       text: message,
     };
 
