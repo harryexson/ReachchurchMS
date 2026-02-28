@@ -190,7 +190,7 @@ REACH ChurchConnect Team
                             <p className="text-lg font-mono font-bold text-blue-600">{registrationCode}</p>
                         </div>
                         <p className="text-sm text-slate-600">
-                            A confirmation email was opened in your default mail client to send to {formData.registrant_email}.
+                            A confirmation email has been sent to {formData.registrant_email}.
                         </p>
                         <p className="text-sm text-green-600 font-medium">
                             We'll also remind you as the event approaches!
