@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { QrCode, Copy, Share2, Monitor, Download, ExternalLink } from 'lucide-react';
+import { QrCode, Copy, Share2, Monitor, Download, ExternalLink, MessageCircle, Globe } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { createPageUrl } from "@/utils";
 import html2canvas from 'html2canvas';
@@ -49,13 +49,40 @@ export default function EventQRCodeGenerator({ event, registrationUrl }) {
     const shareToSocial = (platform) => {
         const text = `Register for ${event.title}`;
         const url = churchSpecificUrl || registrationUrl;
+        const fullText = `${text} ${url}`;
         
         const shareUrls = {
+            whatsapp: `https://wa.me/?text=${encodeURIComponent(fullText)}`,
             twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
             facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
-            whatsapp: `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`,
-            email: `mailto:?subject=${encodeURIComponent(text)}&body=${encodeURIComponent(url)}`
+            linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
+            email: `mailto:?subject=${encodeURIComponent(text)}&body=${encodeURIComponent(fullText)}`,
+            telegram: `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`,
+            reddit: `https://reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(text)}`,
+            tiktok: `https://www.tiktok.com/share/`,
+            instagram: `https://www.instagram.com/`,
+            threads: `https://threads.net/share`,
+            copy: null // Special case for copying
         };
+        
+        if (platform === 'copy') {
+            navigator.clipboard.writeText(fullText);
+            alert('Event link copied to clipboard!');
+            return;
+        } else if (platform === 'tiktok') {
+            // TikTok doesn't have direct share URL, so show instructions
+            alert('1. Open TikTok\n2. Create a new video\n3. Add caption:\n\n' + fullText + '\n\n4. Post and tag event details');
+            return;
+        } else if (platform === 'instagram') {
+            // Instagram doesn't have direct share URL
+            alert('1. Open Instagram\n2. Go to your Stories or create a post\n3. Share the link:\n\n' + url);
+            return;
+        } else if (platform === 'threads') {
+            // Threads share URL
+            const threadsUrl = `https://www.threads.net/intent/post?text=${encodeURIComponent(fullText)}`;
+            window.open(threadsUrl, '_blank', 'width=600,height=400');
+            return;
+        }
         
         window.open(shareUrls[platform], '_blank', 'width=600,height=400');
     };
