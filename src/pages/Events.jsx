@@ -404,6 +404,7 @@ REACH Church Team`);
                         <TabsTrigger value="upcoming">Upcoming Events</TabsTrigger>
                         <TabsTrigger value="calendar">Calendar View</TabsTrigger>
                         <TabsTrigger value="checkin">Event Check-in</TabsTrigger>
+                        <TabsTrigger value="attendance">Attendance Report</TabsTrigger>
                         <TabsTrigger value="past">Past Events</TabsTrigger>
                     </TabsList>
                     
