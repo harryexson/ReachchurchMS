@@ -81,6 +81,12 @@ Deno.serve(async (req) => {
       text: message,
     };
 
+    console.log("SignalHouse Payload:", {
+      from: tenant.signalhouse_phone_number,
+      to: recipients,
+      text: message
+    });
+
     const shUrl = 'https://app.signalhouse.io/api/v1/messages';
 
     const resp = await fetch(shUrl, {
