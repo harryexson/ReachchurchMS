@@ -45,8 +45,9 @@ Deno.serve(async (req) => {
     const from = formatPhone(rawFrom);
     const finalMessage = skipDisclaimer ? message : message + SMS_DISCLAIMER;
 
-    // Try apiKey both in body and all common header formats
+    // SignalHouse expects both apiKey and authToken in the body
     const payload = { from, to: toList, body: finalMessage, apiKey, authToken };
+    console.log('[v3] payload keys:', Object.keys(payload).join(','), 'authTokenLen:', authToken.length);
 
     console.log('[v3] sending payload:', JSON.stringify({ from, to: toList, bodyLen: finalMessage.length, apiKeyLen: apiKey.length, apiKeyFirst8: apiKey.substring(0,8) }));
 
