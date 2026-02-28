@@ -649,6 +649,10 @@ REACH Church Team`);
                         )}
                     </TabsContent>
                     
+                    <TabsContent value="attendance">
+                        <AttendanceReport events={events} registrations={registrations} />
+                    </TabsContent>
+
                 <TabsContent value="past">
                     <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
                         <CardHeader>
