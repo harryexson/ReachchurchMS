@@ -84,6 +84,7 @@ Deno.serve(async (req) => {
             });
         }
 
+        console.error('SignalHouse error response:', response.status, JSON.stringify(data));
         return Response.json({
             success: false,
             error: data.message || data.error || data.detail || 'Failed to send SMS',
