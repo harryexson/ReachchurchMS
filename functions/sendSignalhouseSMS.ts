@@ -9,6 +9,10 @@ function formatPhone(num) {
 }
 
 Deno.serve(async (req) => {
+    // Debug: log all env vars at startup
+    console.log('[v3] ENV CHECK authToken:', Deno.env.get('SIGNALHOUSE_AUTH_TOKEN') ? 'SET(len=' + Deno.env.get('SIGNALHOUSE_AUTH_TOKEN').length + ')' : 'MISSING');
+    console.log('[v3] ENV CHECK apiKey:', Deno.env.get('SIGNALHOUSE_API_KEY') ? 'SET(len=' + Deno.env.get('SIGNALHOUSE_API_KEY').length + ')' : 'MISSING');
+
     if (req.method !== 'POST') {
         return Response.json({ error: 'Method Not Allowed' }, { status: 405 });
     }
