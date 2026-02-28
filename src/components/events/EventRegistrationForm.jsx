@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-import { EventRegistration } from "@/entities/EventRegistration";
+import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { CheckCircle, Loader2 } from "lucide-react";
-import { format, differenceInDays } from "date-fns";
+import { format } from "date-fns";
 
 function generateRegistrationCode() {
     return `REG-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
