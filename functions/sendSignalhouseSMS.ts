@@ -53,8 +53,9 @@ Deno.serve(async (req) => {
             shortLink: false,
         };
 
-        console.log('SignalHouse SMS payload:', JSON.stringify({ from, to: toList, bodyLength: finalMessage.length }));
-        console.log('authToken length:', authToken?.length, '| apiKey length:', apiKey?.length);
+        console.log('SignalHouse SMS payload:', JSON.stringify(payload));
+        console.log('authToken length:', authToken?.length, '| apiKey present:', !!apiKey, '| apiKey length:', apiKey?.length);
+        console.log('apiKey first 8 chars:', apiKey?.substring(0, 8));
 
         const response = await fetch('https://api.signalhouse.io/message/sendSMS', {
             method: 'POST',
