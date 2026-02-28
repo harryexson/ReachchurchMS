@@ -168,43 +168,112 @@ export default function EventQRCodeGenerator({ event, registrationUrl }) {
                     </div>
 
                     {/* Social Sharing */}
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-700">Share Registration Link</label>
-                        <div className="grid grid-cols-2 gap-2">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => shareToSocial('whatsapp')}
-                                className="text-green-700 hover:bg-green-50"
-                            >
-                                WhatsApp
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => shareToSocial('email')}
-                                className="text-blue-700 hover:bg-blue-50"
-                            >
-                                Email
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => shareToSocial('facebook')}
-                                className="text-blue-800 hover:bg-blue-50"
-                            >
-                                Facebook
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => shareToSocial('twitter')}
-                                className="text-sky-700 hover:bg-sky-50"
-                            >
-                                Twitter
-                            </Button>
-                        </div>
-                    </div>
+                     <div className="space-y-2">
+                         <label className="text-sm font-medium text-slate-700">Share Registration Link</label>
+                         <div className="grid grid-cols-3 gap-2">
+                             <Button
+                                 variant="outline"
+                                 size="sm"
+                                 onClick={() => shareToSocial('whatsapp')}
+                                 className="text-green-700 hover:bg-green-50"
+                                 title="Share on WhatsApp"
+                             >
+                                 <MessageCircle className="w-3.5 h-3.5 mr-1" />
+                                 WhatsApp
+                             </Button>
+                             <Button
+                                 variant="outline"
+                                 size="sm"
+                                 onClick={() => shareToSocial('email')}
+                                 className="text-slate-700 hover:bg-slate-50"
+                                 title="Share via Email"
+                             >
+                                 Email
+                             </Button>
+                             <Button
+                                 variant="outline"
+                                 size="sm"
+                                 onClick={() => shareToSocial('facebook')}
+                                 className="text-blue-800 hover:bg-blue-50"
+                                 title="Share on Facebook"
+                             >
+                                 Facebook
+                             </Button>
+                             <Button
+                                 variant="outline"
+                                 size="sm"
+                                 onClick={() => shareToSocial('twitter')}
+                                 className="text-sky-700 hover:bg-sky-50"
+                                 title="Share on Twitter/X"
+                             >
+                                 Twitter/X
+                             </Button>
+                             <Button
+                                 variant="outline"
+                                 size="sm"
+                                 onClick={() => shareToSocial('linkedin')}
+                                 className="text-blue-700 hover:bg-blue-50"
+                                 title="Share on LinkedIn"
+                             >
+                                 LinkedIn
+                             </Button>
+                             <Button
+                                 variant="outline"
+                                 size="sm"
+                                 onClick={() => shareToSocial('telegram')}
+                                 className="text-sky-600 hover:bg-sky-50"
+                                 title="Share on Telegram"
+                             >
+                                 Telegram
+                             </Button>
+                             <Button
+                                 variant="outline"
+                                 size="sm"
+                                 onClick={() => shareToSocial('reddit')}
+                                 className="text-orange-700 hover:bg-orange-50"
+                                 title="Share on Reddit"
+                             >
+                                 Reddit
+                             </Button>
+                             <Button
+                                 variant="outline"
+                                 size="sm"
+                                 onClick={() => shareToSocial('tiktok')}
+                                 className="text-slate-900 hover:bg-slate-100"
+                                 title="Share on TikTok"
+                             >
+                                 TikTok
+                             </Button>
+                             <Button
+                                 variant="outline"
+                                 size="sm"
+                                 onClick={() => shareToSocial('instagram')}
+                                 className="text-pink-700 hover:bg-pink-50"
+                                 title="Share on Instagram"
+                             >
+                                 Instagram
+                             </Button>
+                             <Button
+                                 variant="outline"
+                                 size="sm"
+                                 onClick={() => shareToSocial('threads')}
+                                 className="text-slate-700 hover:bg-slate-100"
+                                 title="Share on Threads"
+                             >
+                                 Threads
+                             </Button>
+                             <Button
+                                 variant="outline"
+                                 size="sm"
+                                 onClick={() => shareToSocial('copy')}
+                                 className="text-green-700 hover:bg-green-50"
+                                 title="Copy link"
+                             >
+                                 <Copy className="w-3.5 h-3.5 mr-1" />
+                                 Copy
+                             </Button>
+                         </div>
+                     </div>
 
                     <Button
                         variant="outline"
