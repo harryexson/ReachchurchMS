@@ -29,14 +29,8 @@ Deno.serve(async (req) => {
         const apiKey = Deno.env.get('SIGNALHOUSE_API_KEY') || '';
         const rawFrom = Deno.env.get('SIGNALHOUSE_PHONE_NUMBER') || '';
 
-        // Diagnostic: return env state immediately to debug
-        return Response.json({
-            debug: true,
-            authToken_len: authToken.length,
-            apiKey_len: apiKey.length,
-            apiKey_first8: apiKey.substring(0, 8),
-            rawFrom
-        });
+        if (!authToken) return Response.json({ error: 'SIGNALHOUSE_AUTH_TOKEN not configured' }, { status: 500 });
+        if (!rawFrom) return Response.json({ error: 'SIGNALHOUSE_PHONE_NUMBER not configured' }, { status: 500 });
 
 
         // Normalize recipients — SignalHouse wants plain digits (no + prefix)
