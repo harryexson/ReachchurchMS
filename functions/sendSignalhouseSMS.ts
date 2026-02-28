@@ -36,6 +36,7 @@ Deno.serve(async (req) => {
 
     console.log('[v3] authToken_len:', authToken.length, 'authToken[0:20]:', authToken.substring(0,20), 'apiKey_len:', apiKey.length, 'apiKey[0:8]:', apiKey.substring(0,8), 'from:', rawFrom);
 
+    console.log('[v3] ALL ENV authToken:', JSON.stringify(authToken).substring(0,30), 'apiKey:', JSON.stringify(apiKey).substring(0,20));
     if (!authToken) return Response.json({ error: 'SIGNALHOUSE_AUTH_TOKEN not configured' }, { status: 500 });
     if (!apiKey) return Response.json({ error: 'SIGNALHOUSE_API_KEY not configured' }, { status: 500 });
     if (!rawFrom) return Response.json({ error: 'SIGNALHOUSE_PHONE_NUMBER not configured' }, { status: 500 });
