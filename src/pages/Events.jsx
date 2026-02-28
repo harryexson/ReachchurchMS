@@ -67,8 +67,10 @@ export default function EventsPage() {
         base44.auth.me().then(user => {
             if (user) {
                 unsubscribeEvents = base44.entities.Event.subscribe((event) => {
-                    console.log('🔄 Event updated in real-time:', event.type);
-                    loadData();
+                    if (!event.data || event.data.church_admin_email === user.email) {
+                        console.log('🔄 Event updated in real-time:', event.type);
+                        loadData();
+                    }
                 });
 
                 unsubscribeRegistrations = base44.entities.EventRegistration.subscribe((event) => {
@@ -90,9 +92,9 @@ export default function EventsPage() {
             const user = await base44.auth.me();
             
             const [eventsList, volunteersList, registrationsList] = await Promise.all([
-                base44.entities.Event.list("-start_datetime"),  // Load ALL events, not filtered by creator
+                base44.entities.Event.filter({ church_admin_email: user.email }, "-start_datetime"),
                 base44.entities.Volunteer.filter({ created_by: user.email }),
-                base44.entities.EventRegistration.list()
+                base44.entities.EventRegistration.filter({ church_admin_email: user.email })
             ]);
             setEvents(eventsList);
             setVolunteers(volunteersList);
