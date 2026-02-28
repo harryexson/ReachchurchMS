@@ -55,11 +55,11 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Tenant SignalHouse phone number is missing or not in E.164 format' }, { status: 400 });
     }
 
-    // Use shared SignalHouse token from environment (all tenants share the same account)
-    const bearerToken = Deno.env.get('SIGNALHOUSE_AUTH_TOKEN');
-    if (!bearerToken) {
-      console.error('sendTenantSMS misconfiguration: missing SIGNALHOUSE_AUTH_TOKEN');
-      return Response.json({ error: 'SignalHouse API token not configured' }, { status: 500 });
+    // Use SignalHouse API token from environment
+    const apiToken = Deno.env.get('SIGNALHOUSE_API_TOKEN');
+    console.log('sendTenantSMS token present:', !!apiToken);
+    if (!apiToken) {
+      return Response.json({ error: 'SignalHouse API token is not configured in environment variables' }, { status: 500 });
     }
 
     const payload = {
@@ -73,32 +73,25 @@ Deno.serve(async (req) => {
     const resp = await fetch(shUrl, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${bearerToken}`,
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiToken}`,
       },
       body: JSON.stringify(payload),
     });
 
     const respText = await resp.text();
 
-    // Log full response if non-200
     if (!resp.ok) {
       console.error('SignalHouse non-200 response:', resp.status, respText);
+      let errorBody;
+      try { errorBody = JSON.parse(respText); } catch { errorBody = respText; }
+      return Response.json({ status: resp.status, signalhouse_error: errorBody }, { status: resp.status });
     }
 
-    // Try to return JSON if possible, otherwise raw text
-    let bodyOut;
-    try {
-      bodyOut = JSON.parse(respText);
-    } catch (_) {
-      bodyOut = { raw: respText };
-    }
-
-    // Do not include any tokens in response
-    return new Response(JSON.stringify(bodyOut), {
-      status: resp.status,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    // Successful response: return parsed JSON if possible, else raw text
+    let successBody;
+    try { successBody = JSON.parse(respText); } catch { successBody = { raw: respText }; }
+    return Response.json(successBody, { status: resp.status });
   } catch (error) {
     console.error('sendTenantSMS error:', error?.message || error);
     return Response.json({ error: 'Internal Server Error' }, { status: 500 });
