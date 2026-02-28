@@ -66,7 +66,7 @@ export default function EventsPage() {
         base44.auth.me().then(user => {
             if (user) {
                 unsubscribeEvents = base44.entities.Event.subscribe((event) => {
-                    if (event.data.created_by === user.email) {
+                    if (event.data && event.data.created_by === user.email) {
                         console.log('🔄 Event updated in real-time:', event.type);
                         loadData();
                     }
