@@ -17,7 +17,10 @@ export default function SignalhouseSetup() {
     const [error, setError] = useState(null);
     const [activeTab, setActiveTab] = useState('sms');
 
-    const webhookUrl = `https://reachchurchms.com/api/functions/handleSignalhouseWebhook`;
+    const inboundWebhookUrl = `${window.location.origin}/api/functions/receiveTenantSMS`;
+    const deliveryWebhookUrl = `${window.location.origin}/api/functions/signalhouseDeliveryStatus`;
+    const altInboundUrl = `https://base44.app/api/apps/YOUR_APP_ID/functions/receiveTenantSMS`;
+    const altDeliveryUrl = `https://base44.app/api/apps/YOUR_APP_ID/functions/signalhouseDeliveryStatus`;
 
     const handleTestSMS = async () => {
         setLoading(true);
@@ -73,9 +76,9 @@ export default function SignalhouseSetup() {
         }
     };
 
-    const copyWebhookUrl = () => {
-        navigator.clipboard.writeText(webhookUrl);
-        alert('Webhook URL copied to clipboard!');
+    const copyToClipboard = (text) => {
+        navigator.clipboard.writeText(text);
+        alert('Copied to clipboard!');
     };
 
     return (
@@ -297,20 +300,71 @@ export default function SignalhouseSetup() {
                     </CardHeader>
                     <CardContent className="pt-6 space-y-6">
                         <div>
-                            <Label>Webhook URL</Label>
+                            <Label>Inbound Webhook URL (Preferred)</Label>
                             <div className="flex gap-2 mt-2">
                                 <Input
-                                    value={webhookUrl}
+                                    value={inboundWebhookUrl}
                                     readOnly
                                     className="flex-1 font-mono text-sm"
                                 />
-                                <Button onClick={copyWebhookUrl} variant="outline">
+                                <Button onClick={() => copyToClipboard(inboundWebhookUrl)} variant="outline">
                                     <Copy className="w-4 h-4" />
                                 </Button>
                             </div>
                             <p className="text-xs text-slate-500 mt-1">
-                                Add this URL to your Signalhouse dashboard to receive webhook events
+                                Use this for Incoming SMS (POST JSON). If you use Base44 directly, use the alt URL below.
                             </p>
+
+                            <div className="mt-4">
+                                <Label>Inbound Webhook URL (Base44)</Label>
+                                <div className="flex gap-2 mt-2">
+                                    <Input
+                                        value={altInboundUrl}
+                                        readOnly
+                                        className="flex-1 font-mono text-sm"
+                                    />
+                                    <Button onClick={() => copyToClipboard(altInboundUrl)} variant="outline">
+                                        <Copy className="w-4 h-4" />
+                                    </Button>
+                                </div>
+                                <p className="text-xs text-slate-500 mt-1">
+                                    Replace YOUR_APP_ID with your actual App ID from Dashboard → Code → Functions.
+                                </p>
+                            </div>
+
+                            <div className="mt-6">
+                                <Label>Delivery Status Webhook URL (Preferred)</Label>
+                                <div className="flex gap-2 mt-2">
+                                    <Input
+                                        value={deliveryWebhookUrl}
+                                        readOnly
+                                        className="flex-1 font-mono text-sm"
+                                    />
+                                    <Button onClick={() => copyToClipboard(deliveryWebhookUrl)} variant="outline">
+                                        <Copy className="w-4 h-4" />
+                                    </Button>
+                                </div>
+                                <p className="text-xs text-slate-500 mt-1">
+                                    Use this for delivery callbacks (POST JSON with message_id and status).
+                                </p>
+                            </div>
+
+                            <div className="mt-4">
+                                <Label>Delivery Status Webhook URL (Base44)</Label>
+                                <div className="flex gap-2 mt-2">
+                                    <Input
+                                        value={altDeliveryUrl}
+                                        readOnly
+                                        className="flex-1 font-mono text-sm"
+                                    />
+                                    <Button onClick={() => copyToClipboard(altDeliveryUrl)} variant="outline">
+                                        <Copy className="w-4 h-4" />
+                                    </Button>
+                                </div>
+                                <p className="text-xs text-slate-500 mt-1">
+                                    Replace YOUR_APP_ID with your actual App ID from Dashboard → Code → Functions.
+                                </p>
+                            </div>
                         </div>
 
                         <div>
