@@ -16,46 +16,41 @@ Deno.serve(async (req) => {
         const base44 = createClientFromRequest(req);
 
         // Allow internal (service) calls without user auth
-        let user = null;
-        try { user = await base44.auth.me(); } catch (_) {}
+        try { await base44.auth.me(); } catch (_) {}
 
-        const { to, message, skipDisclaimer } = await req.json();
+        const body = await req.json();
+        const { to, message, skipDisclaimer } = body;
 
         if (!to || !message) {
             return Response.json({ error: 'to and message are required' }, { status: 400 });
         }
 
-        const authToken = Deno.env.get('SIGNALHOUSE_AUTH_TOKEN');
-        const apiKey = Deno.env.get('SIGNALHOUSE_API_KEY');
-        const rawFrom = Deno.env.get('SIGNALHOUSE_PHONE_NUMBER');
+        const authToken = Deno.env.get('SIGNALHOUSE_AUTH_TOKEN') || '';
+        const apiKey = Deno.env.get('SIGNALHOUSE_API_KEY') || '';
+        const rawFrom = Deno.env.get('SIGNALHOUSE_PHONE_NUMBER') || '';
 
-        if (!authToken) {
-            return Response.json({ error: 'SIGNALHOUSE_AUTH_TOKEN not configured' }, { status: 500 });
-        }
-        if (!apiKey) {
-            return Response.json({ error: 'SIGNALHOUSE_API_KEY not configured' }, { status: 500 });
-        }
-        if (!rawFrom) {
-            return Response.json({ error: 'SIGNALHOUSE_PHONE_NUMBER not configured' }, { status: 500 });
-        }
+        console.log('Env check — authToken length:', authToken.length, '| apiKey length:', apiKey.length, '| rawFrom:', rawFrom);
+
+        if (!authToken) return Response.json({ error: 'SIGNALHOUSE_AUTH_TOKEN not configured' }, { status: 500 });
+        if (!apiKey) return Response.json({ error: 'SIGNALHOUSE_API_KEY not configured' }, { status: 500 });
+        if (!rawFrom) return Response.json({ error: 'SIGNALHOUSE_PHONE_NUMBER not configured' }, { status: 500 });
 
         // Normalize recipients — SignalHouse wants plain digits (no + prefix)
         const toList = Array.isArray(to) ? to.map(formatPhone) : [formatPhone(to)];
         const from = formatPhone(rawFrom);
         const finalMessage = skipDisclaimer ? message : message + SMS_DISCLAIMER;
 
+        // Build payload matching the confirmed SignalHouse sendSMS schema
         const payload = {
             from,
             to: toList,
             body: finalMessage,
-            apiKey: apiKey,
+            apiKey,
             verify: false,
             shortLink: false,
         };
 
-        console.log('SignalHouse SMS payload:', JSON.stringify(payload));
-        console.log('authToken length:', authToken?.length, '| apiKey present:', !!apiKey, '| apiKey length:', apiKey?.length);
-        console.log('apiKey first 8 chars:', apiKey?.substring(0, 8));
+        console.log('Sending to SignalHouse:', JSON.stringify({ from, to: toList, bodyLength: finalMessage.length, apiKeyLength: apiKey.length }));
 
         const response = await fetch('https://api.signalhouse.io/message/sendSMS', {
             method: 'POST',
@@ -68,15 +63,15 @@ Deno.serve(async (req) => {
         });
 
         const responseText = await response.text();
-        console.log('Response status:', response.status);
-        console.log('Response body:', responseText.substring(0, 500));
+        console.log('SignalHouse response status:', response.status);
+        console.log('SignalHouse response body:', responseText.substring(0, 1000));
 
         let data;
         try {
             data = JSON.parse(responseText);
         } catch (_) {
             return Response.json({
-                error: 'Invalid response from SignalHouse',
+                error: 'Invalid JSON response from SignalHouse',
                 status: response.status,
                 raw: responseText.substring(0, 500)
             }, { status: 500 });
@@ -92,7 +87,7 @@ Deno.serve(async (req) => {
             });
         }
 
-        console.error('SignalHouse error response:', response.status, JSON.stringify(data));
+        console.error('SignalHouse error:', response.status, JSON.stringify(data));
         return Response.json({
             success: false,
             error: data.message || data.error || data.detail || 'Failed to send SMS',
@@ -101,7 +96,7 @@ Deno.serve(async (req) => {
         }, { status: response.status });
 
     } catch (error) {
-        console.error('SignalHouse SMS error:', error);
+        console.error('sendSignalhouseSMS error:', error);
         return Response.json({ success: false, error: error.message }, { status: 500 });
     }
 });
