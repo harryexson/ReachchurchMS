@@ -3,13 +3,12 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 // TCPA Compliance disclaimer
 const SMS_DISCLAIMER = "\n\nMsg & Data Rates may apply. Text STOP to opt-out. Text HELP for help.";
 
-// Helper: format phone to E.164 format (+1XXXXXXXXXX)
-function toE164(num) {
-    const digits = num.replace(/\D/g, '');
-    if (digits.length === 10) return `+1${digits}`;
-    if (digits.length === 11 && digits.startsWith('1')) return `+${digits}`;
-    if (digits.startsWith('+')) return num;
-    return `+${digits}`;
+// Helper: format phone to SignalHouse format (digits only, with country code, NO + prefix)
+function formatPhone(num) {
+    const digits = String(num).replace(/\D/g, '');
+    if (digits.length === 10) return `1${digits}`;
+    if (digits.length === 11 && digits.startsWith('1')) return digits;
+    return digits;
 }
 
 Deno.serve(async (req) => {
