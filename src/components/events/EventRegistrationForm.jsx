@@ -29,67 +29,7 @@ export default function EventRegistrationForm({ event, isOpen, setIsOpen, onRegi
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const scheduleReminders = async (registrationData) => {
-        const eventDate = new Date(event.start_datetime);
-        const now = new Date();
-        const daysUntilEvent = differenceInDays(eventDate, now);
 
-        // Schedule reminders based on how far away the event is
-        const reminderSchedules = [];
-        
-        if (daysUntilEvent > 7) {
-            reminderSchedules.push(7); // 7 days before
-        }
-        if (daysUntilEvent > 3) {
-            reminderSchedules.push(3); // 3 days before
-        }
-        if (daysUntilEvent > 1) {
-            reminderSchedules.push(1); // 1 day before
-        }
-
-        // For demonstration, we'll send a reminder email now (in real app, you'd use a job scheduler)
-        if (daysUntilEvent > 0) {
-            const reminderSubject = `Reminder: ${event.title} is coming up!`;
-            let reminderBody = `
-Hi ${formData.registrant_name},
-
-We're excited to see you at "${event.title}"!
-
-📅 When: ${format(new Date(event.start_datetime), 'EEEE, MMMM d, yyyy')} at ${format(new Date(event.start_datetime), 'h:mm a')}
-📍 Where: ${event.location || 'Location details will be provided'}
-🎟️ Your Registration: ${registrationData.registration_code}
-
-${daysUntilEvent === 1 ? "That's TOMORROW! " : `Only ${daysUntilEvent} days to go! `}
-
-`;
-
-            if (formData.special_requirements) {
-                reminderBody += `\nWe have your special requirements noted: ${formData.special_requirements}\n`;
-            }
-
-            if (event.pastor_speaker) {
-                reminderBody += `\nOur speaker will be ${event.pastor_speaker}.\n`;
-            }
-
-            reminderBody += `
-Please bring this email with you or have your registration code ready: ${registrationData.registration_code}
-
-We can't wait to see you there!
-
-Blessings,
-REACH Church Team
-            `;
-
-            // This is a workaround for the platform limitation of not being able to send emails to non-users.
-            // In a real app with a proper backend, this would be a scheduled job.
-            // For now, we'll just log it. A better approach would be to create a "mailto" link.
-            console.log("DEMO: In a real app, a reminder email would be scheduled to be sent.", {
-                to: formData.registrant_email,
-                subject: reminderSubject,
-                body: reminderBody
-            });
-        }
-    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
