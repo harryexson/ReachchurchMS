@@ -107,6 +107,23 @@ Deno.serve(async (req) => {
     return Response.json(successBody, { status: resp.status });
   } catch (error) {
     console.error('sendTenantSMS error:', error?.message || error);
-    return Response.json({ error: 'Internal Server Error' }, { status: 500 });
+
+    // Enhanced diagnostics without exposing tokens
+    const anyErr = error;
+    const hasResponse = anyErr && typeof anyErr === 'object' && 'response' in anyErr && anyErr.response;
+
+    if (hasResponse) {
+      const status = anyErr.response?.status ?? 500;
+      const data = anyErr.response?.data ?? null;
+      return Response.json(
+        { success: false, http_status: status, signalhouse_error: data },
+        { status }
+      );
+    }
+
+    return Response.json(
+      { success: false, error: error?.message || 'Internal Server Error' },
+      { status: 500 }
+    );
   }
 });
