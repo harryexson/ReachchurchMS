@@ -39,9 +39,9 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'SIGNALHOUSE_PHONE_NUMBER not configured' }, { status: 500 });
         }
 
-        // Normalize recipients to E.164 array
-        const toList = Array.isArray(to) ? to.map(toE164) : [toE164(to)];
-        const from = toE164(rawFrom);
+        // Normalize recipients — SignalHouse wants plain digits (no + prefix)
+        const toList = Array.isArray(to) ? to.map(formatPhone) : [formatPhone(to)];
+        const from = formatPhone(rawFrom);
         const finalMessage = skipDisclaimer ? message : message + SMS_DISCLAIMER;
 
         const payload = {
