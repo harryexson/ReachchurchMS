@@ -6,15 +6,17 @@ import { Download, Copy } from 'lucide-react';
 import { createPageUrl } from "@/utils";
 
 export default function EventCheckInQRCode({ event, isOpen, onClose }) {
-    const [qrCode, setQrCode] = useState(null);
-    const [checkInUrl, setCheckInUrl] = useState('');
-    const [copied, setCopied] = useState(false);
+     const [qrCode, setQrCode] = useState(null);
+     const [checkInUrl, setCheckInUrl] = useState('');
+     const [copied, setCopied] = useState(false);
 
-    useEffect(() => {
-        if (isOpen && event) {
-            generateQRCode();
-        }
-    }, [isOpen, event]);
+     if (!event) return null;
+
+     useEffect(() => {
+         if (isOpen && event) {
+             generateQRCode();
+         }
+     }, [isOpen, event]);
 
     const generateQRCode = async () => {
         try {
