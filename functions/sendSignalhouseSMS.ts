@@ -48,7 +48,9 @@ Deno.serve(async (req) => {
             from,
             to: toList,
             body: finalMessage,
-            apiKey,
+            apiKey: apiKey,
+            verify: false,
+            shortLink: false,
         };
 
         console.log('SignalHouse SMS payload:', JSON.stringify({ from, to: toList, bodyLength: finalMessage.length }));
