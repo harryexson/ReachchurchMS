@@ -93,11 +93,22 @@ export default function EventsPage() {
         setIsLoading(true);
         try {
             const user = await base44.auth.me();
-            
+            let churchAdminEmail = user.email;
+
+            // If user is a member (not admin), find their associated church
+            if (user.role !== 'admin') {
+                const memberData = await base44.entities.Member.filter({ 
+                    email: user.email 
+                });
+                if (memberData.length > 0 && memberData[0].church_admin_email) {
+                    churchAdminEmail = memberData[0].church_admin_email;
+                }
+            }
+
             const [eventsList, volunteersList, registrationsList] = await Promise.all([
-                base44.entities.Event.filter({ church_admin_email: user.email }, "-start_datetime"),
+                base44.entities.Event.filter({ church_admin_email: churchAdminEmail }, "-start_datetime"),
                 base44.entities.Volunteer.filter({ created_by: user.email }),
-                base44.entities.EventRegistration.filter({ church_admin_email: user.email })
+                base44.entities.EventRegistration.filter({ church_admin_email: churchAdminEmail })
             ]);
             setEvents(eventsList);
             setVolunteers(volunteersList);
