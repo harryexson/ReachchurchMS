@@ -140,12 +140,8 @@ export default function Dashboard() {
       if (signal?.aborted) return;
 
       try {
-        // Filter events by current user's organization
-        events = await base44.entities.Event.filter(
-          { created_by: user.email },
-          "-start_datetime",
-          20
-        );
+        // Load ALL events so every church's events appear on the dashboard
+        events = await base44.entities.Event.list("-start_datetime", 50);
       } catch (error) {
         if (!signal?.aborted) {
           console.error("Error loading events:", error);
