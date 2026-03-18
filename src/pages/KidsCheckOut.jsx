@@ -1,12 +1,12 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import FeatureGate from "../components/subscription/FeatureGate";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Baby, CheckCircle, AlertTriangle, XCircle, Camera, Scan, RefreshCw, Loader2 } from "lucide-react";
+import { Baby, CheckCircle, AlertTriangle, XCircle, Camera, Scan, RefreshCw, Loader2, MessageSquare } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import StaffParentMessenger from "@/components/kids/StaffParentMessenger";
 
 export default function KidsCheckOutPage() {
     const [childRecord, setChildRecord] = useState(null);
