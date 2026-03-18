@@ -502,10 +502,25 @@ export default function KidsCheckInPage() {
                                     {isProcessing ? "Sending..." : "Retry Send SMS"}
                                 </Button>
                             )}
+                            <Button
+                                onClick={() => setShowMessenger(true)}
+                                variant="outline"
+                                className="gap-2 border-purple-400 text-purple-700 hover:bg-purple-50"
+                            >
+                                <MessageSquare className="w-4 h-4" />
+                                Message Parent
+                            </Button>
                             <Button onClick={resetForm} variant="outline">
                                 Check In Another Child
                             </Button>
                         </div>
+
+                        {showMessenger && checkInResult && (
+                            <StaffParentMessenger
+                                checkInRecord={checkInResult}
+                                onClose={() => setShowMessenger(false)}
+                            />
+                        )}
 
                         {/* QR Code Preview for Parent */}
                         <Card className="mt-6">
