@@ -291,9 +291,10 @@ export default function KidsCheckInPage() {
 
             console.log('✅ Check-in record created:', checkInRecord.id);
 
-            if (deliveryMethod === "print_sms") {
-                console.log('📱 Attempting to send SMS to:', formData.parent_phone);
+            const shouldSendSMS = ["print_sms","sms_only","email_sms"].includes(deliveryMethod);
+            const shouldSendEmail = deliveryMethod === "email_sms";
 
+            if (shouldSendSMS && formData.parent_phone) {
                 try {
                     const smsResponse = await base44.functions.invoke('sendKidsCheckInSMS', {
                         phone: formData.parent_phone,
@@ -302,20 +303,57 @@ export default function KidsCheckInPage() {
                         event_title: selectedEvent.title,
                         qr_code_url: qrCodeUrl
                     });
-
-                    if (smsResponse.data && smsResponse.data.success) {
+                    if (smsResponse.data?.success) {
                         smsSentSuccessfully = true;
-                        await base44.entities.KidsCheckIn.update(checkInRecord.id, {
-                            sms_sent: true
-                        });
+                        await base44.entities.KidsCheckIn.update(checkInRecord.id, { sms_sent: true });
                     } else {
                         smsError = smsResponse.data?.error || 'Unknown SMS error';
                     }
                 } catch (smsException) {
                     smsError = smsException.message || 'SMS sending failed';
                 }
-
                 checkInRecord.sms_sent = smsSentSuccessfully;
+            }
+
+            if (shouldSendEmail && formData.parent_email) {
+                try {
+                    await base44.integrations.Core.SendEmail({
+                        to: formData.parent_email,
+                        from_name: "Children's Church",
+                        subject: `Kids Check-In: ${formData.child_name} – Code: ${checkInCode}`,
+                        body: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px">
+                            <div style="background:linear-gradient(135deg,#7c3aed,#db2777);padding:24px;border-radius:12px 12px 0 0;text-align:center">
+                                <h1 style="color:white;margin:0">👶 Kids Check-In Confirmed</h1>
+                            </div>
+                            <div style="background:white;padding:24px;border:1px solid #e5e7eb;border-radius:0 0 12px 12px">
+                                <p style="font-size:18px;font-weight:bold">✅ ${formData.child_name} is checked in for ${selectedEvent.title}!</p>
+                                <p>Room: <strong>${formData.location_room}</strong> | Ministry: <strong>${formData.ministry_area}</strong></p>
+                                <div style="text-align:center;background:#f3f4f6;padding:24px;border-radius:12px;margin:20px 0">
+                                    <p style="font-size:14px;color:#6b7280;margin-bottom:8px">PICK-UP CODE</p>
+                                    <p style="font-size:48px;font-weight:900;letter-spacing:8px;color:#7c3aed;margin:0">${checkInCode}</p>
+                                    <img src="${qrCodeUrl}" alt="QR Code" style="width:180px;height:180px;margin-top:16px"/>
+                                    <p style="font-size:12px;color:#9ca3af;margin-top:8px">Show this code or QR to staff at pickup</p>
+                                </div>
+                            </div>
+                        </div>`
+                    });
+                } catch (emailErr) {
+                    console.error("Email send error:", emailErr);
+                }
+            }
+
+            // Always send in-app notification
+            if (formData.parent_email) {
+                try {
+                    await base44.entities.Notification.create({
+                        user_email: formData.parent_email,
+                        title: `${formData.child_name} is checked in! ✅`,
+                        message: `Code: ${checkInCode} | Room: ${formData.location_room} | ${selectedEvent.title}`,
+                        type: 'kids_checkin',
+                        read: false,
+                        created_at: new Date().toISOString()
+                    });
+                } catch (e) { /* non-critical */ }
             }
 
             setCheckInResult(checkInRecord);
