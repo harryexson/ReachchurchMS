@@ -36,6 +36,7 @@ export default function KidsCheckInPage() {
     const [checkInResult, setCheckInResult] = useState(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [deliveryMethod, setDeliveryMethod] = useState("print_both");
+    const [showMessenger, setShowMessenger] = useState(false);
     const [showPrinterSetup, setShowPrinterSetup] = useState(false);
     const [selectedPrinter, setSelectedPrinter] = useState(null);
     const [printPreview, setPrintPreview] = useState(null);
