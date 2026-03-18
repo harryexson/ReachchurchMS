@@ -12,6 +12,7 @@ import { createPageUrl } from "@/utils";
 import { Link } from "react-router-dom";
 import AccountDeletion from "@/components/settings/AccountDeletion";
 import NativeHeader from "@/components/mobile/NativeHeader";
+import MyChildrenManager from "@/components/kids/MyChildrenManager";
 
 export default function MyProfilePage() {
     const [currentUser, setCurrentUser] = useState(null);
