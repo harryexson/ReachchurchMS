@@ -13,6 +13,7 @@ export default function KidsCheckOutPage() {
     const [isProcessing, setIsProcessing] = useState(false);
     const [checkOutSuccess, setCheckOutSuccess] = useState(false);
     const [error, setError] = useState(null);
+    const [showMessenger, setShowMessenger] = useState(false);
     const [scanMode, setScanMode] = useState("scanner");
     const [cameraActive, setCameraActive] = useState(false);
     const [detectedCode, setDetectedCode] = useState("");
