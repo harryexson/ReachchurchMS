@@ -496,18 +496,24 @@ export default function CoffeeShopKioskPage() {
 
                                     <div>
                                         <Label>Payment Method</Label>
-                                        <Select
-                                            value={paymentMethod}
-                                            onValueChange={setPaymentMethod}
-                                        >
-                                            <SelectTrigger className="h-14 text-lg">
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="credit_card">Credit Card (Online)</SelectItem>
-                                                <SelectItem value="cash">Cash (Pay at counter)</SelectItem>
-                                            </SelectContent>
-                                        </Select>
+                                        <div className="grid grid-cols-2 gap-3 mt-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => setPaymentMethod('credit_card')}
+                                                className={`flex items-center justify-center gap-2 p-4 rounded-lg border-2 transition-all h-14 text-lg ${paymentMethod === 'credit_card' ? 'border-amber-600 bg-amber-50 text-amber-700' : 'border-slate-200 text-slate-600'}`}
+                                            >
+                                                <CreditCard className="w-5 h-5" />
+                                                <span className="font-medium">Card</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setPaymentMethod('cash')}
+                                                className={`flex items-center justify-center gap-2 p-4 rounded-lg border-2 transition-all h-14 text-lg ${paymentMethod === 'cash' ? 'border-amber-600 bg-amber-50 text-amber-700' : 'border-slate-200 text-slate-600'}`}
+                                            >
+                                                <Banknote className="w-5 h-5" />
+                                                <span className="font-medium">Cash</span>
+                                            </button>
+                                        </div>
                                     </div>
                                     {/* Print receipt checkbox removed as print preview now automatically shows after order */}
                                 </div>
