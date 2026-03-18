@@ -419,12 +419,35 @@ export default function BookstorePage() {
                                                     </span>
                                                 </div>
                                             </div>
+                                            <div className="mb-4">
+                                               <p className="text-sm font-medium text-slate-700 mb-2">Payment Method</p>
+                                               <div className="grid grid-cols-2 gap-3">
+                                                   <button
+                                                       onClick={() => setPaymentMethod('card')}
+                                                       className={`flex items-center justify-center gap-2 p-3 rounded-lg border-2 transition-all ${paymentMethod === 'card' ? 'border-amber-600 bg-amber-50 text-amber-700' : 'border-slate-200 text-slate-600 hover:border-slate-300'}`}
+                                                   >
+                                                       <CreditCard className="w-5 h-5" />
+                                                       <span className="font-medium">Card</span>
+                                                   </button>
+                                                   <button
+                                                       onClick={() => setPaymentMethod('cash')}
+                                                       className={`flex items-center justify-center gap-2 p-3 rounded-lg border-2 transition-all ${paymentMethod === 'cash' ? 'border-amber-600 bg-amber-50 text-amber-700' : 'border-slate-200 text-slate-600 hover:border-slate-300'}`}
+                                                   >
+                                                       <Banknote className="w-5 h-5" />
+                                                       <span className="font-medium">Cash</span>
+                                                   </button>
+                                               </div>
+                                            </div>
                                             <Button
-                                                onClick={handleCheckout}
-                                                className="w-full bg-amber-600 hover:bg-amber-700 py-6 text-lg"
+                                               onClick={handleCheckout}
+                                               disabled={isCheckingOut}
+                                               className="w-full bg-amber-600 hover:bg-amber-700 py-6 text-lg"
                                             >
-                                                <ShoppingCart className="w-5 h-5 mr-2" />
-                                                Proceed to Checkout
+                                               {isCheckingOut ? "Processing..." : paymentMethod === 'card' ? (
+                                                   <><CreditCard className="w-5 h-5 mr-2" />Pay with Card</>
+                                               ) : (
+                                                   <><ShoppingCart className="w-5 h-5 mr-2" />Place Cash Order</>
+                                               )}
                                             </Button>
                                         </div>
                                     </>
