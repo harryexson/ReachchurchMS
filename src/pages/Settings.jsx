@@ -47,6 +47,7 @@ export default function SettingsPage() {
         bank_account_connected: false,
         payouts_enabled: false,
         signalhouse_api_key: "",
+        signalhouse_auth_token: "",
         signalhouse_account_id: "",
         signalhouse_phone_number: "",
         signalhouse_configured: false,
@@ -119,6 +120,7 @@ export default function SettingsPage() {
                     payouts_enabled: settingsList[0].payouts_enabled ?? false,
                     donation_goal_monthly: settingsList[0].donation_goal_monthly != null ? String(settingsList[0].donation_goal_monthly) : "",
                     signalhouse_api_key: settingsList[0].signalhouse_api_key ?? "",
+                    signalhouse_auth_token: settingsList[0].signalhouse_auth_token ?? "",
                     signalhouse_account_id: settingsList[0].signalhouse_account_id ?? "",
                     signalhouse_phone_number: settingsList[0].signalhouse_phone_number ?? "",
                     signalhouse_configured: settingsList[0].signalhouse_configured ?? false,
@@ -436,7 +438,7 @@ export default function SettingsPage() {
 
     const handleChange = (field, value) => {
         setSettings(prev => ({ ...prev, [field]: value }));
-        if (['signalhouse_api_key', 'signalhouse_account_id', 'signalhouse_phone_number'].includes(field)) {
+        if (['signalhouse_api_key', 'signalhouse_auth_token', 'signalhouse_account_id', 'signalhouse_phone_number'].includes(field)) {
             setSignalhouseTestResult(null);
         }
     };
