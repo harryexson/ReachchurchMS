@@ -592,11 +592,11 @@ export default function KidsCheckOutPage() {
                                     </Alert>
                                 )}
 
-                                <div className="flex gap-4 pt-6">
+                                <div className="flex gap-4 pt-6 flex-wrap">
                                     <Button
                                         onClick={handleCheckOut}
                                         disabled={isProcessing}
-                                        className="flex-1 h-20 text-2xl bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg"
+                                        className="flex-1 h-20 text-xl bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg min-w-[160px]"
                                     >
                                         {isProcessing ? (
                                             <>
@@ -608,15 +608,30 @@ export default function KidsCheckOutPage() {
                                         )}
                                     </Button>
                                     <Button
+                                        onClick={() => setShowMessenger(true)}
+                                        disabled={isProcessing}
+                                        className="h-20 px-6 text-lg bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 shadow-lg"
+                                    >
+                                        <MessageSquare className="w-5 h-5 mr-2" />
+                                        Message Parent
+                                    </Button>
+                                    <Button
                                         onClick={cancelVerification}
                                         disabled={isProcessing}
                                         variant="outline"
-                                        className="flex-1 h-20 text-2xl border-4 border-red-500 text-red-600 hover:bg-red-50"
+                                        className="flex-1 h-20 text-xl border-4 border-red-500 text-red-600 hover:bg-red-50 min-w-[120px]"
                                     >
                                         <XCircle className="w-6 h-6 mr-2" />
                                         Cancel
                                     </Button>
                                 </div>
+
+                                {showMessenger && (
+                                    <StaffParentMessenger
+                                        checkInRecord={childRecord}
+                                        onClose={() => setShowMessenger(false)}
+                                    />
+                                )}
                             </CardContent>
                         </Card>
                     )}
