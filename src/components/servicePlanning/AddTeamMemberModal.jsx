@@ -10,10 +10,13 @@ export default function AddTeamMemberModal({ servicePlanId, onClose, onSuccess }
   const [formData, setFormData] = useState({
     service_plan_id: servicePlanId,
     position_name: "vocals",
+    custom_position_name: "",
+    section: "",
     assigned_member: "",
     assigned_email: "",
     assigned_phone: "",
-    notes: ""
+    notes: "",
+    response_status: "pending"
   });
   const [loading, setLoading] = useState(false);
 
@@ -98,6 +101,26 @@ export default function AddTeamMemberModal({ servicePlanId, onClose, onSuccess }
               </optgroup>
               <option value="other">Other (Custom)</option>
             </select>
+          </div>
+
+          {formData.position_name === 'other' && (
+            <div>
+              <Label>Custom Role Name *</Label>
+              <Input
+                value={formData.custom_position_name}
+                onChange={(e) => setFormData({ ...formData, custom_position_name: e.target.value })}
+                placeholder="e.g., Altar Worker, Sound Engineer"
+              />
+            </div>
+          )}
+
+          <div>
+            <Label>Section / Program Segment</Label>
+            <Input
+              value={formData.section}
+              onChange={(e) => setFormData({ ...formData, section: e.target.value })}
+              placeholder="e.g., Welcome, Praise & Worship, Offering"
+            />
           </div>
 
           <div>
