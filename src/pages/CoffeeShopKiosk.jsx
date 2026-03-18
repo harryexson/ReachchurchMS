@@ -260,13 +260,15 @@ export default function CoffeeShopKioskPage() {
             }
 
             if (paymentMethod === 'credit_card') {
-                const checkoutResponse = await base44.functions.invoke('createDonationCheckout', {
+                const itemNames = cart.map(i => `${i.quantity}x ${i.product_name}`).join(', ');
+                const checkoutResponse = await createOneTimePayment({
                     amount: total,
-                    donor_email: customerInfo.email || (user ? user.email : "guest@example.com"),
-                    donor_name: customerInfo.name || (user ? user.full_name : "Guest"),
-                    donation_type: "coffee_shop_purchase",
-                    successUrl: window.location.origin + createPageUrl('CoffeeShopKiosk') + '?order_id=' + createdOrder.id + '&success=true',
-                    cancelUrl: window.location.origin + createPageUrl('CoffeeShopKiosk')
+                    description: `Church Café: ${itemNames}`,
+                    customer_email: customerInfo.email || (user ? user.email : "guest@example.com"),
+                    customer_name: customerInfo.name || (user ? user.full_name : "Guest"),
+                    metadata: { order_id: createdOrder.id, order_type: 'coffee_shop' },
+                    success_url: window.location.origin + '/CoffeeShopKiosk?order_id=' + createdOrder.id + '&success=true',
+                    cancel_url: window.location.origin + '/CoffeeShopKiosk'
                 });
 
                 if (checkoutResponse.data?.checkout_url) {
