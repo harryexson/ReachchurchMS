@@ -5,8 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { CheckCircle, Loader2 } from "lucide-react";
+import { CheckCircle, Loader2, CreditCard, Banknote } from "lucide-react";
 import { format } from "date-fns";
+import { createOneTimePayment } from "@/functions/createOneTimePayment";
 
 function generateRegistrationCode() {
     return `REG-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
