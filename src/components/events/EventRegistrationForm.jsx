@@ -52,7 +52,24 @@ export default function EventRegistrationForm({ event, isOpen, setIsOpen, onRegi
                 ...formData
             };
 
-            await base44.entities.EventRegistration.create(registrationData);
+            const createdReg = await base44.entities.EventRegistration.create(registrationData);
+
+            // If there's a fee and user chose card, redirect to Stripe
+            if (event.registration_fee && paymentMethod === 'card') {
+                const res = await createOneTimePayment({
+                    amount: event.registration_fee,
+                    description: `Event Registration: ${event.title}`,
+                    customer_email: formData.registrant_email,
+                    customer_name: formData.registrant_name,
+                    metadata: { registration_id: createdReg.id, event_id: event.id, order_type: 'event_registration' },
+                    success_url: window.location.origin + window.location.pathname + window.location.search + '&payment_success=true&reg_id=' + createdReg.id,
+                    cancel_url: window.location.origin + window.location.pathname + window.location.search
+                });
+                if (res.data?.checkout_url) {
+                    window.location.href = res.data.checkout_url;
+                    return;
+                }
+            }
 
             const eventDate = format(new Date(event.start_datetime), 'EEEE, MMMM d, yyyy');
             const eventTime = format(new Date(event.start_datetime), 'h:mm a');
