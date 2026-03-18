@@ -306,10 +306,12 @@ REACH ChurchConnect Team`;
                             {isSubmitting ? (
                                 <>
                                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                    Registering...
+                                    {event.registration_fee && paymentMethod === 'card' ? 'Redirecting to payment...' : 'Registering...'}
                                 </>
                             ) : (
-                                "Register Now"
+                                event.registration_fee && paymentMethod === 'card'
+                                    ? <><CreditCard className="w-4 h-4 mr-2" />Register & Pay ${event.registration_fee}</>
+                                    : "Register Now"
                             )}
                         </Button>
                     </DialogFooter>
