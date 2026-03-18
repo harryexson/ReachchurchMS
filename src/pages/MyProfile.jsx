@@ -757,6 +757,19 @@ export default function MyProfilePage() {
                     </CardContent>
                 </Card>
 
+                {/* My Children */}
+                <Card className="shadow-lg border-0 bg-gradient-to-br from-purple-50 to-pink-50">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Baby className="w-5 h-5 text-purple-600" />
+                            My Children & Kids Check-In
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <MyChildrenManager currentUser={currentUser} />
+                    </CardContent>
+                </Card>
+
                 {/* Account Deletion */}
                 <AccountDeletion />
             </div>
