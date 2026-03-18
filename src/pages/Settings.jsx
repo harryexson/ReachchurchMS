@@ -1567,6 +1567,34 @@ export default function SettingsPage() {
                                             </div>
 
                                             <div className="space-y-2">
+                                                <Label htmlFor="signalhouse_auth_token">
+                                                    SignalHouse Auth Token
+                                                    <span className="text-red-500">*</span>
+                                                </Label>
+                                                <div className="flex gap-2">
+                                                    <Input
+                                                        id="signalhouse_auth_token"
+                                                        value={settings.signalhouse_auth_token}
+                                                        onChange={(e) => handleChange('signalhouse_auth_token', e.target.value)}
+                                                        placeholder="Your Auth Token from SignalHouse dashboard"
+                                                        type="password"
+                                                    />
+                                                    <Button
+                                                        variant="outline"
+                                                        onClick={() => {
+                                                            const input = document.getElementById('signalhouse_auth_token');
+                                                            input.type = input.type === 'password' ? 'text' : 'password';
+                                                        }}
+                                                    >
+                                                        <Eye className="w-4 h-4" />
+                                                    </Button>
+                                                </div>
+                                                <p className="text-xs text-slate-500">
+                                                    Find in SignalHouse Dashboard → Settings → Auth Tokens (used for SMS/Text messaging)
+                                                </p>
+                                            </div>
+
+                                            <div className="space-y-2">
                                                 <Label htmlFor="signalhouse_account_id">
                                                     SignalHouse Account ID
                                                     <span className="text-red-500">*</span>
