@@ -90,10 +90,15 @@ export default function ServicePlanCard({ plan, onUpdate }) {
             )}
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
+            {plan.final_program_sent && (
+              <span className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
+                📋 Final Sent
+              </span>
+            )}
             <Link to={createPageUrl("ServicePlanDetail") + `?id=${plan.id}`}>
               <Button className="bg-blue-600 hover:bg-blue-700">
-                View Details
+                View / Edit
                 <ChevronRight className="w-4 h-4 ml-2" />
               </Button>
             </Link>
