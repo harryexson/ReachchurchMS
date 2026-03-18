@@ -964,38 +964,26 @@ export default function KidsCheckInPage() {
 
                             {/* Delivery Method */}
                             <div className="border-t pt-6">
-                                <Label>Check-In Slip Delivery Method *</Label>
-                                <div className="grid md:grid-cols-2 gap-4 mt-3">
-                                    <button
-                                        type="button"
-                                        onClick={() => setDeliveryMethod("print_both")}
-                                        className={`p-6 border-2 rounded-lg transition-all ${
-                                            deliveryMethod === "print_both"
-                                                ? "border-purple-500 bg-purple-50"
-                                                : "border-gray-200 hover:border-purple-300"
-                                        }`}
-                                    >
-                                        <Printer className="w-8 h-8 mx-auto mb-2 text-purple-600" />
-                                        <p className="font-bold">Print Both Slips</p>
-                                        <p className="text-sm text-gray-600 mt-1">
-                                            One for child + One for parent
-                                        </p>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => setDeliveryMethod("print_sms")}
-                                        className={`p-6 border-2 rounded-lg transition-all ${
-                                            deliveryMethod === "print_sms"
-                                                ? "border-blue-500 bg-blue-50"
-                                                : "border-gray-200 hover:border-blue-300"
-                                        }`}
-                                    >
-                                        <Smartphone className="w-8 h-8 mx-auto mb-2 text-blue-600" />
-                                        <p className="font-bold">Print One + SMS</p>
-                                        <p className="text-sm text-gray-600 mt-1">
-                                            One for child + Text to parent
-                                        </p>
-                                    </button>
+                                <Label className="text-base font-semibold">Notification Channels</Label>
+                                <p className="text-sm text-gray-500 mb-3">How should the parent receive their check-in confirmation & code?</p>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                    {[
+                                        { key: "print_both", icon: Printer, label: "Print Both", sub: "Child + Parent slip", activeClass: "border-purple-500 bg-purple-50 text-purple-800" },
+                                        { key: "print_sms", icon: Smartphone, label: "Print + SMS", sub: "Label + Text parent", activeClass: "border-blue-500 bg-blue-50 text-blue-800" },
+                                        { key: "sms_only", icon: Smartphone, label: "SMS Only", sub: "Text code to parent", activeClass: "border-green-500 bg-green-50 text-green-800" },
+                                        { key: "email_sms", icon: QrCode, label: "SMS + Email", sub: "Both digital channels", activeClass: "border-amber-500 bg-amber-50 text-amber-800" },
+                                    ].map(({ key, icon: Icon, label, sub, activeClass }) => (
+                                        <button
+                                            key={key}
+                                            type="button"
+                                            onClick={() => setDeliveryMethod(key)}
+                                            className={`p-4 border-2 rounded-lg transition-all text-center ${deliveryMethod === key ? activeClass : "border-gray-200 hover:border-purple-300"}`}
+                                        >
+                                            <Icon className="w-7 h-7 mx-auto mb-1" />
+                                            <p className="font-bold text-sm">{label}</p>
+                                            <p className="text-xs text-gray-500 mt-0.5">{sub}</p>
+                                        </button>
+                                    ))}
                                 </div>
                             </div>
 
