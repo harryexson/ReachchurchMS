@@ -273,6 +273,30 @@ REACH ChurchConnect Team`;
                                 placeholder="Dietary restrictions, accessibility needs, childcare requests, etc."
                             />
                         </div>
+
+                        {event.registration_fee > 0 && (
+                            <div className="space-y-2">
+                                <Label>Payment Method for ${event.registration_fee} fee</Label>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setPaymentMethod('card')}
+                                        className={`flex items-center justify-center gap-2 p-3 rounded-lg border-2 transition-all ${paymentMethod === 'card' ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-slate-200 text-slate-600'}`}
+                                    >
+                                        <CreditCard className="w-4 h-4" />
+                                        <span className="font-medium text-sm">Pay by Card</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setPaymentMethod('cash')}
+                                        className={`flex items-center justify-center gap-2 p-3 rounded-lg border-2 transition-all ${paymentMethod === 'cash' ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-slate-200 text-slate-600'}`}
+                                    >
+                                        <Banknote className="w-4 h-4" />
+                                        <span className="font-medium text-sm">Pay in Person</span>
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={handleClose} disabled={isSubmitting}>
