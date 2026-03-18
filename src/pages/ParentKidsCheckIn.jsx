@@ -415,14 +415,14 @@ export default function ParentKidsCheckInPage() {
                     <CardContent>
                         <div className="grid grid-cols-3 gap-3">
                             {[
-                                { key: 'sms', icon: Smartphone, label: 'SMS Text', color: 'green' },
-                                { key: 'email', icon: Mail, label: 'Email', color: 'blue' },
-                                { key: 'in_app', icon: MessageSquare, label: 'In-App', color: 'purple' }
-                            ].map(({ key, icon: Icon, label, color }) => (
+                                { key: 'sms', icon: Smartphone, label: 'SMS Text', activeClass: 'border-green-500 bg-green-50 text-green-700' },
+                                { key: 'email', icon: Mail, label: 'Email', activeClass: 'border-blue-500 bg-blue-50 text-blue-700' },
+                                { key: 'in_app', icon: MessageSquare, label: 'In-App', activeClass: 'border-purple-500 bg-purple-50 text-purple-700' }
+                            ].map(({ key, icon: Icon, label, activeClass }) => (
                                 <button
                                     key={key}
                                     onClick={() => toggleChannel(key)}
-                                    className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${deliveryChannels[key] ? `border-${color}-500 bg-${color}-50 text-${color}-700` : 'border-slate-200 text-slate-400'}`}
+                                    className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${deliveryChannels[key] ? activeClass : 'border-slate-200 text-slate-400'}`}
                                 >
                                     <Icon className="w-5 h-5" />
                                     <span className="text-xs font-medium">{label}</span>
