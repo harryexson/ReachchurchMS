@@ -7,13 +7,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Coffee, ShoppingCart, Plus, Minus, Check, Mail, Phone, Printer } from "lucide-react";
+import { Coffee, ShoppingCart, Plus, Minus, Check, Mail, Phone, Printer, CreditCard, Banknote } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import PrintPreview from "../components/printing/PrintPreview";
 import { LabelTemplates } from "../components/printing/LabelTemplates";
+import { createOneTimePayment } from "@/functions/createOneTimePayment";
 
 export default function CoffeeShopKioskPage() {
     const [products, setProducts] = useState([]);
