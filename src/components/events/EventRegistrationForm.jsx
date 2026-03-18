@@ -24,6 +24,7 @@ export default function EventRegistrationForm({ event, isOpen, setIsOpen, onRegi
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
     const [registrationCode, setRegistrationCode] = useState("");
+    const [paymentMethod, setPaymentMethod] = useState('card');
 
     const handleChange = (e) => {
         const { name, value } = e.target;
