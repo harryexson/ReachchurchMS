@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 
 Deno.serve(async (req) => {
     const requestId = Date.now().toString(36);
@@ -8,7 +8,7 @@ Deno.serve(async (req) => {
         const base44 = createClientFromRequest(req);
         const body = await req.json();
 
-        const { phone, child_name, check_in_code, event_title, qr_code_url } = body;
+        const { phone, child_name, check_in_code, event_title, qr_code_url, church_name } = body;
 
         if (!phone || !child_name || !check_in_code) {
             return Response.json({ success: false, error: 'Missing required fields: phone, child_name, check_in_code' }, { status: 400 });
@@ -17,12 +17,18 @@ Deno.serve(async (req) => {
         let cleanPhone = phone.replace(/\D/g, '');
         if (cleanPhone.length === 10) cleanPhone = '1' + cleanPhone;
 
-        const message = `✅ ${child_name} checked in for ${event_title || 'Kids Ministry'}
+        const from = church_name ? `${church_name} - Children's Church` : "Children's Church";
 
-Your pick-up code: ${check_in_code}
-${qr_code_url ? `\nView QR code: ${qr_code_url}` : ''}
+        const message = `👶 ${from}
 
-Present this code at check-out. 🙏`;
+✅ ${child_name} is checked in for ${event_title || 'Kids Ministry'}!
+
+🔑 Pick-Up Code: ${check_in_code}
+${qr_code_url ? `\n📱 QR Code: ${qr_code_url}` : ''}
+
+Show this code to staff at checkout. God bless! 🙏
+
+This is an automated message from your church's Children's Ministry.`;
 
         console.log(`[${requestId}] Sending via SignalHouse to: +${cleanPhone}`);
 
