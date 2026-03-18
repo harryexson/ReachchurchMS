@@ -918,6 +918,11 @@ export default function Layout({ children, currentPageName }) {
       url: createPageUrl("MyOrders"),
       icon: ShoppingCart,
     },
+    {
+      title: "Kids Check-In",
+      url: createPageUrl("ParentKidsCheckIn"),
+      icon: Baby,
+    },
     ], []);
 
   const pages = React.useMemo(() => {
