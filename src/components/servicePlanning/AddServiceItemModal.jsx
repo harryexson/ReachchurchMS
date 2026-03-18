@@ -81,20 +81,29 @@ export default function AddServiceItemModal({ servicePlanId, editingItem, nextOr
                 onChange={(e) => setFormData({ ...formData, item_type: e.target.value })}
                 className="w-full px-3 py-2 border rounded-lg"
               >
-                <option value="song">Song</option>
-                <option value="prayer">Prayer</option>
-                <option value="sermon">Sermon</option>
-                <option value="offering">Offering</option>
-                <option value="announcement">Announcement</option>
-                <option value="scripture_reading">Scripture Reading</option>
-                <option value="communion">Communion</option>
-                <option value="baptism">Baptism</option>
-                <option value="special_music">Special Music</option>
-                <option value="video">Video</option>
-                <option value="testimony">Testimony</option>
-                <option value="children_dismissal">Children Dismissal</option>
-                <option value="greeting">Greeting</option>
-                <option value="benediction">Benediction</option>
+                <option value="welcoming_visitors">🤝 Welcoming Visitors</option>
+                <option value="announcements">📢 Announcements</option>
+                <option value="opening_prayer">🙏 Opening Prayer</option>
+                <option value="praise_worship">🎵 Praise & Worship</option>
+                <option value="song">🎶 Song</option>
+                <option value="scripture_reading">📖 Scripture Reading</option>
+                <option value="prayer">🙏 Prayer</option>
+                <option value="intercessory_prayer">✝️ Intercessory Prayer</option>
+                <option value="tithes_collection">💰 Tithes Collection</option>
+                <option value="offering">🙌 Offering</option>
+                <option value="financial_stewardship">💵 Financial Stewardship</option>
+                <option value="testimony">🗣️ Testimony</option>
+                <option value="sermon">📖 Sermon / Message</option>
+                <option value="altar_call">🔔 Altar Call</option>
+                <option value="prophetic_moment">⚡ Prophetic Moment</option>
+                <option value="communion">🍞 Communion</option>
+                <option value="baptism">💧 Baptism</option>
+                <option value="special_music">🎤 Special Music</option>
+                <option value="video">🎬 Video</option>
+                <option value="children_dismissal">👶 Children Dismissal</option>
+                <option value="greeting">👋 Greeting/Welcome</option>
+                <option value="benediction">✌️ Benediction/Closing</option>
+                <option value="other">Other</option>
               </select>
             </div>
 

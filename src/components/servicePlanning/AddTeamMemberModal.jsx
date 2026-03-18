@@ -51,21 +51,52 @@ export default function AddTeamMemberModal({ servicePlanId, onClose, onSuccess }
               onChange={(e) => setFormData({ ...formData, position_name: e.target.value })}
               className="w-full px-3 py-2 border rounded-lg"
             >
-              <option value="worship_leader">Worship Leader</option>
-              <option value="vocals">Vocals</option>
-              <option value="guitar">Guitar</option>
-              <option value="bass">Bass</option>
-              <option value="drums">Drums</option>
-              <option value="keyboard">Keyboard/Piano</option>
-              <option value="sound_tech">Sound Tech</option>
-              <option value="video_tech">Video Tech</option>
-              <option value="lights">Lighting</option>
-              <option value="greeter">Greeter</option>
-              <option value="usher">Usher</option>
-              <option value="communion_server">Communion Server</option>
-              <option value="prayer_team">Prayer Team</option>
-              <option value="kids_ministry">Kids Ministry</option>
-              <option value="parking_team">Parking Team</option>
+              <optgroup label="Welcome & Hospitality">
+                <option value="visitor_welcome">Visitor Welcome Host</option>
+                <option value="greeter">Greeter</option>
+                <option value="usher">Usher</option>
+                <option value="hospitality">Hospitality</option>
+                <option value="parking_team">Parking Team</option>
+                <option value="security">Security</option>
+              </optgroup>
+              <optgroup label="Announcements & Admin">
+                <option value="announcer">Announcer</option>
+                <option value="emcee">Emcee / MC</option>
+              </optgroup>
+              <optgroup label="Prayer">
+                <option value="prayer_team">Prayer Team</option>
+                <option value="intercessor">Intercessor</option>
+              </optgroup>
+              <optgroup label="Praise & Worship">
+                <option value="worship_leader">Worship Leader</option>
+                <option value="praise_leader">Praise Leader</option>
+                <option value="choir_leader">Choir Leader</option>
+                <option value="vocals">Vocals</option>
+                <option value="guitar">Guitar</option>
+                <option value="bass">Bass</option>
+                <option value="drums">Drums</option>
+                <option value="keyboard">Keyboard/Piano</option>
+              </optgroup>
+              <optgroup label="Offering & Giving">
+                <option value="offering_coordinator">Offering Coordinator</option>
+              </optgroup>
+              <optgroup label="Scripture & Teaching">
+                <option value="scripture_reader">Scripture Reader</option>
+                <option value="testimony_speaker">Testimony Speaker</option>
+              </optgroup>
+              <optgroup label="Technical">
+                <option value="sound_tech">Sound Tech</option>
+                <option value="video_tech">Video Tech</option>
+                <option value="media_operator">Media Operator</option>
+                <option value="lights">Lighting</option>
+              </optgroup>
+              <optgroup label="Children">
+                <option value="kids_ministry">Kids Ministry</option>
+              </optgroup>
+              <optgroup label="Sacraments">
+                <option value="communion_server">Communion Server</option>
+              </optgroup>
+              <option value="other">Other (Custom)</option>
             </select>
           </div>
 
